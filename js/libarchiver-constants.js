@@ -30,7 +30,7 @@ const TIME_IDS = {
 const TIME_AXIS_PREFERENCES = [
 	{ // 1 year
 		unit : "month",
-		unitStepSize: 1,
+		unitStepSize: 2,
 		milliseconds:   365 * 24 * 3600 * 1000,
 	},
 	{ // 1 month
@@ -70,12 +70,12 @@ const TIME_AXIS_PREFERENCES = [
 	},
 	{ // 8 hours
 		unit : "hour",
-		unitStepSize: 1,
+		unitStepSize: 2,
 		milliseconds:  8 * 3600 * 1000,
 	},
 	{ // 4 hours
 		unit : "hour",
-		unitStepSize: 1,
+		unitStepSize: 2,
 		milliseconds:  4 * 3600 * 1000,
 	},
 	{ // 2 hours
@@ -95,7 +95,7 @@ const TIME_AXIS_PREFERENCES = [
 	},
 	{ // 10 minutes
 		unit : "minute",
-		unitStepSize: 1,
+		unitStepSize: 2,
 		milliseconds: 10 * 60 * 1000,
 	},
 	{ // 5 minutes
