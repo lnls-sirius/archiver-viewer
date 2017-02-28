@@ -1,18 +1,68 @@
-var KEY_ENTER = 13;
+const KEY_ENTER = 13;
 const ARCHIVER_URL = "http://localhost:11998";
 const RETRIEVAL = "/retrieval";
 const MGMT = "/mgmt";
-
 const PV_PER_ROW = 4;
 
-function pad_with_zeroes(number, length) {
+const SCALE_DEFAULTS = Chart.defaults.scale
 
-	var my_string = '' + number;
-	while (my_string.length < length) {
-		my_string = '0' + my_string;
+const TIME_AXIS_ID = "x-axis-0"
+	
+function addDataset(c_chart, pv_name, pv_data) {
+
+	var all = [];
+	var _data = pv_data[0].data;
+	
+	for (i = 0; i < _data.length; i++) {
+
+		var _x = new Date(0);
+		_x.setUTCSeconds(_data[i].secs + _data[i].nanos * 1e-9);
+	
+		var elem = {
+				x : _x, 
+				y : _data[i].val
+		}
+		
+		all.push(elem);
 	}
+		
+	addYAxis(c_chart, pv_name)
+	
+	c_chart.data.datasets.push({
 
-	return my_string;
+		label : pv_name,
+		xAxisID: TIME_AXIS_ID,
+		yAxisID: pv_name,
+		data : all,
+		showLine : true,
+		steppedLine : true,
+		fill : false,
+		backgroundColor : "rgb(" + getRandomInt(0, 255) + "," + getRandomInt(0, 255) + "," + getRandomInt(0, 255) + ")",
+	});
+
+	c_chart.update();
+}
+
+function addYAxis(c_chart, n_id) {
+
+	var scaleOptions =  jQuery.extend(true, {}, SCALE_DEFAULTS)
+
+	scaleOptions.type = "linear";
+	scaleOptions.position = "left";
+	scaleOptions.id = n_id;
+
+	var scaleClass = Chart.scaleService.getScaleConstructor("linear");
+
+	var n_scale = new scaleClass({
+		id: n_id,
+		options: scaleOptions,
+		ctx: c_chart.chart.ctx,
+		chart: c_chart
+	});
+
+	c_chart.scales[n_id] = n_scale;		
+
+	Chart.layoutService.addBox(c_chart, n_scale);
 
 }
 
@@ -24,12 +74,12 @@ function click_handler(e) {
 	if (offset > 0)
 		sign = '-';
 
-	var hours = offset/60
-	var minutes = offset % 60
+	var hours = offset/60;
+	var minutes = offset % 60;
 
-	var pv = e.target.innerText
+	var pv = e.target.innerText;
 
-	var jsonurl = ARCHIVER_URL + RETRIEVAL +'/data/getData.json?pv=' + pv + "&from=2017-02-24T14:50:00.000" + sign + pad_with_zeroes(hours, 2) + ":" + pad_with_zeroes(minutes, 2)
+	var jsonurl = ARCHIVER_URL + RETRIEVAL +'/data/getData.json?pv=' + pv + "&from=2017-02-24T14:50:00.000" + sign + pad_with_zeroes(hours, 2) + ":" + pad_with_zeroes(minutes, 2);
 
 	var components = jsonurl.split('?');
 	var urlalone = components[0];
@@ -61,14 +111,15 @@ function click_handler(e) {
 					data_y.push(data[0].data[i].val);
 				}
 
-				line_viewer.options.scales.xAxes[0].type = 'time'
-					line_viewer.options.scales.xAxes[0].time =  {
+				viewer.options.scales.xAxes[0].type = 'time';
+				viewer.options.scales.xAxes[0].time =  {
 						displayFormats: {
 							quarter: 'MMM YYYY'
-						}}
+						}
+				};
 
-				line_viewer.data.labels = data_x;
-				line_viewer.data.datasets.push({
+				viewer.data.labels = data_x;
+				viewer.data.datasets.push({
 
 					data : data_y,
 					showLine : false,
@@ -76,32 +127,30 @@ function click_handler(e) {
 
 				});
 
-				line_viewer.update()
+				viewer.update();
 				$('#archived_PVs').hide();
-				$(document.body).children().css('opacity', '1.0')
-
+				$(document.body).children().css('opacity', '1.0');
 			}
-
 		},
 		error: function(xmlHttpRequest, textStatus, errorThrown) {
 			alert("Connection failed with " + xmlHttpRequest + " -- " + textStatus + " -- " + errorThrown);
 		}
 	});
-
-
 }
 
 $('#PV').keypress(function (key) {
 
 	if (key.which == KEY_ENTER) {
 
-		var jsonurl = ARCHIVER_URL + RETRIEVAL +'/bpl/getMatchingPVs?pv=' + $('#PV').val() + "&limit=4000"
-		var components = jsonurl.split('?')
-		var urlalone = components[0]
-		var querystring = ''
+		var jsonurl = ARCHIVER_URL + RETRIEVAL +'/bpl/getMatchingPVs?pv=' + $('#PV').val() + "&limit=4000";
+		var components = jsonurl.split('?');
+		var urlalone = components[0];
+
+		var querystring = '';
 			if(components.length > 1) {
 				querystring = components[1];
 			}
+			
 		var HTTPMethod = 'GET';
 		if(jsonurl.length > 2048) {
 			HTTPMethod = 'POST';
@@ -126,8 +175,8 @@ $('#PV').keypress(function (key) {
 							row.appendTo($("#table_PVs"));
 						}
 
-						$('<td></td>').attr('id', 'pv' + i).text(data[i]).appendTo(row)
-						$('#pv' + i).click(click_handler)
+						$('<td></td>').attr('id', 'pv' + i).text(data[i]).appendTo(row);
+						$('#pv' + i).click(click_handler);
 
 					}
 
@@ -143,41 +192,10 @@ $('#PV').keypress(function (key) {
 			}
 		});
 	}
-
 });
 
+var viewer = new Chart($("#archiver_viewer"), {
 
-
-var data_test = {
-		labels: ["January", "February", "March", "April", "May", "June", "July"],
-		datasets: [
-			{
-				label: "My First dataset",
-				fill: false,
-				lineTension: 0.1,
-				backgroundColor: "rgba(75,192,192,0.4)",
-				borderColor: "rgba(75,192,192,1)",
-				borderCapStyle: 'butt',
-				borderDash: [],
-				borderDashOffset: 0.0,
-				borderJoinStyle: 'miter',
-				pointBorderColor: "rgba(75,192,192,1)",
-				pointBackgroundColor: "#fff",
-				pointBorderWidth: 1,
-				pointHoverRadius: 5,
-				pointHoverBackgroundColor: "rgba(75,192,192,1)",
-				pointHoverBorderColor: "rgba(220,220,220,1)",
-				pointHoverBorderWidth: 2,
-				pointRadius: 1,
-				pointHitRadius: 10,
-				data: [65, 59, 80, 81, 56, 55, 40],
-				spanGaps: false,
-			}
-			]
-};
-
-var line_viewer = new Chart($("#archiver_viewer"), {
-	
 	type: 'line',
 	data: [],
 	options: {
@@ -186,59 +204,63 @@ var line_viewer = new Chart($("#archiver_viewer"), {
 			mode: 'nearest',
 			intersect: false
 		},
-		
-		
+
 		hover: {
 			mode: 'nearest',
 			intersect: false
 		},
-		
+
 		title: {
 			display: true,
 			text: "Exemplo",
 		},
-		
+
 		scales: {
-	        xAxes: [{
-	            type: 'time',
-	            time: {
-	            	unit: 'hour',
-	                displayFormats: {
-	                    minute: 'HH:mm:ss'
-	                }
-	            }
-	        }],
-				yAxes: [{
-					type: "linear", // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
-					display: true,
-					position: "left",
-					id: "y-axis-1"
-				}, 
-//				{
-//					type: "linear", // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
-//					display: true,
-//					position: "right",
-//					id: "y-axis-2",
-//				}
-				],
+			xAxes: [{
+				// Common x axis
+				type: 'time',
+				time: {
+					unit: 'minute',
+					unitStepSize: 10,
+					displayFormats: {
+						minute: 'HH:mm:ss'
+					}
+				}
+			}],
+			yAxes: [{
+				// Useless YAxis
+				type: "linear",
+				display: false,
+				position: "left",
+				id: "y-axis-0"
+			}],
 		},
 
-		responsive: true,
 		maintainAspectRatio: false,		
 	}
-
 });
-
 
 $(document).click(function(e) {
 
 	if( e.target.id != 'archived_PVs' && !$('#archived_PVs').find(e.target).length) {
 		$('#archived_PVs').hide();
-		$(document.body).children().css('opacity', '1.0')
-
+		$(document.body).children().css('opacity', '1.0');
 	}
 });
 
+// Auxiliary functions 
+
+function pad_with_zeroes(number, length) {
+
+	var my_string = '' + number;
+	while (my_string.length < length) {
+		my_string = '0' + my_string;
+	}
+
+	return my_string;
+}
 
 
-
+function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
