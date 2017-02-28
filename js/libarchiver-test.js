@@ -33,10 +33,10 @@ data_gps_fix = [
 
 $(document).ready(function () {
 
-	viewer.options.scales.xAxes[0].time.unit = "minute"
-	viewer.options.scales.xAxes[0].time.unitStepSize = 10
+
+	setEndTime(new Date(), true);
 	
-	addDataset(viewer, "Cont:LNLS191:NTP:Offset", data_offset);
+	addDataset(viewer, data_offset);
 	
-	addDataset(viewer, "Cont:LNLS191:GPS:Fix", data_gps_fix);
+	addDataset(viewer, data_gps_fix);
 });

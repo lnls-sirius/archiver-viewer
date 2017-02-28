@@ -18,7 +18,7 @@
 </div>
 
 <div id="window_size">
-<table>
+<table id="window_table">
 <tr>
 	<td class="unpushed">1 year</td>
 	<td class="unpushed">1 month</td>
@@ -33,14 +33,18 @@
 	<td class="unpushed">2h</td>
 	<td class="unpushed">1h</td>
 	<td class="unpushed">30m</td>
-	<td class="unpushed">10m</td>
+	<td class="pushed">10m</td>
 	<td class="unpushed">5m</td>
 	<td class="unpushed">1m</td>
-	<td class="pushed">30s</td>
+	<td class="unpushed">30s</td>
 </tr>
 </table>
 </div>
 
+<div id="date">
+End time: <input type="date" class="date" id="day"> <input type="text" class="hh" id="hour"> : <input type="text" class="hh" id="minute"> : <input type="text" class="hh" id="second"> 
+<span class="now">NOW</span>  <span class="backward"><</span> <span class="forward">></span>
+</div> 
 
 <div id="canvas_area">
     <canvas id="archiver_viewer" width="450" height="450"></canvas>
@@ -54,6 +58,7 @@
 
 <script type="text/javascript" src="js/jquery-3.1.1.min.js"></script>
 <script type="text/javascript" src="js/Chart.bundle.js"></script>
+<script type="text/javascript" src="js/libarchiver-constants.js"></script>
 <script type="text/javascript" src="js/libarchiver.js"></script>
 <script type="text/javascript" src="js/libarchiver-test.js"></script>
 

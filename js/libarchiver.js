@@ -1,15 +1,59 @@
-const KEY_ENTER = 13;
-const ARCHIVER_URL = "http://localhost:11998";
-const RETRIEVAL = "/retrieval";
-const MGMT = "/mgmt";
-const PV_PER_ROW = 4;
+var global_settings = {
+		window_time : TIME_IDS.MIN_10,
+		plotted_data: [],
+}
 
-const SCALE_DEFAULTS = Chart.defaults.scale
+var dragging = {
+		isDragging : false,
+}
 
-const TIME_AXIS_ID = "x-axis-0"
+function setEndTime(date, updateHtml) {
 	
-function addDataset(c_chart, pv_name, pv_data) {
+	if (updateHtml == undefined || updateHtml == null)
+		updateHtml = false;
+	
+	global_settings.end_time = date;
+	
+	if (updateHtml) {
+		
+		$("#day").val(pad_with_zeroes(date.getDate(), 2) + "/" + pad_with_zeroes(date.getMonth()+1, 2) + "/" + date.getFullYear());
+		$("#hour").val(pad_with_zeroes(date.getHours(), 2))
+		$("#minute").val(pad_with_zeroes(date.getMinutes(), 2))
+		$("#second").val(pad_with_zeroes(date.getSeconds(), 2))
+	}
+}
 
+function changeWindowSize(e) {
+	
+	if (e.target.className == "unpushed") {
+		
+		$('#window_table tr').eq(0).find('td').eq(global_settings.window_time)[0].className = "unpushed";
+		
+		e.target.className = "pushed";
+
+		global_settings.window_time = e.target.cellIndex;
+		
+		changeTimeScale(viewer, global_settings.window_time);		
+	}
+}
+
+function changeTimeScale(chart, new_index) {
+	
+	chart.options.scales.xAxes[TIME_AXIS_INDEX].time.unit = TIME_AXIS_PREFERENCES[new_index].unit;
+	chart.options.scales.xAxes[TIME_AXIS_INDEX].time.unitStepSize = TIME_AXIS_PREFERENCES[new_index].unitStepSize;
+	
+	chart.options.scales.xAxes[TIME_AXIS_INDEX].time.min = new Date(global_settings.end_time.getTime() - TIME_AXIS_PREFERENCES[new_index].milliseconds);
+	chart.options.scales.xAxes[TIME_AXIS_INDEX].time.max = global_settings.end_time;
+	
+	console.log (new Date(global_settings.end_time.getTime() - TIME_AXIS_PREFERENCES[new_index].milliseconds));
+	
+	chart.update();
+}
+
+function addDataset(c_chart, pv_data) {
+
+	const pv_name = pv_data[0].meta.name;
+	
 	var all = [];
 	var _data = pv_data[0].data;
 	
@@ -17,13 +61,11 @@ function addDataset(c_chart, pv_name, pv_data) {
 
 		var _x = new Date(0);
 		_x.setUTCSeconds(_data[i].secs + _data[i].nanos * 1e-9);
-	
-		var elem = {
-				x : _x, 
-				y : _data[i].val
-		}
 		
-		all.push(elem);
+		all.push({
+			x : _x, 
+			y : _data[i].val
+		});
 	}
 		
 	addYAxis(c_chart, pv_name)
@@ -101,33 +143,8 @@ function click_handler(e) {
 
 			if (textStatus == "success" && data[0].data.length > 0) {
 
-				var data_x = [],  data_y = [];
-				for (i = 0; i < data[0].data.length; i++) {
-
-					var d = new Date(0);
-					d.setUTCSeconds(data[0].data[i].secs);
-
-					data_x.push(moment(data[0].data[i].secs));
-					data_y.push(data[0].data[i].val);
-				}
-
-				viewer.options.scales.xAxes[0].type = 'time';
-				viewer.options.scales.xAxes[0].time =  {
-						displayFormats: {
-							quarter: 'MMM YYYY'
-						}
-				};
-
-				viewer.data.labels = data_x;
-				viewer.data.datasets.push({
-
-					data : data_y,
-					showLine : false,
-					steppedLine : true
-
-				});
-
-				viewer.update();
+				addDataset(viewer, data);
+				
 				$('#archived_PVs').hide();
 				$(document.body).children().css('opacity', '1.0');
 			}
@@ -223,7 +240,7 @@ var viewer = new Chart($("#archiver_viewer"), {
 					unit: 'minute',
 					unitStepSize: 10,
 					displayFormats: {
-						minute: 'HH:mm:ss'
+						minute: 'HH:mm'
 					}
 				}
 			}],
@@ -238,6 +255,94 @@ var viewer = new Chart($("#archiver_viewer"), {
 
 		maintainAspectRatio: false,		
 	}
+});
+
+
+$("#archiver_viewer")
+.mousedown(function(evt) {
+	dragging.isDragging = false;
+	dragging.mouseDown = true;
+	dragging.x = evt.offsetX;
+})
+.mousemove(function(evt) {
+	dragging.isDragging = true;
+	
+	if (dragging.mouseDown) {
+	
+		var offset_x = dragging.x - evt.offsetX,
+			new_date = new Date(global_settings.end_time.getTime() + offset_x * TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds / (viewer.chart.width) );
+		
+		dragging.x = evt.offsetX;
+		
+		setEndTime(new_date, true);
+		
+		changeTimeScale(viewer, global_settings.window_time);
+	}
+ })
+.mouseup(function(evt) {
+	dragging.isDragging = false;
+	dragging.mouseDown = false;
+});
+
+$("#archiver_viewer").on('click', function (evt) {
+	
+	if (!dragging.isDragging) {
+		
+		var event = viewer.getElementAtEvent(evt);
+		
+		if (event != undefined && event.length > 0) {
+		
+			var	dataset_index = event[0]._datasetIndex,
+				index = event[0]._index,
+				event_data = viewer.data.datasets[dataset_index].data[index].x,
+				d = new Date(event_data.getTime() + TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds / 2);
+		
+			//setEndTime(d, true);
+			setEndTime(event_data, true);
+			
+			changeTimeScale(viewer, global_settings.window_time);
+		}
+	}
+});
+
+$("#window_size table tr td").on("click", changeWindowSize);
+
+$("#date .now").on("click", function (e) {
+	
+	setEndTime(new Date(), true);
+	
+	changeTimeScale(viewer, global_settings.window_time);
+});
+
+$("#date .backward").on("click", function (e) {
+	
+	setEndTime(new Date(global_settings.end_time.getTime() - TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds), true);
+	
+	changeTimeScale(viewer, global_settings.window_time);
+});
+
+$("#date .forward").on("click", function (e) {
+	
+	setEndTime(new Date(global_settings.end_time.getTime() + TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds), true);
+	
+	changeTimeScale(viewer, global_settings.window_time);
+});
+
+$("#date").on('change', 'input', function (e) {
+	
+	var date = $("#day").val().split("/"),
+	day = parseInt(date[0]),
+	month = parseInt(date[1]) - 1,
+	year = parseInt(date[2]),
+	hours = parseInt($("#hour").val()),
+	minutes = parseInt($("#minute").val()),
+	seconds = parseInt($("#second").val()),
+	
+	new_date = new Date(year,month, day, hours, minutes, seconds, 0);
+	
+	setEndTime(new_date, false);
+	
+	changeTimeScale(viewer, global_settings.window_time);
 });
 
 $(document).click(function(e) {
