@@ -32,12 +32,54 @@
 	
 	position: relative;
 	
-	top: 15px;
+	top: 35px;
 	width: 95%;
 	
 	padding-left: 2.5%;
 	
 }
+
+#window_size {
+	
+	position: relative;
+	top: 30px;
+	
+	left: 15%;
+	width: 70%;
+}
+
+#window_size table {
+	width: 100%;
+}
+
+#window_size table tr td {
+
+	font-family: "Helvetica Neue", "Helvetica", "Arial", "sans-serif";
+	font-size: 12px;
+	
+	text-align: center;
+	
+	width: 5.8%;	
+	
+	border-width: 1px;
+	border-style: solid;
+	border-color: lightgrey;
+	
+	color: #666;
+	
+	cursor: pointer;
+}
+
+#window_size table tr td.unpushed {
+	background-color: white;
+	
+}
+
+#window_size table tr td.pushed {
+	background-color: lightgray;
+}
+
+
 
 #archived_PVs {
 
