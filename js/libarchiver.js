@@ -85,7 +85,7 @@ function addDataset(c_chart, pv_data) {
 
 	global_settings.plotted_data.push({
 		pv : pv_name,
-		data : new_dataset
+		data : new_dataset,
 	});
 	
 	c_chart.data.datasets.push(new_dataset);
@@ -179,7 +179,7 @@ function updateAllPlots() {
 function updatePlot(pv_index) {
 
 	var 	min = new Date(global_settings.end_time - TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds),
-		first = global_settings.plotted_data[pv_index].data.data[0].x
+		first = global_settings.plotted_data[pv_index].data.data[0].x,
 		last = global_settings.plotted_data[pv_index].data.data[global_settings.plotted_data[pv_index].data.data.length - 1].x;
 	
 	// we need to append data to the beginning of the data set
@@ -203,7 +203,18 @@ function updatePlot(pv_index) {
 		
 		Array.prototype.unshift.apply(global_settings.plotted_data[pv_index].data.data, all);
 	}
+	// we can remove unnecessary data to save memory and improve performance
+	else {
+
+		var i = 0;
+		while (global_settings.plotted_data[pv_index].data.data[i].x.getTime() < min.getTime() - TIME_OFFSET_ALLOWED){
+			global_settings.plotted_data[pv_index].data.data.shift();
+			i++;
+		}
+	}
 	
+
+	// we need to append data to the end of the data set
 	if (last.getTime() < global_settings.end_time.getTime()) {
 		
 		var new_data = requestData(global_settings.plotted_data[pv_index].pv, last, global_settings.end_time)[0].data;
@@ -223,6 +234,15 @@ function updatePlot(pv_index) {
 		}
 		
 		Array.prototype.push.apply(global_settings.plotted_data[pv_index].data.data, all);
+	} 
+	// we can remove unnecessary data to save memory and improve performance
+	else {
+		
+		var i = 0;
+		while (global_settings.plotted_data[pv_index].data.data[i].x.getTime() > global_settings.end_time.getTime() + TIME_OFFSET_ALLOWED) {
+			global_settings.plotted_data[pv_index].data.data.pop();
+			i++;
+		}
 	}
 }
 
@@ -403,6 +423,8 @@ $("#archiver_viewer").on('click', function (evt) {
 			
 			updateTimeScale(viewer, global_settings.window_time);
 
+			updateAllPlots();
+
 			viewer.update();
 		}
 	}
@@ -472,6 +494,7 @@ $(document).click(function(e) {
 
 $(document).ready(function () {
 
+	ARCHIVER_URL = window.location.origin;
 
 	setEndTime(new Date(), true);
 

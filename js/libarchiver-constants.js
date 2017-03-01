@@ -1,11 +1,12 @@
 const KEY_ENTER = 13;
-const ARCHIVER_URL = "http://localhost:11998";
+var ARCHIVER_URL = "http://localhost:11998";
 const RETRIEVAL = "/retrieval";
 const MGMT = "/mgmt";
 const PV_PER_ROW = 4;
 const SCALE_DEFAULTS = Chart.defaults.scale
 const TIME_AXIS_ID = "x-axis-0"
 const TIME_AXIS_INDEX = 0
+const TIME_OFFSET_ALLOWED = 10 * 60 * 1000 
 
 const TIME_IDS = {
 	YEAR : 0,
