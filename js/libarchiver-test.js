@@ -31,12 +31,12 @@ data_gps_fix = [
 		{ "secs": 1488201165, "val": 3, "nanos": 63143586, "severity":0, "status":0 }] }
 		 ];
 
-$(document).ready(function () {
+//$(document).ready(function () {
 
 
-	setEndTime(new Date(), true);
+//	setEndTime(new Date(), true);
 	
-	addDataset(viewer, data_offset);
+//	addDataset(viewer, data_offset);
 	
-	addDataset(viewer, data_gps_fix);
-});
+//	addDataset(viewer, data_gps_fix);
+//});

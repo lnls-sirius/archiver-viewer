@@ -34,7 +34,11 @@ function changeWindowSize(e) {
 
 		global_settings.window_time = e.target.cellIndex;
 		
-		updateTimeScale(viewer, global_settings.window_time);		
+		updateAllPlots();
+
+		updateTimeScale(viewer, global_settings.window_time);	
+		
+		viewer.update()
 	}
 }
 
@@ -45,8 +49,6 @@ function updateTimeScale(chart, new_index) {
 	
 	chart.options.scales.xAxes[TIME_AXIS_INDEX].time.min = new Date(global_settings.end_time.getTime() - TIME_AXIS_PREFERENCES[new_index].milliseconds);
 	chart.options.scales.xAxes[TIME_AXIS_INDEX].time.max = global_settings.end_time;
-	
-	chart.update();
 }
 
 function addDataset(c_chart, pv_data) {
@@ -87,8 +89,6 @@ function addDataset(c_chart, pv_data) {
 	});
 	
 	c_chart.data.datasets.push(new_dataset);
-	
-	c_chart.update();
 }
 
 function addYAxis(c_chart, n_id) {
@@ -141,6 +141,8 @@ function requestData(pv, from, to) {
 		data: querystring,
 		type: HTTPMethod,
 		dataType: 'json',
+		async: false,
+		timeout: 5000,
 		success: function(data, textStatus, jqXHR) {
 
 			if (textStatus == "success")
@@ -166,9 +168,67 @@ function isAlreadyPlotted(pv_name) {
 	return null;
 }
 
+function updateAllPlots() {
+
+	var i;
+	for (i = 0; i < global_settings.plotted_data.length; i++)
+		updatePlot(i);
+
+}
+
+function updatePlot(pv_index) {
+
+	var 	min = new Date(global_settings.end_time - TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds),
+		first = global_settings.plotted_data[pv_index].data.data[0].x
+		last = global_settings.plotted_data[pv_index].data.data[global_settings.plotted_data[pv_index].data.data.length - 1].x;
+	
+	// we need to append data to the beginning of the data set
+	if (first.getTime() > min.getTime()) {
+		
+		var new_data = requestData(global_settings.plotted_data[pv_index].pv, min, first)[0].data;
+		
+		new_data.pop(); // remove last element, which is already in the dataset
+		
+		var all = [];
+		for (i = 0; i < new_data.length; i++) {
+
+			var _x = new Date(0);
+			_x.setUTCSeconds(new_data[i].secs + new_data[i].nanos * 1e-9);
+			
+			all.push({
+				x : _x, 
+				y : new_data[i].val
+			});
+		}
+		
+		Array.prototype.unshift.apply(global_settings.plotted_data[pv_index].data.data, all);
+	}
+	
+	if (last.getTime() < global_settings.end_time.getTime()) {
+		
+		var new_data = requestData(global_settings.plotted_data[pv_index].pv, last, global_settings.end_time)[0].data;
+		
+		new_data.shift();
+
+		var all = [];
+		for (i = 0; i < new_data.length; i++) {
+
+			var _x = new Date(0);
+			_x.setUTCSeconds(new_data[i].secs + new_data[i].nanos * 1e-9);
+			
+			all.push({
+				x : _x, 
+				y : new_data[i].val
+			});
+		}
+		
+		Array.prototype.push.apply(global_settings.plotted_data[pv_index].data.data, all);
+	}
+}
+
 function click_handler(e) {
 
-	var pv = e.target.innerText,
+	var 	pv = e.target.innerText,
 		pv_index = isAlreadyPlotted(pv);
 	
 	if (pv_index == null) {
@@ -178,58 +238,12 @@ function click_handler(e) {
 	
 		addDataset(viewer, data);
 		
-	} else {
-		
-		var min = new Date(global_settings.end_time - TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds),
-			first = global_settings.plotted_data[pv_index].data[0].x
-			last = global_settings.plotted_data[pv_index].data[global_settings.plotted_data[pv_index].length - 1].x;
-		
-		// we need to append data to the beginning of the data set
-		if (first.getTime() > min.getTime()) {
-			
-			var new_data = requestData(pv, min, first)[0].data;
-			
-			new_data.pop(); // remove last element, which is already in the dataset
-			
-			var all = [];
-			for (i = 0; i < new_data.length; i++) {
-
-				var _x = new Date(0);
-				_x.setUTCSeconds(new_data[i].secs + new_data[i].nanos * 1e-9);
-				
-				all.push({
-					x : _x, 
-					y : new_data[i].val
-				});
-			}
-			
-			global_settings.plotted_data[pv_index].data.unshift(all);
-		}
-		
-		if (last.getTime() < global_settings.end_time.getTime()) {
-			
-			var new_data = requestData(pv, last, global_settings.end_time)[0].data;
-			
-			new_data.shift();
-
-			var all = [];
-			for (i = 0; i < new_data.length; i++) {
-
-				var _x = new Date(0);
-				_x.setUTCSeconds(new_data[i].secs + new_data[i].nanos * 1e-9);
-				
-				all.push({
-					x : _x, 
-					y : new_data[i].val
-				});
-			}
-			
-			global_settings.plotted_data[pv_index].data.push(all);
-		}
-		
-		viewer.update();
-	}
+	} else
+		updatePlot(pv_index);
 	
+	
+	viewer.update();
+
 	$('#archived_PVs').hide();
 	$(document.body).children().css('opacity', '1.0');
 }
@@ -295,6 +309,10 @@ var viewer = new Chart($("#archiver_viewer"), {
 	type: 'line',
 	data: [],
 	options: {
+		
+		animation: {
+			duration: 0,
+		},
 
 		tooltips: {
 			mode: 'nearest',
@@ -349,13 +367,17 @@ $("#archiver_viewer")
 	if (dragging.mouseDown) {
 	
 		var offset_x = dragging.x - evt.offsetX,
-			new_date = new Date(global_settings.end_time.getTime() + offset_x * TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds / (viewer.chart.width) );
+		new_date = new Date(global_settings.end_time.getTime() + offset_x * TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds / (viewer.chart.width) );
 		
 		dragging.x = evt.offsetX;
 		
 		setEndTime(new_date, true);
 		
 		updateTimeScale(viewer, global_settings.window_time);
+
+		updateAllPlots();
+
+		viewer.update();
 	}
  })
 .mouseup(function(evt) {
@@ -380,6 +402,8 @@ $("#archiver_viewer").on('click', function (evt) {
 			setEndTime(event_data, true);
 			
 			updateTimeScale(viewer, global_settings.window_time);
+
+			viewer.update();
 		}
 	}
 });
@@ -391,6 +415,10 @@ $("#date .now").on("click", function (e) {
 	setEndTime(new Date(), true);
 	
 	updateTimeScale(viewer, global_settings.window_time);
+
+	updateAllPlots();
+
+	viewer.update();
 });
 
 $("#date .backward").on("click", function (e) {
@@ -398,6 +426,10 @@ $("#date .backward").on("click", function (e) {
 	setEndTime(new Date(global_settings.end_time.getTime() - TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds), true);
 	
 	updateTimeScale(viewer, global_settings.window_time);
+
+	updateAllPlots();
+	
+	viewer.update();
 });
 
 $("#date .forward").on("click", function (e) {
@@ -405,6 +437,10 @@ $("#date .forward").on("click", function (e) {
 	setEndTime(new Date(global_settings.end_time.getTime() + TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds), true);
 	
 	updateTimeScale(viewer, global_settings.window_time);
+
+	updateAllPlots();
+
+	viewer.update();
 });
 
 $("#date").on('change', 'input', function (e) {
@@ -422,6 +458,8 @@ $("#date").on('change', 'input', function (e) {
 	setEndTime(new_date, false);
 	
 	updateTimeScale(viewer, global_settings.window_time);
+
+	viewer.update();
 });
 
 $(document).click(function(e) {
@@ -430,6 +468,17 @@ $(document).click(function(e) {
 		$('#archived_PVs').hide();
 		$(document.body).children().css('opacity', '1.0');
 	}
+});
+
+$(document).ready(function () {
+
+
+	setEndTime(new Date(), true);
+
+	updateTimeScale(viewer, global_settings.window_time);
+
+	viewer.update();
+	
 });
 
 // Auxiliary functions 
