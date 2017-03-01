@@ -46,8 +46,6 @@ function updateTimeScale(chart, new_index) {
 	chart.options.scales.xAxes[TIME_AXIS_INDEX].time.min = new Date(global_settings.end_time.getTime() - TIME_AXIS_PREFERENCES[new_index].milliseconds);
 	chart.options.scales.xAxes[TIME_AXIS_INDEX].time.max = global_settings.end_time;
 	
-	console.log (new Date(global_settings.end_time.getTime() - TIME_AXIS_PREFERENCES[new_index].milliseconds));
-	
 	chart.update();
 }
 
@@ -83,7 +81,7 @@ function addDataset(c_chart, pv_data) {
 		backgroundColor : "rgb(" + getRandomInt(0, 255) + "," + getRandomInt(0, 255) + "," + getRandomInt(0, 255) + ")",
 	};
 
-	global_settings.push({
+	global_settings.plotted_data.push({
 		pv : pv_name,
 		data : new_dataset
 	});
