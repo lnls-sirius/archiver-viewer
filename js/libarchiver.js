@@ -1,3 +1,5 @@
+var viewer;
+
 var global_settings = {
 		window_time : TIME_IDS.MIN_10,
 		
@@ -12,8 +14,14 @@ function setEndTime(date, updateHtml) {
 	
 	if (updateHtml == undefined || updateHtml == null)
 		updateHtml = false;
+
+	var now = new Date();	
+
+	if (date.getTime() <= now.getTime())
+		global_settings.end_time = date;
+	else 
+		global_settings.end_time = now;
 	
-	global_settings.end_time = date;
 	
 	if (updateHtml) {
 		
@@ -55,21 +63,9 @@ function addDataset(c_chart, pv_data) {
 
 	const pv_name = pv_data[0].meta.name;
 	
-	var all = [];
-	var _data = pv_data[0].data;
-	
-	for (i = 0; i < _data.length; i++) {
-
-		var _x = new Date(0);
-		_x.setUTCSeconds(_data[i].secs + _data[i].nanos * 1e-9);
+	var all = parseData(pv_data[0].data);
 		
-		all.push({
-			x : _x, 
-			y : _data[i].val
-		});
-	}
-		
-	addYAxis(c_chart, pv_name)
+	addYAxis(c_chart, pv_name, parseInt(pv_data[0].meta.PREC))
 	
 	var new_dataset = {
 
@@ -91,14 +87,25 @@ function addDataset(c_chart, pv_data) {
 	c_chart.data.datasets.push(new_dataset);
 }
 
-function addYAxis(c_chart, n_id) {
+function addYAxis(c_chart, n_id, ticks_precision) {
 
 	var scaleOptions =  jQuery.extend(true, {}, SCALE_DEFAULTS)
+
+	if (ticks_precision == undefined)
+		ticks_precision = 3;
+
+	if (ticks_precision == 0)
+		ticks_precision = 1;
 
 	scaleOptions.type = "linear";
 	scaleOptions.position = "left";
 	scaleOptions.id = n_id;
 
+	scaleOptions.ticks.callback = function (value) {
+		
+		return value.toFixed(ticks_precision);
+	};
+	
 	var scaleClass = Chart.scaleService.getScaleConstructor("linear");
 
 	var n_scale = new scaleClass({
@@ -142,7 +149,6 @@ function requestData(pv, from, to) {
 		type: HTTPMethod,
 		dataType: 'json',
 		async: false,
-		timeout: 5000,
 		success: function(data, textStatus, jqXHR) {
 
 			if (textStatus == "success")
@@ -176,74 +182,89 @@ function updateAllPlots() {
 
 }
 
+function parseData(data) {
+
+	var r_data = [], i;
+
+	for (i = 0; i < data.length; i++) {
+
+		var _x = new Date(0);
+		_x.setUTCSeconds(data[i].secs + data[i].nanos * 1e-9);
+	
+		r_data.push({
+			x : _x, 
+			y : data[i].val
+		});
+
+	}
+
+	return r_data;
+
+}
+
 function updatePlot(pv_index) {
 
-	var 	min = new Date(global_settings.end_time - TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds),
-		first = global_settings.plotted_data[pv_index].data.data[0].x,
+	if (global_settings.plotted_data[pv_index].data.data.length == 0) {
+
+		var	from_date = new Date(global_settings.end_time - TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds),
+			new_data = requestData(global_settings.plotted_data[pv_index].pv, from_date, global_settings.end_time);
+	
+		console.log(global_settings.plotted_data[pv_index].pv)
+		console.log("FROM " + from_date)
+		console.log("TO " + global_settings.end_time)
+		console.log(new_data.length);
+
+		Array.prototype.push.apply(global_settings.plotted_data[pv_index].data.data, parseData(new_data));
+
+		return;	
+	}
+
+	if (global_settings.plotted_data[pv_index].data.data.length > 0) {
+		
+		var 	first = global_settings.plotted_data[pv_index].data.data[0].x,
+			min = new Date(global_settings.end_time - TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds);
+
+		// we need to append data to the beginning of the data set
+		if (first.getTime() > min.getTime()) {
+		
+			var new_data = requestData(global_settings.plotted_data[pv_index].pv, min, first)[0].data;
+		
+			new_data.pop(); // remove last element, which is already in the dataset
+		
+			Array.prototype.unshift.apply(global_settings.plotted_data[pv_index].data.data, parseData(new_data));
+		}
+		// we can remove unnecessary data to save memory and improve performance
+		else {
+			var i = 0;
+			while ((global_settings.plotted_data[pv_index].data.data.length > 0) && (global_settings.plotted_data[pv_index].data.data[i].x.getTime() < min.getTime() - TIME_OFFSET_ALLOWED)){
+				global_settings.plotted_data[pv_index].data.data.shift();
+				i++;
+			}
+		}
+
 		last = global_settings.plotted_data[pv_index].data.data[global_settings.plotted_data[pv_index].data.data.length - 1].x;
+
+		// we need to append data to the end of the data set
+		if (last.getTime() < global_settings.end_time.getTime()) {
+		
+			var new_data = requestData(global_settings.plotted_data[pv_index].pv, last, global_settings.end_time)[0].data;
+		
+			new_data.shift();
+		
+			Array.prototype.push.apply(global_settings.plotted_data[pv_index].data.data, parseData(new_data));
+		}
+		// we can remove unnecessary data to save memory and improve performance
+		else {
+			i = global_settings.plotted_data[pv_index].data.data.length - 1;
+			while ((global_settings.plotted_data[pv_index].data.data.length > 0) && (global_settings.plotted_data[pv_index].data.data[i].x.getTime() > global_settings.end_time.getTime() + TIME_OFFSET_ALLOWED)) {
+				global_settings.plotted_data[pv_index].data.data.pop();
+				i--;
+			}
+
+		}	
 	
-	// we need to append data to the beginning of the data set
-	if (first.getTime() > min.getTime()) {
-		
-		var new_data = requestData(global_settings.plotted_data[pv_index].pv, min, first)[0].data;
-		
-		new_data.pop(); // remove last element, which is already in the dataset
-		
-		var all = [];
-		for (i = 0; i < new_data.length; i++) {
-
-			var _x = new Date(0);
-			_x.setUTCSeconds(new_data[i].secs + new_data[i].nanos * 1e-9);
-			
-			all.push({
-				x : _x, 
-				y : new_data[i].val
-			});
-		}
-		
-		Array.prototype.unshift.apply(global_settings.plotted_data[pv_index].data.data, all);
 	}
-	// we can remove unnecessary data to save memory and improve performance
-	else {
 
-		var i = 0;
-		while (global_settings.plotted_data[pv_index].data.data[i].x.getTime() < min.getTime() - TIME_OFFSET_ALLOWED){
-			global_settings.plotted_data[pv_index].data.data.shift();
-			i++;
-		}
-	}
-	
-
-	// we need to append data to the end of the data set
-	if (last.getTime() < global_settings.end_time.getTime()) {
-		
-		var new_data = requestData(global_settings.plotted_data[pv_index].pv, last, global_settings.end_time)[0].data;
-		
-		new_data.shift();
-
-		var all = [];
-		for (i = 0; i < new_data.length; i++) {
-
-			var _x = new Date(0);
-			_x.setUTCSeconds(new_data[i].secs + new_data[i].nanos * 1e-9);
-			
-			all.push({
-				x : _x, 
-				y : new_data[i].val
-			});
-		}
-		
-		Array.prototype.push.apply(global_settings.plotted_data[pv_index].data.data, all);
-	} 
-	// we can remove unnecessary data to save memory and improve performance
-	else {
-		
-		var i = 0;
-		while (global_settings.plotted_data[pv_index].data.data[i].x.getTime() > global_settings.end_time.getTime() + TIME_OFFSET_ALLOWED) {
-			global_settings.plotted_data[pv_index].data.data.pop();
-			i++;
-		}
-	}
 }
 
 function click_handler(e) {
@@ -256,7 +277,10 @@ function click_handler(e) {
 		var	from_date = new Date(global_settings.end_time - TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds),
 			data = requestData(pv, from_date, global_settings.end_time);
 	
-		addDataset(viewer, data);
+		if (data == undefined || data == null || data[0].data.length == 0)
+			alert("No data was received from server.");
+		else 
+			addDataset(viewer, data);
 		
 	} else
 		updatePlot(pv_index);
@@ -323,57 +347,6 @@ $('#PV').keypress(function (key) {
 		});
 	}
 });
-
-var viewer = new Chart($("#archiver_viewer"), {
-
-	type: 'line',
-	data: [],
-	options: {
-		
-		animation: {
-			duration: 0,
-		},
-
-		tooltips: {
-			mode: 'nearest',
-			intersect: false
-		},
-
-		hover: {
-			mode: 'nearest',
-			intersect: false
-		},
-
-		title: {
-			display: true,
-			text: "Exemplo",
-		},
-
-		scales: {
-			xAxes: [{
-				// Common x axis
-				type: 'time',
-				time: {
-					unit: 'minute',
-					unitStepSize: 10,
-					displayFormats: {
-						minute: 'HH:mm'
-					}
-				}
-			}],
-			yAxes: [{
-				// Useless YAxis
-				type: "linear",
-				display: false,
-				position: "left",
-				id: "y-axis-0"
-			}],
-		},
-
-		maintainAspectRatio: false,		
-	}
-});
-
 
 $("#archiver_viewer")
 .mousedown(function(evt) {
@@ -492,7 +465,58 @@ $(document).click(function(e) {
 	}
 });
 
+
 $(document).ready(function () {
+
+	viewer = new Chart($("#archiver_viewer"), {
+
+		type: 'line',
+		data: [],
+		options: {
+		
+			animation: {
+				duration: 0,
+			},
+
+			tooltips: {
+				mode: 'nearest',
+				intersect: false
+			},
+
+			hover: {
+				mode: 'nearest',
+				intersect: false
+			},
+
+			title: {
+				display: true,
+				text: "Exemplo",
+			},
+
+			scales: {
+				xAxes: [{
+					// Common x axis
+					type: 'time',
+					time: {
+						unit: 'minute',
+						unitStepSize: 10,
+						displayFormats: {
+							minute: 'HH:mm'
+						}
+					}
+				}],
+				yAxes: [{
+					// Useless YAxis
+					type: "linear",
+					display: false,
+					position: "left",
+					id: "y-axis-0"
+				}],
+			},
+
+			maintainAspectRatio: false,		
+		}
+	});
 
 	ARCHIVER_URL = window.location.origin;
 
