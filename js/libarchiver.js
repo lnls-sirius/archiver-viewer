@@ -1,8 +1,6 @@
-var viewer;
 
 var global_settings = {
 		window_time : TIME_IDS.MIN_10,
-		
 		plotted_data: []
 }
 
@@ -44,9 +42,9 @@ function changeWindowSize(e) {
 		
 		updateAllPlots();
 
-		updateTimeScale(viewer, global_settings.window_time);	
+		updateTimeScale(global_settings.viewer, global_settings.window_time);	
 		
-		viewer.update()
+		global_settings.viewer.update()
 	}
 }
 
@@ -280,13 +278,13 @@ function click_handler(e) {
 		if (data == undefined || data == null || data[0].data.length == 0)
 			alert("No data was received from server.");
 		else 
-			addDataset(viewer, data);
+			addDataset(global_settings.viewer, data);
 		
 	} else
 		updatePlot(pv_index);
 	
 	
-	viewer.update();
+	global_settings.viewer.update();
 
 	$('#archived_PVs').hide();
 	$(document.body).children().css('opacity', '1.0');
@@ -355,22 +353,23 @@ $("#archiver_viewer")
 	dragging.x = evt.offsetX;
 })
 .mousemove(function(evt) {
-	dragging.isDragging = true;
 	
-	if (dragging.mouseDown) {
+	if (dragging.mouseDown && !global_settings.auto_enabled) {
+
+		dragging.isDragging = true;
 	
 		var offset_x = dragging.x - evt.offsetX,
-		new_date = new Date(global_settings.end_time.getTime() + offset_x * TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds / (viewer.chart.width) );
+		new_date = new Date(global_settings.end_time.getTime() + offset_x * TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds / (global_settings.viewer.chart.width) );
 		
 		dragging.x = evt.offsetX;
 		
 		setEndTime(new_date, true);
 		
-		updateTimeScale(viewer, global_settings.window_time);
+		updateTimeScale(global_settings.viewer, global_settings.window_time);
 
 		updateAllPlots();
 
-		viewer.update();
+		global_settings.viewer.update();
 	}
  })
 .mouseup(function(evt) {
@@ -382,23 +381,23 @@ $("#archiver_viewer").on('click', function (evt) {
 	
 	if (!dragging.isDragging) {
 		
-		var event = viewer.getElementAtEvent(evt);
+		var event = global_settings.viewer.getElementAtEvent(evt);
 		
 		if (event != undefined && event.length > 0) {
 		
 			var	dataset_index = event[0]._datasetIndex,
 				index = event[0]._index,
-				event_data = viewer.data.datasets[dataset_index].data[index].x,
+				event_data = global_settings.viewer.data.datasets[dataset_index].data[index].x,
 				d = new Date(event_data.getTime() + TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds / 2);
 		
 			//setEndTime(d, true);
 			setEndTime(event_data, true);
 			
-			updateTimeScale(viewer, global_settings.window_time);
+			updateTimeScale(global_settings.viewer, global_settings.window_time);
 
 			updateAllPlots();
 
-			viewer.update();
+			global_settings.viewer.update();
 		}
 	}
 });
@@ -409,34 +408,62 @@ $("#date .now").on("click", function (e) {
 	
 	setEndTime(new Date(), true);
 	
-	updateTimeScale(viewer, global_settings.window_time);
+	updateTimeScale(global_settings.viewer, global_settings.window_time);
 
 	updateAllPlots();
 
-	viewer.update();
+	global_settings.viewer.update();
 });
 
 $("#date .backward").on("click", function (e) {
 	
 	setEndTime(new Date(global_settings.end_time.getTime() - TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds), true);
 	
-	updateTimeScale(viewer, global_settings.window_time);
+	updateTimeScale(global_settings.viewer, global_settings.window_time);
 
 	updateAllPlots();
 	
-	viewer.update();
+	global_settings.viewer.update();
 });
 
 $("#date .forward").on("click", function (e) {
 	
 	setEndTime(new Date(global_settings.end_time.getTime() + TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds), true);
 	
-	updateTimeScale(viewer, global_settings.window_time);
+	updateTimeScale(global_settings.viewer, global_settings.window_time);
 
 	updateAllPlots();
 
-	viewer.update();
+	global_settings.viewer.update();
 });
+
+$("#date .auto").on("click", function (e) {
+
+	if (global_settings.auto_enabled) {
+
+		$(this).css('background-color',"white");
+		global_settings.auto_enabled = false;
+
+		clearInterval(global_settings.timer);
+	}
+	else {
+
+		global_settings.timer = setInterval(function () {
+			
+			setEndTime(new Date(), true);
+			updateTimeScale(global_settings.viewer, global_settings.window_time);
+
+			updateAllPlots();
+			global_settings.viewer.update();			
+
+		}, REFRESH_INTERVAL * 1000);
+
+		$(this).css('background-color',"lightgrey");
+		global_settings.auto_enabled = true;
+	}
+
+});
+
 
 $("#date").on('change', 'input', function (e) {
 	
@@ -452,9 +479,9 @@ $("#date").on('change', 'input', function (e) {
 	
 	setEndTime(new_date, false);
 	
-	updateTimeScale(viewer, global_settings.window_time);
+	updateTimeScale(global_settings.viewer, global_settings.window_time);
 
-	viewer.update();
+	global_settings.viewer.update();
 });
 
 $(document).click(function(e) {
@@ -468,7 +495,7 @@ $(document).click(function(e) {
 
 $(document).ready(function () {
 
-	viewer = new Chart($("#archiver_viewer"), {
+	global_settings.viewer = new Chart($("#archiver_viewer"), {
 
 		type: 'line',
 		data: [],
@@ -518,13 +545,15 @@ $(document).ready(function () {
 		}
 	});
 
+	global_settings.auto_enabled = false;
+
 	ARCHIVER_URL = window.location.origin;
 
 	setEndTime(new Date(), true);
 
-	updateTimeScale(viewer, global_settings.window_time);
+	updateTimeScale(global_settings.viewer, global_settings.window_time);
 
-	viewer.update();
+	global_settings.viewer.update();
 	
 });
 

@@ -88,6 +88,13 @@
 	background-color: lightgray;
 }
 
+#date span.auto {
+	
+	float: right;
+	width: 52px;
+
+	text-align: center;
+}
 
 #window_size {
 		

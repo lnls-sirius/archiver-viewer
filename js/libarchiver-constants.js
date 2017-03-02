@@ -7,6 +7,7 @@ const SCALE_DEFAULTS = Chart.defaults.scale
 const TIME_AXIS_ID = "x-axis-0"
 const TIME_AXIS_INDEX = 0
 const TIME_OFFSET_ALLOWED = 5 * 60 * 1000 
+const REFRESH_INTERVAL = 1;
 
 const TIME_IDS = {
 	YEAR : 0,
