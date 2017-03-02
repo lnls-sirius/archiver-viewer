@@ -46,6 +46,8 @@ function changeWindowSize(e) {
 			global_settings.plotted_data[i].data.data.length = 0;
 		}
 
+		if (e.target.cellIndex < TRIM_LIMIT)
+			TRIM_STEP = TIME_AXIS_PREFERENCES[e.target.cellIndex].trim_step;
 
 		global_settings.window_time = e.target.cellIndex;
 	

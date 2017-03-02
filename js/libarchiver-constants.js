@@ -11,7 +11,7 @@ const TIME_OFFSET_ALLOWED = 1 * 10 * 1000;
 const REFRESH_INTERVAL = 1;
 const SIZE_MIN = 1;
 const SIZE_MAX = 1000;
-const TRIM_STEP = 10;
+var TRIM_STEP = 10;
 const TIME_IDS = {
 	YEAR : 0,
 	MONTH : 1,
@@ -36,47 +36,56 @@ const TIME_AXIS_PREFERENCES = [
 	{ // 1 year
 		unit : "month",
 		unitStepSize: 2,
-		milliseconds:   365 * 24 * 3600 * 1000,
+		milliseconds: 365 * 24 * 3600 * 1000,
+		trim_step   : 50,
 	},
 	{ // 1 month
 		unit : "day",
 		unitStepSize: 4,
 		milliseconds:  30 * 24 * 3600 * 1000,
+		trim_step   : 20,
 	},
 	{ // 2 weeks
 		unit : "day",
 		unitStepSize: 2,
 		milliseconds:  2 * 7 * 24 * 3600 * 1000, 
+		trim_step   : 15,
 	},
 	{ // 1 week
 		unit : "day",
 		unitStepSize: 2,
 		milliseconds:  7 * 24 * 3600 * 1000, 
+		trim_step   : 15,
 	},
 	{ // 2.5 days
 		unit : "hour",
 		unitStepSize: 12, 
 		milliseconds:  2.5 * 24 * 3600 * 1000,
+		trim_step   : 15,
 	},
 	{ // 1 day
 		unit : "hour",
 		unitStepSize: 3,
 		milliseconds:  24 * 3600 * 1000,
+		trim_step   : 10,
 	},
 	{ // 18 hours
 		unit : "hour",
 		unitStepSize: 2,
 		milliseconds:  18 * 3600 * 1000, 
+		trim_step   : 10,
 	},
 	{ // 12 hours
 		unit : "hour",
 		unitStepSize: 2,
 		milliseconds:  12 * 3600 * 1000,
+		trim_step   : 5,
 	},
 	{ // 8 hours
 		unit : "hour",
 		unitStepSize: 2,
 		milliseconds:  8 * 3600 * 1000,
+		trim_step   : 5,
 	},
 	{ // 4 hours
 		unit : "hour",
