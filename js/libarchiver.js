@@ -265,22 +265,26 @@ function updatePlot(pv_index) {
 
 }
 
+function addNewPV(pv) {
+
+	var	from_date = new Date(global_settings.end_time - TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds),
+		data = requestData(pv, from_date, global_settings.end_time);
+
+	if (data == undefined || data == null || data[0].data.length == 0)
+		alert("No data was received from server.");
+	else 
+		addDataset(global_settings.viewer, data);
+
+}
+
 function click_handler(e) {
 
 	var 	pv = e.target.innerText,
 		pv_index = isAlreadyPlotted(pv);
 	
-	if (pv_index == null) {
-	
-		var	from_date = new Date(global_settings.end_time - TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds),
-			data = requestData(pv, from_date, global_settings.end_time);
-	
-		if (data == undefined || data == null || data[0].data.length == 0)
-			alert("No data was received from server.");
-		else 
-			addDataset(global_settings.viewer, data);
-		
-	} else
+	if (pv_index == null)
+		addNewPV(pv);
+	else
 		updatePlot(pv_index);
 	
 	
@@ -450,6 +454,7 @@ $("#date .auto").on("click", function (e) {
 
 		global_settings.timer = setInterval(function () {
 			
+			//setEndTime(new Date(global_settings.end_time.getTime() + REFRESH_INTERVAL * 1000), true);
 			setEndTime(new Date(), true);
 			updateTimeScale(global_settings.viewer, global_settings.window_time);
 
@@ -550,6 +555,18 @@ $(document).ready(function () {
 	ARCHIVER_URL = window.location.origin;
 
 	setEndTime(new Date(), true);
+
+	
+	if (window.location.search != ""){
+		
+		var search_paths = window.location.search.split('&'), i;
+
+		for (i = 0; i < search_paths.length; i++){
+
+			pv = search_paths[i].substr(search_paths[i].indexOf("=") + 1);
+			addNewPV(pv);
+		}
+	}
 
 	updateTimeScale(global_settings.viewer, global_settings.window_time);
 
