@@ -21,6 +21,8 @@ function setEndTime(date, updateHtml) {
 	else 
 		global_settings.end_time = now;
 	
+
+	global_settings.start_time = new Date(global_settings.end_time.getTime() - TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds);
 	
 	if (updateHtml) {
 		
@@ -42,9 +44,11 @@ function changeWindowSize(e) {
 		global_settings.window_time = e.target.cellIndex;
 	
 		$("#date .loading").show();
+
+		global_settings.start_time = new Date(global_settings.end_time.getTime() - TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds);
 	
 		updateAllPlots();
-
+		
 		updateTimeScale(global_settings.viewer, global_settings.window_time);	
 	
 		global_settings.viewer.update();
@@ -65,8 +69,6 @@ function updateDataTable() {
 
 	var i, j;
 
-	var min = new Date(global_settings.end_time.getTime() - TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds);
-
 	for (i = 0; i < global_settings.plotted_data.length; i++){
 
 		var table = $('<table></table>').addClass('data_table'),
@@ -79,7 +81,8 @@ function updateDataTable() {
 
 			var row;
 
-			if ((pv_data[j].x.getTime() >= min.getTime()) && (pv_data[j].x.getTime() <= global_settings.end_time.getTime())) {
+			if ((pv_data[j].x.getTime() >= global_settings.start_time.getTime()) && 
+				(pv_data[j].x.getTime() <= global_settings.end_time.getTime())) {
 
 				if (!(count % PV_PER_ROW_DATA_TABLE)) {
 					row = $("<tr></tr>")
@@ -102,7 +105,7 @@ function updateTimeScale(chart, new_index) {
 	chart.options.scales.xAxes[TIME_AXIS_INDEX].time.unit = TIME_AXIS_PREFERENCES[new_index].unit;
 	chart.options.scales.xAxes[TIME_AXIS_INDEX].time.unitStepSize = TIME_AXIS_PREFERENCES[new_index].unitStepSize;
 	
-	chart.options.scales.xAxes[TIME_AXIS_INDEX].time.min = new Date(global_settings.end_time.getTime() - TIME_AXIS_PREFERENCES[new_index].milliseconds);
+	chart.options.scales.xAxes[TIME_AXIS_INDEX].time.min = global_settings.start_time;
 	chart.options.scales.xAxes[TIME_AXIS_INDEX].time.max = global_settings.end_time;
 }
 
@@ -246,38 +249,23 @@ function parseData(data) {
 				y : data[i].val
 			});
 		}
-
 	}
 
 	return r_data;
-
 }
 
 function updatePlot(pv_index) {
 
-	if (global_settings.plotted_data[pv_index].data.data.length == 0) {
-
-		var	from_date = new Date(global_settings.end_time - TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds),
-			new_data = requestData(global_settings.plotted_data[pv_index].pv, from_date, global_settings.end_time);
-	
-		console.log(global_settings.plotted_data[pv_index].pv)
-		console.log("FROM " + from_date)
-		console.log("TO " + global_settings.end_time)
-		console.log(new_data.length);
-
-		Array.prototype.push.apply(global_settings.plotted_data[pv_index].data.data, parseData(new_data));
-	}
-
 	if (global_settings.plotted_data[pv_index].data.data.length > 0) {
 		
-		var 	first = global_settings.plotted_data[pv_index].data.data[0].x,
-			min = new Date(global_settings.end_time - TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds);
+		var first = global_settings.plotted_data[pv_index].data.data[0].x;
 
 		// we need to append data to the beginning of the data set
-		if (first.getTime() > min.getTime()) {
+		if (first.getTime() > global_settings.start_time.getTime()) {
 		
-			var new_data = requestData(global_settings.plotted_data[pv_index].pv, min, first)[0].data;
+			var new_data = requestData(global_settings.plotted_data[pv_index].pv, global_settings.start_time, first)[0].data;
 		
+			new_data.pop(); // remove last element, which is already in the dataset
 			new_data.pop(); // remove last element, which is already in the dataset
 		
 			Array.prototype.unshift.apply(global_settings.plotted_data[pv_index].data.data, parseData(new_data));
@@ -285,7 +273,7 @@ function updatePlot(pv_index) {
 		// we can remove unnecessary data to save memory and improve performance
 		else {
 			var i = 0;
-			while ((global_settings.plotted_data[pv_index].data.data.length > SIZE_MIN) && (global_settings.plotted_data[pv_index].data.data[i].x.getTime() < min.getTime() - TIME_OFFSET_ALLOWED))
+			while ((global_settings.plotted_data[pv_index].data.data.length > SIZE_MIN) && (global_settings.plotted_data[pv_index].data.data[i].x.getTime() < global_settings.start_time.getTime() - TIME_OFFSET_ALLOWED))
 				global_settings.plotted_data[pv_index].data.data.shift();
 		}
 	}
@@ -300,6 +288,7 @@ function updatePlot(pv_index) {
 			var new_data = requestData(global_settings.plotted_data[pv_index].pv, last, global_settings.end_time)[0].data;
 		
 			new_data.shift();
+			new_data.shift();
 		
 			Array.prototype.push.apply(global_settings.plotted_data[pv_index].data.data, parseData(new_data));
 		}
@@ -312,15 +301,26 @@ function updatePlot(pv_index) {
 			}
 
 		}	
-	
+	}
+
+	//checkDataSize(pv_index);
+}
+
+function checkDataSize(pv_index) {
+
+	if (global_settings.plotted_data[pv_index].data.data.length > SIZE_MAX) {
+
+		for (var i = 0; i < global_settings.plotted_data[pv_index].data.data.length; i = i + 2) {
+		    global_settings.plotted_data[pv_index].data.data.splice(i, 5);
+		};
+		
 	}
 
 }
 
 function addNewPV(pv) {
 
-	var	from_date = new Date(global_settings.end_time - TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds),
-		data = requestData(pv, from_date, global_settings.end_time);
+	var data = requestData(pv, global_settings.start_time, global_settings.end_time);
 
 	if (data == undefined || data == null || data[0].data.length == 0)
 		alert("No data was received from server.");
@@ -603,13 +603,13 @@ $(document).ready(function () {
 	});
 
 	global_settings.auto_enabled = false;
+	global_settings.window_time = TIME_IDS.MIN_10;
 
 	document.getElementsByClassName('enable_table')[0].checked = false;
 
 	ARCHIVER_URL = window.location.origin;
 
 	setEndTime(new Date(), true);
-
 	
 	if (window.location.search != ""){
 		
