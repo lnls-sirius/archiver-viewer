@@ -239,6 +239,9 @@ function updatePlot(pv_index) {
 				i++;
 			}
 		}
+	}
+
+	if (global_settings.plotted_data[pv_index].data.data.length > 0) {
 
 		last = global_settings.plotted_data[pv_index].data.data[global_settings.plotted_data[pv_index].data.data.length - 1].x;
 
@@ -522,7 +525,7 @@ $(document).ready(function () {
 
 			title: {
 				display: true,
-				text: "Exemplo",
+				text: "LNLS Archiver Web Viewer",
 			},
 
 			scales: {
