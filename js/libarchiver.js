@@ -1,12 +1,13 @@
 
 var global_settings = {
-		window_time : TIME_IDS.MIN_10,
-		plotted_data: []
+	window_time : TIME_IDS.MIN_10,
+	plotted_data: []
 }
 
 var dragging = {
-		isDragging : false,
+	isDragging : false,
 }
+
 
 function setEndTime(date, updateHtml) {
 	
@@ -39,12 +40,60 @@ function changeWindowSize(e) {
 		e.target.className = "pushed";
 
 		global_settings.window_time = e.target.cellIndex;
-		
+	
+		$("#date .loading").show();
+	
 		updateAllPlots();
 
 		updateTimeScale(global_settings.viewer, global_settings.window_time);	
-		
-		global_settings.viewer.update()
+	
+		global_settings.viewer.update();
+
+		$("#date .loading").hide();
+
+		if (document.getElementsByClassName('enable_table')[0].checked) {
+			updateDataTable();
+			$('#data_table_area .data_table').show();
+		}
+	}
+}
+
+function updateDataTable() {
+	
+	$("#data_table_area .data_table").remove();
+	$("#data_table_area h2").remove();
+
+	var i, j;
+
+	var min = new Date(global_settings.end_time.getTime() - TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds);
+
+	for (i = 0; i < global_settings.plotted_data.length; i++){
+
+		var table = $('<table></table>').addClass('data_table'),
+		    pv_data = global_settings.plotted_data[i].data.data,
+		    count = 0;		
+
+		$('#data_table_area').append($('<h2></h2>').text(global_settings.plotted_data[i].pv));
+
+		for (j = 0; j < pv_data.length; j++) {
+
+			var row;
+
+			if ((pv_data[j].x.getTime() >= min.getTime()) && (pv_data[j].x.getTime() <= global_settings.end_time.getTime())) {
+
+				if (!(count % PV_PER_ROW_DATA_TABLE)) {
+					row = $("<tr></tr>")
+					row.appendTo(table);
+				}
+
+				count++;
+
+				$('<td></td>').attr('class', 'pv_time').text(pv_data[j].x.toLocaleDateString() + " " + pv_data[j].x.toLocaleTimeString()).appendTo(row);
+				$('<td></td>').attr('class', 'pv_value').text(pv_data[j].y.toFixed(global_settings.plotted_data[i].precision)).appendTo(row);
+			}
+		}
+
+		$('#data_table_area').append(table);
 	}
 }
 
@@ -80,6 +129,7 @@ function addDataset(c_chart, pv_data) {
 	global_settings.plotted_data.push({
 		pv : pv_name,
 		data : new_dataset,
+		precision: parseInt(pv_data[0].meta.PREC)
 	});
 	
 	c_chart.data.datasets.push(new_dataset);
@@ -188,11 +238,14 @@ function parseData(data) {
 
 		var _x = new Date(0);
 		_x.setUTCSeconds(data[i].secs + data[i].nanos * 1e-9);
-	
-		r_data.push({
-			x : _x, 
-			y : data[i].val
-		});
+		
+		if (!isNaN( _x.getTime())) {
+
+			r_data.push({
+				x : _x, 
+				y : data[i].val
+			});
+		}
 
 	}
 
@@ -213,8 +266,6 @@ function updatePlot(pv_index) {
 		console.log(new_data.length);
 
 		Array.prototype.push.apply(global_settings.plotted_data[pv_index].data.data, parseData(new_data));
-
-		return;	
 	}
 
 	if (global_settings.plotted_data[pv_index].data.data.length > 0) {
@@ -234,10 +285,8 @@ function updatePlot(pv_index) {
 		// we can remove unnecessary data to save memory and improve performance
 		else {
 			var i = 0;
-			while ((global_settings.plotted_data[pv_index].data.data.length > 0) && (global_settings.plotted_data[pv_index].data.data[i].x.getTime() < min.getTime() - TIME_OFFSET_ALLOWED)){
+			while ((global_settings.plotted_data[pv_index].data.data.length > 0) && (global_settings.plotted_data[pv_index].data.data[i].x.getTime() < min.getTime() - TIME_OFFSET_ALLOWED))
 				global_settings.plotted_data[pv_index].data.data.shift();
-				i++;
-			}
 		}
 	}
 
@@ -555,6 +604,8 @@ $(document).ready(function () {
 
 	global_settings.auto_enabled = false;
 
+	document.getElementsByClassName('enable_table')[0].checked = false;
+
 	ARCHIVER_URL = window.location.origin;
 
 	setEndTime(new Date(), true);
@@ -575,6 +626,22 @@ $(document).ready(function () {
 
 	global_settings.viewer.update();
 	
+});
+
+$('#data_table_area .enable_table:checkbox').change(function(evt) {
+
+        if (this.checked) {
+
+		updateDataTable();
+		$('#data_table_area .data_table').show();
+
+	}
+	else {
+		$("#data_table_area .data_table").remove();
+		$("#data_table_area h2").remove();
+		$('#data_table_area .data_table').hide();
+	}
+
 });
 
 // Auxiliary functions 
