@@ -285,7 +285,7 @@ function updatePlot(pv_index) {
 		// we can remove unnecessary data to save memory and improve performance
 		else {
 			var i = 0;
-			while ((global_settings.plotted_data[pv_index].data.data.length > 0) && (global_settings.plotted_data[pv_index].data.data[i].x.getTime() < min.getTime() - TIME_OFFSET_ALLOWED))
+			while ((global_settings.plotted_data[pv_index].data.data.length > SIZE_MIN) && (global_settings.plotted_data[pv_index].data.data[i].x.getTime() < min.getTime() - TIME_OFFSET_ALLOWED))
 				global_settings.plotted_data[pv_index].data.data.shift();
 		}
 	}
@@ -306,7 +306,7 @@ function updatePlot(pv_index) {
 		// we can remove unnecessary data to save memory and improve performance
 		else {
 			i = global_settings.plotted_data[pv_index].data.data.length - 1;
-			while ((global_settings.plotted_data[pv_index].data.data.length > 0) && (global_settings.plotted_data[pv_index].data.data[i].x.getTime() > global_settings.end_time.getTime() + TIME_OFFSET_ALLOWED)) {
+			while ((global_settings.plotted_data[pv_index].data.data.length > SIZE_MIN) && (global_settings.plotted_data[pv_index].data.data[i].x.getTime() > global_settings.end_time.getTime() + TIME_OFFSET_ALLOWED)) {
 				global_settings.plotted_data[pv_index].data.data.pop();
 				i--;
 			}
