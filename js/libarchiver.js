@@ -41,6 +41,12 @@ function changeWindowSize(e) {
 		
 		e.target.className = "pushed";
 
+		var i;
+		for (i = 0; i < global_settings.plotted_data.length; i++) {
+			global_settings.plotted_data[i].data.data.length = 0;
+		}
+
+
 		global_settings.window_time = e.target.cellIndex;
 	
 		$("#date .loading").show();
@@ -49,7 +55,7 @@ function changeWindowSize(e) {
 	
 		updateAllPlots();
 		
-		updateTimeScale(global_settings.viewer, global_settings.window_time);	
+		updateTimeScale(global_settings.viewer, global_settings.window_time);
 	
 		global_settings.viewer.update();
 
@@ -115,7 +121,7 @@ function addDataset(c_chart, pv_data) {
 	
 	var all = parseData(pv_data[0].data);
 		
-	addYAxis(c_chart, pv_name, parseInt(pv_data[0].meta.PREC))
+	addYAxis(c_chart, pv_name, parseInt(pv_data[0].meta.PREC) + 1)
 	
 	var new_dataset = {
 
@@ -126,13 +132,14 @@ function addDataset(c_chart, pv_data) {
 		showLine : true,
 		steppedLine : true,
 		fill : false,
+		pointRadius : 2,
 		backgroundColor : "rgb(" + getRandomInt(0, 255) + "," + getRandomInt(0, 255) + "," + getRandomInt(0, 255) + ")",
 	};
 
 	global_settings.plotted_data.push({
 		pv : pv_name,
 		data : new_dataset,
-		precision: parseInt(pv_data[0].meta.PREC)
+		precision: parseInt(pv_data[0].meta.PREC) + 1,
 	});
 	
 	c_chart.data.datasets.push(new_dataset);
@@ -145,9 +152,6 @@ function addYAxis(c_chart, n_id, ticks_precision) {
 	if (ticks_precision == undefined)
 		ticks_precision = 3;
 
-	if (ticks_precision == 0)
-		ticks_precision = 1;
-
 	scaleOptions.type = "linear";
 	scaleOptions.position = "left";
 	scaleOptions.id = n_id;
@@ -156,6 +160,7 @@ function addYAxis(c_chart, n_id, ticks_precision) {
 		
 		return value.toFixed(ticks_precision);
 	};
+
 	
 	var scaleClass = Chart.scaleService.getScaleConstructor("linear");
 
@@ -235,9 +240,9 @@ function updateAllPlots() {
 
 function parseData(data) {
 
-	var r_data = [], i;
+	var r_data = [], i = 0;
 
-	for (i = 0; i < data.length; i++) {
+	while(i < data.length) {
 
 		var _x = new Date(0);
 		_x.setUTCSeconds(data[i].secs + data[i].nanos * 1e-9);
@@ -249,6 +254,11 @@ function parseData(data) {
 				y : data[i].val
 			});
 		}
+
+		if (global_settings.window_time < TRIM_LIMIT)
+			i = i + TRIM_STEP;
+		else 
+			i++;
 	}
 
 	return r_data;
@@ -303,19 +313,19 @@ function updatePlot(pv_index) {
 		}	
 	}
 
-	//checkDataSize(pv_index);
+	if (global_settings.plotted_data[pv_index].data.data.length == 0) {
+
+		var new_data = requestData(global_settings.plotted_data[pv_index].pv, global_settings.start_time,  global_settings.end_time)[0].data;
+		Array.prototype.push.apply(global_settings.plotted_data[pv_index].data.data, parseData(new_data));
+	}
 }
 
 function checkDataSize(pv_index) {
 
-	if (global_settings.plotted_data[pv_index].data.data.length > SIZE_MAX) {
-
-		for (var i = 0; i < global_settings.plotted_data[pv_index].data.data.length; i = i + 2) {
-		    global_settings.plotted_data[pv_index].data.data.splice(i, 5);
-		};
-		
-	}
-
+	var i;
+	for (i = 0; i < global_settings.plotted_data[pv_index].data.data.length; i++) {
+	    global_settings.plotted_data[pv_index].data.data.splice(i, TRIM_STEP);
+	};
 }
 
 function addNewPV(pv) {
@@ -557,7 +567,7 @@ $(document).ready(function () {
 		type: 'line',
 		data: [],
 		options: {
-		
+
 			animation: {
 				duration: 0,
 			},
@@ -587,6 +597,10 @@ $(document).ready(function () {
 						displayFormats: {
 							minute: 'HH:mm'
 						}
+					},
+					ticks: {
+						autoSkip : true,
+						autoSkipPadding: 5,
 					}
 				}],
 				yAxes: [{

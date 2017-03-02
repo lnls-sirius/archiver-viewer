@@ -11,7 +11,7 @@ const TIME_OFFSET_ALLOWED = 1 * 10 * 1000;
 const REFRESH_INTERVAL = 1;
 const SIZE_MIN = 1;
 const SIZE_MAX = 1000;
-
+const TRIM_STEP = 10;
 const TIME_IDS = {
 	YEAR : 0,
 	MONTH : 1,
@@ -31,7 +31,7 @@ const TIME_IDS = {
 	MIN_1: 15,
 	SEG_30: 16
 };
-	
+const TRIM_LIMIT = TIME_IDS.HOUR_4;	
 const TIME_AXIS_PREFERENCES = [
 	{ // 1 year
 		unit : "month",
