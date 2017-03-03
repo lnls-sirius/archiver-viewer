@@ -33,6 +33,7 @@ function setEndTime(date, updateHtml) {
 	}
 }
 
+
 function changeWindowSize(e) {
 	
 	if (e.target.className == "unpushed") {
@@ -457,6 +458,8 @@ $("#archiver_viewer").on('click', function (evt) {
 				index = event[0]._index,
 				event_data = global_settings.viewer.data.datasets[dataset_index].data[index].x,
 				d = new Date(event_data.getTime() + TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds / 2);
+
+			$("#date .loading").show();
 		
 			//setEndTime(d, true);
 			setEndTime(event_data, true);
@@ -466,6 +469,8 @@ $("#archiver_viewer").on('click', function (evt) {
 			updateAllPlots();
 
 			global_settings.viewer.update();
+
+			$("#date .loading").hide();
 		}
 	}
 });
@@ -474,6 +479,8 @@ $("#window_size table tr td").on("click", changeWindowSize);
 
 $("#date .now").on("click", function (e) {
 	
+	$("#date .loading").show();
+
 	setEndTime(new Date(), true);
 	
 	updateTimeScale(global_settings.viewer, global_settings.window_time);
@@ -481,10 +488,14 @@ $("#date .now").on("click", function (e) {
 	updateAllPlots();
 
 	global_settings.viewer.update();
+
+	$("#date .loading").hide();
 });
 
 $("#date .backward").on("click", function (e) {
-	
+
+	$("#date .loading").show();	
+
 	setEndTime(new Date(global_settings.end_time.getTime() - TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds), true);
 	
 	updateTimeScale(global_settings.viewer, global_settings.window_time);
@@ -492,10 +503,14 @@ $("#date .backward").on("click", function (e) {
 	updateAllPlots();
 	
 	global_settings.viewer.update();
+
+	$("#date .loading").hide();
 });
 
 $("#date .forward").on("click", function (e) {
 	
+	$("#date .loading").show();
+
 	setEndTime(new Date(global_settings.end_time.getTime() + TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds), true);
 	
 	updateTimeScale(global_settings.viewer, global_settings.window_time);
@@ -503,6 +518,8 @@ $("#date .forward").on("click", function (e) {
 	updateAllPlots();
 
 	global_settings.viewer.update();
+
+	$("#date .loading").hide();
 });
 
 $("#date .auto").on("click", function (e) {
@@ -519,11 +536,14 @@ $("#date .auto").on("click", function (e) {
 		global_settings.timer = setInterval(function () {
 			
 			//setEndTime(new Date(global_settings.end_time.getTime() + REFRESH_INTERVAL * 1000), true);
+			$("#date .loading").show();
+
 			setEndTime(new Date(), true);
 			updateTimeScale(global_settings.viewer, global_settings.window_time);
 
 			updateAllPlots();
 			global_settings.viewer.update();			
+			$("#date .loading").hide();
 
 		}, REFRESH_INTERVAL * 1000);
 
@@ -545,12 +565,18 @@ $("#date").on('change', 'input', function (e) {
 	seconds = parseInt($("#second").val()),
 	
 	new_date = new Date(year,month, day, hours, minutes, seconds, 0);
+
+	$("#date .loading").show();
 	
 	setEndTime(new_date, false);
 	
+	updateAllPlots();
+
 	updateTimeScale(global_settings.viewer, global_settings.window_time);
 
 	global_settings.viewer.update();
+
+	$("#date .loading").hide();
 });
 
 $(document).click(function(e) {
