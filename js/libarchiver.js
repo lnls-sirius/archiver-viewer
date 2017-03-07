@@ -26,7 +26,9 @@ function setEndTime(date, updateHtml) {
 	
 	if (updateHtml) {
 		
-		$("#day").val(pad_with_zeroes(date.getDate(), 2) + "/" + pad_with_zeroes(date.getMonth()+1, 2) + "/" + date.getFullYear());
+        $("#day").datepicker("setDate", date);
+
+		//$("#day").val(pad_with_zeroes(date.getDate(), 2) + "/" + pad_with_zeroes(date.getMonth()+1, 2) + "/" + date.getFullYear());
 		$("#hour").val(pad_with_zeroes(date.getHours(), 2))
 		$("#minute").val(pad_with_zeroes(date.getMinutes(), 2))
 		$("#second").val(pad_with_zeroes(date.getSeconds(), 2))
@@ -622,12 +624,12 @@ $("#date .auto").on("click", function (e) {
 $("#date").on('change', 'input', function (e) {
 	
 	var date = $("#day").val().split("/"),
-	day = parseInt(date[0]),
-	month = parseInt(date[1]) - 1,
-	year = parseInt(date[2]),
-	hours = parseInt($("#hour").val()),
-	minutes = parseInt($("#minute").val()),
-	seconds = parseInt($("#second").val()),
+    	day = parseInt(date[0]),
+	    month = parseInt(date[1]) - 1,
+	    year = parseInt(date[2]),
+	    hours = parseInt($("#hour").val()),
+    	minutes = parseInt($("#minute").val()),
+	    seconds = parseInt($("#second").val()),
 	
 	new_date = new Date(year,month, day, hours, minutes, seconds, 0);
 
@@ -717,6 +719,8 @@ $(document).ready(function () {
 	document.getElementsByClassName('enable_table')[0].checked = false;
 
 	ARCHIVER_URL = window.location.origin;
+
+    $("#day").datepicker({dateFormat: "dd/mm/yy"});
 
 	setEndTime(new Date(), true);
 	
