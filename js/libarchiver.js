@@ -42,13 +42,16 @@ function changeWindowSize(e) {
 		
 		e.target.className = "pushed";
 
-		var i;
+		var i, can_optimize = false;
 		for (i = 0; i < global_settings.plotted_data.length; i++) {
 			global_settings.plotted_data[i].data.data.length = 0;
+            if (global_settings.plotted_data[i].type != "DBR_SCALAR_ENUM")
+                can_optimize = true;
 		}
 
-		if (e.target.cellIndex < TRIM_LIMIT)
-			TRIM_STEP = TIME_AXIS_PREFERENCES[e.target.cellIndex].trim_step;
+		if (TIME_AXIS_PREFERENCES[e.target.cellIndex].optimized && can_optimize)
+			$("#obs").fadeIn();
+        else $("#obs").fadeOut();
 
 		global_settings.window_time = e.target.cellIndex;
 	
@@ -118,13 +121,57 @@ function updateTimeScale(chart, new_index) {
 	chart.options.scales.xAxes[TIME_AXIS_INDEX].time.max = global_settings.end_time;
 }
 
-function addDataset(c_chart, pv_data) {
+function getMetadata(pv) {
+
+	if (pv == undefined)
+		return null;
+
+    var jsonurl = ARCHIVER_URL + RETRIEVAL +'/bpl/getMetadata?pv=' + pv;
+
+	var components = jsonurl.split('?'),
+		urlalone = components[0],
+		querystring = '';
+	
+	if(components.length > 1) {
+		querystring = components[1];
+	}
+
+	var HTTPMethod = 'GET';
+	if(jsonurl.length > 2048) {
+		HTTPMethod = 'POST';
+	}
+
+	var return_data = null;
+	
+	$.ajax ({
+		url: urlalone,
+		data: querystring,
+		type: HTTPMethod,
+		dataType: 'json',
+		async: false,
+		success: function(data, textStatus, jqXHR) {
+
+			if (textStatus == "success")
+				return_data = data;
+			
+		},
+		error: function(xmlHttpRequest, textStatus, errorThrown) {
+			alert("Connection failed with " + xmlHttpRequest + " -- " + textStatus + " -- " + errorThrown);
+		}
+	});
+	
+	return return_data;
+}
+
+function addDataset(pv_data) {
 
 	const pv_name = pv_data[0].meta.name;
 	
-	var all = parseData(pv_data[0].data);
+	var all = parseData(pv_data[0].data, TIME_AXIS_PREFERENCES[global_settings.window_time].optimized);
 		
-	addYAxis(c_chart, pv_name, parseInt(pv_data[0].meta.PREC) + 1)
+	addYAxis(pv_name, parseInt(pv_data[0].meta.PREC) + 1)
+
+    var meta = getMetadata(pv_name);
 	
 	var new_dataset = {
 
@@ -136,19 +183,20 @@ function addDataset(c_chart, pv_data) {
 		steppedLine : true,
 		fill : false,
 		pointRadius : 2,
-		backgroundColor : "rgb(" + getRandomInt(0, 255) + "," + getRandomInt(0, 255) + "," + getRandomInt(0, 255) + ")",
+		backgroundColor : "rgb(" + getRandomInt(0, 128) + "," + getRandomInt(0, 128) + "," + getRandomInt(0, 128) + ")",
 	};
 
 	global_settings.plotted_data.push({
 		pv : pv_name,
 		data : new_dataset,
 		precision: parseInt(pv_data[0].meta.PREC) + 1,
+        type: meta.DBRType,
 	});
 	
-	c_chart.data.datasets.push(new_dataset);
+	global_settings.viewer.data.datasets.push(new_dataset);
 }
 
-function addYAxis(c_chart, n_id, ticks_precision) {
+function addYAxis(n_id, ticks_precision) {
 
 	var scaleOptions =  jQuery.extend(true, {}, SCALE_DEFAULTS)
 
@@ -170,22 +218,32 @@ function addYAxis(c_chart, n_id, ticks_precision) {
 	var n_scale = new scaleClass({
 		id: n_id,
 		options: scaleOptions,
-		ctx: c_chart.chart.ctx,
-		chart: c_chart
+		ctx: global_settings.viewer.chart.ctx,
+		chart: global_settings.viewer
 	});
 
-	c_chart.scales[n_id] = n_scale;		
+	global_settings.viewer.scales[n_id] = n_scale;		
 
-	Chart.layoutService.addBox(c_chart, n_scale);
+	Chart.layoutService.addBox(global_settings.viewer, n_scale);
 
 }
 
-function requestData(pv, from, to) {
+function requestData(pv, from, to, optimized, bins) {
 	
 	if (from == undefined || to == undefined)
 		return null;
+
+    var jsonurl;
 	
-	var jsonurl = ARCHIVER_URL + RETRIEVAL +'/data/getData.json?pv=' + pv + "&from=" + from.toJSON() + "&to=" + to.toJSON();
+    if (optimized == true) {
+        bins = TIME_AXIS_PREFERENCES[global_settings.window_time].bins;
+        if (bins == undefined)
+            jsonurl = ARCHIVER_URL + RETRIEVAL +'/data/getData.json?pv=optimized_' + DEFAULT_BINS + '(' + pv + ")&from=" + from.toJSON() + "&to=" + to.toJSON();
+        else 
+            jsonurl = ARCHIVER_URL + RETRIEVAL +'/data/getData.json?pv=optimized_' + bins + '(' + pv + ")&from=" + from.toJSON() + "&to=" + to.toJSON();
+    }
+    else 
+        jsonurl = ARCHIVER_URL + RETRIEVAL +'/data/getData.json?pv=' + pv + "&from=" + from.toJSON() + "&to=" + to.toJSON();
 
 	var components = jsonurl.split('?'),
 		urlalone = components[0],
@@ -236,14 +294,19 @@ function isAlreadyPlotted(pv_name) {
 function updateAllPlots() {
 
 	var i;
-	for (i = 0; i < global_settings.plotted_data.length; i++)
+	for (i = 0; i < global_settings.plotted_data.length; i++) {
+        global_settings.plotted_data[i].data.data.length = 0;
 		updatePlot(i);
+    }
 
 }
 
-function parseData(data) {
+function parseData(data, optimized) {
 
 	var r_data = [], i = 0;
+
+    if (optimized == undefined)
+        optimized = false;
 
 	while(i < data.length) {
 
@@ -252,16 +315,15 @@ function parseData(data) {
 		
 		if (!isNaN( _x.getTime())) {
 
+            var y_value = optimized ? data[i].val[0] : data[i].val;
+
 			r_data.push({
 				x : _x, 
-				y : data[i].val
+				y : y_value
 			});
 		}
 
-		if (global_settings.window_time < TRIM_LIMIT)
-			i = i + TRIM_STEP;
-		else 
-			i++;
+		i++;
 	}
 
 	return r_data;
@@ -275,13 +337,14 @@ function updatePlot(pv_index) {
 
 		// we need to append data to the beginning of the data set
 		if (first.getTime() > global_settings.start_time.getTime()) {
-		
-			var new_data = requestData(global_settings.plotted_data[pv_index].pv, global_settings.start_time, first)[0].data;
+		               
+  			var optimize = global_settings.plotted_data[pv_index].type == "DBR_SCALAR_ENUM" ? false : TIME_AXIS_PREFERENCES[global_settings.window_time].optimized, 
+                new_data = requestData(global_settings.plotted_data[pv_index].pv, global_settings.start_time, first, optimize)[0].data;
 		
 			new_data.pop(); // remove last element, which is already in the dataset
 			new_data.pop(); // remove last element, which is already in the dataset
 		
-			Array.prototype.unshift.apply(global_settings.plotted_data[pv_index].data.data, parseData(new_data));
+			Array.prototype.unshift.apply(global_settings.plotted_data[pv_index].data.data, parseData(new_data, optimize));
 		}
 		// we can remove unnecessary data to save memory and improve performance
 		else {
@@ -298,12 +361,13 @@ function updatePlot(pv_index) {
 		// we need to append data to the end of the data set
 		if (last.getTime() < global_settings.end_time.getTime()) {
 		
-			var new_data = requestData(global_settings.plotted_data[pv_index].pv, last, global_settings.end_time)[0].data;
+			var optimize = global_settings.plotted_data[pv_index].type == "DBR_SCALAR_ENUM" ? false : TIME_AXIS_PREFERENCES[global_settings.window_time].optimized,
+                new_data = requestData(global_settings.plotted_data[pv_index].pv, last, global_settings.end_time, optimize)[0].data;
 		
 			new_data.shift();
 			new_data.shift();
 		
-			Array.prototype.push.apply(global_settings.plotted_data[pv_index].data.data, parseData(new_data));
+			Array.prototype.push.apply(global_settings.plotted_data[pv_index].data.data, parseData(new_data, TIME_AXIS_PREFERENCES[global_settings.window_time].optimized));
 		}
 		// we can remove unnecessary data to save memory and improve performance
 		else {
@@ -318,8 +382,9 @@ function updatePlot(pv_index) {
 
 	if (global_settings.plotted_data[pv_index].data.data.length == 0) {
 
-		var new_data = requestData(global_settings.plotted_data[pv_index].pv, global_settings.start_time,  global_settings.end_time)[0].data;
-		Array.prototype.push.apply(global_settings.plotted_data[pv_index].data.data, parseData(new_data));
+		var optimize = global_settings.plotted_data[pv_index].type == "DBR_SCALAR_ENUM" ? false : TIME_AXIS_PREFERENCES[global_settings.window_time].optimized,
+            new_data = requestData(global_settings.plotted_data[pv_index].pv, global_settings.start_time,  global_settings.end_time, optimize)[0].data;
+		Array.prototype.push.apply(global_settings.plotted_data[pv_index].data.data, parseData(new_data, optimize));
 	}
 }
 
@@ -333,12 +398,12 @@ function checkDataSize(pv_index) {
 
 function addNewPV(pv) {
 
-	var data = requestData(pv, global_settings.start_time, global_settings.end_time);
+	var data = requestData(pv, global_settings.start_time, global_settings.end_time, TIME_AXIS_PREFERENCES[global_settings.window_time].optimized);
 
 	if (data == undefined || data == null || data[0].data.length == 0)
 		alert("No data was received from server.");
 	else 
-		addDataset(global_settings.viewer, data);
+		addDataset(data);
 
 }
 
@@ -646,6 +711,8 @@ $(document).ready(function () {
 
 	global_settings.auto_enabled = false;
 	global_settings.window_time = TIME_IDS.MIN_10;
+
+    $("#obs").hide();
 
 	document.getElementsByClassName('enable_table')[0].checked = false;
 
