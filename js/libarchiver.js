@@ -1,12 +1,11 @@
 
 var global_settings = {
 	window_time : TIME_IDS.MIN_10,
-	plotted_data: []
-}
-
-var dragging = {
-	isDragging : false,
-}
+	plotted_data: [],
+	dragging : {
+			isDragging : false,
+	}
+} 
 
 
 function setEndTime(date, updateHtml) {
@@ -27,8 +26,6 @@ function setEndTime(date, updateHtml) {
 	if (updateHtml) {
 		
         $("#day").datepicker("setDate", date);
-
-		//$("#day").val(pad_with_zeroes(date.getDate(), 2) + "/" + pad_with_zeroes(date.getMonth()+1, 2) + "/" + date.getFullYear());
 		$("#hour").val(pad_with_zeroes(date.getHours(), 2))
 		$("#minute").val(pad_with_zeroes(date.getMinutes(), 2))
 		$("#second").val(pad_with_zeroes(date.getSeconds(), 2))
@@ -484,20 +481,20 @@ $('#PV').keypress(function (key) {
 
 $("#archiver_viewer")
 .mousedown(function(evt) {
-	dragging.isDragging = false;
-	dragging.mouseDown = true;
-	dragging.x = evt.offsetX;
+	global_settings.dragging.isDragging = false;
+	global_settings.dragging.mouseDown = true;
+	global_settings.dragging.x = evt.offsetX;
 })
 .mousemove(function(evt) {
 	
-	if (dragging.mouseDown && !global_settings.auto_enabled) {
+	if (global_settings.dragging.mouseDown && !global_settings.auto_enabled) {
 
-		dragging.isDragging = true;
+		global_settings.dragging.isDragging = true;
 	
-		var offset_x = dragging.x - evt.offsetX,
+		var offset_x = global_settings.dragging.x - evt.offsetX,
 		new_date = new Date(global_settings.end_time.getTime() + offset_x * TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds / (global_settings.viewer.chart.width) );
 		
-		dragging.x = evt.offsetX;
+		global_settings.dragging.x = evt.offsetX;
 		
 		setEndTime(new_date, true);
 		
@@ -509,13 +506,13 @@ $("#archiver_viewer")
 	}
  })
 .mouseup(function(evt) {
-	dragging.isDragging = false;
-	dragging.mouseDown = false;
+	global_settings.dragging.isDragging = false;
+	global_settings.dragging.mouseDown = false;
 });
 
 $("#archiver_viewer").on('click', function (evt) {
 	
-	if (!dragging.isDragging) {
+	if (!global_settings.dragging.isDragging) {
 		
 		var event = global_settings.viewer.getElementAtEvent(evt);
 		
