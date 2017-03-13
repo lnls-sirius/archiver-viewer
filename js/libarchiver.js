@@ -60,9 +60,9 @@ function changeWindowSize(e) {
 	
 		updateAllPlots();
 		
-		updateTimeScale(global_settings.viewer, global_settings.window_time);
+		updateTimeScale(global_settings.window_time);
 	
-		global_settings.viewer.update();
+		global_settings.viewer.update(0, false);
 
 		$("#date .loading").hide();
 
@@ -111,13 +111,13 @@ function updateDataTable() {
 	}
 }
 
-function updateTimeScale(chart, new_index) {
+function updateTimeScale(new_index) {
 	
-	chart.options.scales.xAxes[TIME_AXIS_INDEX].time.unit = TIME_AXIS_PREFERENCES[new_index].unit;
-	chart.options.scales.xAxes[TIME_AXIS_INDEX].time.unitStepSize = TIME_AXIS_PREFERENCES[new_index].unitStepSize;
+	global_settings.viewer.options.scales.xAxes[TIME_AXIS_INDEX].time.unit = TIME_AXIS_PREFERENCES[new_index].unit;
+	global_settings.viewer.options.scales.xAxes[TIME_AXIS_INDEX].time.unitStepSize = TIME_AXIS_PREFERENCES[new_index].unitStepSize;
 	
-	chart.options.scales.xAxes[TIME_AXIS_INDEX].time.min = global_settings.start_time;
-	chart.options.scales.xAxes[TIME_AXIS_INDEX].time.max = global_settings.end_time;
+	global_settings.viewer.options.scales.xAxes[TIME_AXIS_INDEX].time.min = global_settings.start_time;
+	global_settings.viewer.options.scales.xAxes[TIME_AXIS_INDEX].time.max = global_settings.end_time;
 }
 
 function getMetadata(pv) {
@@ -170,7 +170,7 @@ function addDataset(pv_data) {
 		
 	addYAxis(pv_name, parseInt(pv_data[0].meta.PREC) + 1)
 
-    var meta = getMetadata(pv_name);
+    var meta = getMetadata(pv_name), color = "rgba(" + getRandomInt(0, 128) + "," + getRandomInt(0, 128) + "," + getRandomInt(0, 128) + ", 0.8)";
 	
 	var new_dataset = {
 
@@ -181,8 +181,9 @@ function addDataset(pv_data) {
 		showLine : true,
 		steppedLine : true,
 		fill : false,
-		pointRadius : 2,
-		backgroundColor : "rgb(" + getRandomInt(0, 128) + "," + getRandomInt(0, 128) + "," + getRandomInt(0, 128) + ")",
+		pointRadius : 0,
+		backgroundColor : color,
+		borderColor: color,
 	};
 
 	global_settings.plotted_data.push({
@@ -211,7 +212,6 @@ function addYAxis(n_id, ticks_precision) {
 		return value.toFixed(ticks_precision);
 	};
 
-	
 	var scaleClass = Chart.scaleService.getScaleConstructor("linear");
 
 	var n_scale = new scaleClass({
@@ -235,9 +235,10 @@ function requestData(pv, from, to, optimized, bins) {
     var jsonurl;
 	
     if (optimized == true) {
-        bins = TIME_AXIS_PREFERENCES[global_settings.window_time].bins;
-        if (bins == undefined)
+        if (bins == undefined) {
+	        bins = TIME_AXIS_PREFERENCES[global_settings.window_time].bins;
             jsonurl = ARCHIVER_URL + RETRIEVAL +'/data/getData.json?pv=optimized_' + DEFAULT_BINS + '(' + pv + ")&from=" + from.toJSON() + "&to=" + to.toJSON();
+		}
         else 
             jsonurl = ARCHIVER_URL + RETRIEVAL +'/data/getData.json?pv=optimized_' + bins + '(' + pv + ")&from=" + from.toJSON() + "&to=" + to.toJSON();
     }
@@ -290,11 +291,16 @@ function isAlreadyPlotted(pv_name) {
 	return null;
 }
 
-function updateAllPlots() {
+function updateAllPlots(reset) {
+
+	if (reset == undefined)
+		reset = false;
 
 	var i;
 	for (i = 0; i < global_settings.plotted_data.length; i++) {
-        global_settings.plotted_data[i].data.data.length = 0;
+		var optimize = global_settings.plotted_data[i].type == "DBR_SCALAR_ENUM" ? false : TIME_AXIS_PREFERENCES[global_settings.window_time].optimized;
+		if (optimize || reset)        
+			global_settings.plotted_data[i].data.data.length = 0;
 		updatePlot(i);
     }
 
@@ -309,8 +315,7 @@ function parseData(data, optimized) {
 
 	while(i < data.length) {
 
-		var _x = new Date(0);
-		_x.setUTCSeconds(data[i].secs + data[i].nanos * 1e-9);
+		var _x = new Date(data[i].secs * 1e3 + data[i].nanos * 1e-6);
 		
 		if (!isNaN( _x.getTime())) {
 
@@ -338,12 +343,21 @@ function updatePlot(pv_index) {
 		if (first.getTime() > global_settings.start_time.getTime()) {
 		               
   			var optimize = global_settings.plotted_data[pv_index].type == "DBR_SCALAR_ENUM" ? false : TIME_AXIS_PREFERENCES[global_settings.window_time].optimized, 
-                new_data = requestData(global_settings.plotted_data[pv_index].pv, global_settings.start_time, first, optimize)[0].data;
-		
-			new_data.pop(); // remove last element, which is already in the dataset
-			new_data.pop(); // remove last element, which is already in the dataset
-		
-			Array.prototype.unshift.apply(global_settings.plotted_data[pv_index].data.data, parseData(new_data, optimize));
+				bins = Math.round(TIME_AXIS_PREFERENCES[global_settings.window_time].bins * (first.getTime() - global_settings.start_time.getTime()) / TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds),
+                new_data = requestData(global_settings.plotted_data[pv_index].pv, global_settings.start_time, first, TIME_AXIS_PREFERENCES[global_settings.window_time].optimized, bins);
+			
+			if (new_data.length > 0) {
+
+				new_data = new_data[0].data;
+				var x = new Date(new_data[new_data.length - 1].secs * 1e3 + new_data[new_data.length - 1].nanos * 1e-6);	
+				while (new_data.length > 0 && x.getTime() >= first.getTime()) {
+					new_data.pop(); // remove last element, which is already in the dataset
+					if (new_data.length > 0)					
+						x.setUTCMilliseconds(new_data[new_data.length - 1].secs * 1e3 + new_data[new_data.length - 1].nanos * 1e-6);
+				}
+
+				Array.prototype.unshift.apply(global_settings.plotted_data[pv_index].data.data, parseData(new_data,  TIME_AXIS_PREFERENCES[global_settings.window_time].optimized));
+			}
 		}
 		// we can remove unnecessary data to save memory and improve performance
 		else {
@@ -361,12 +375,20 @@ function updatePlot(pv_index) {
 		if (last.getTime() < global_settings.end_time.getTime()) {
 		
 			var optimize = global_settings.plotted_data[pv_index].type == "DBR_SCALAR_ENUM" ? false : TIME_AXIS_PREFERENCES[global_settings.window_time].optimized,
-                new_data = requestData(global_settings.plotted_data[pv_index].pv, last, global_settings.end_time, optimize)[0].data;
+				bins = Math.round(TIME_AXIS_PREFERENCES[global_settings.window_time].bins * (global_settings.end_time.getTime() - last.getTime()) / TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds),
+                new_data = requestData(global_settings.plotted_data[pv_index].pv, last, global_settings.end_time, TIME_AXIS_PREFERENCES[global_settings.window_time].optimized);
 		
-			new_data.shift();
-			new_data.shift();
-		
-			Array.prototype.push.apply(global_settings.plotted_data[pv_index].data.data, parseData(new_data, TIME_AXIS_PREFERENCES[global_settings.window_time].optimized));
+			if (new_data.length > 0) {
+				new_data = new_data[0].data;
+				var x = new Date(new_data[0].secs * 1e3 + new_data[0].nanos * 1e-6);	
+				while (new_data.length > 0 && x.getTime() <= last.getTime()) {
+					new_data.shift(); 
+					if (new_data.length > 0)
+						x.setUTCMilliseconds(new_data[0].secs * 1e3 + new_data[0].nanos * 1e-6);
+				}
+
+				Array.prototype.push.apply(global_settings.plotted_data[pv_index].data.data, parseData(new_data, TIME_AXIS_PREFERENCES[global_settings.window_time].optimized));
+			}
 		}
 		// we can remove unnecessary data to save memory and improve performance
 		else {
@@ -417,7 +439,7 @@ function click_handler(e) {
 		updatePlot(pv_index);
 	
 	
-	global_settings.viewer.update();
+	global_settings.viewer.update(0, false);
 
 	$('#archived_PVs').hide();
 	$(document.body).children().css('opacity', '1.0');
@@ -484,30 +506,117 @@ $("#archiver_viewer")
 	global_settings.dragging.isDragging = false;
 	global_settings.dragging.mouseDown = true;
 	global_settings.dragging.x = evt.offsetX;
+
+	if (global_settings.zoom.isZooming) {
+		global_settings.zoom.begin_x = evt.clientX;
+		global_settings.zoom.begin_y = evt.clientY;
+		global_settings.zoom.hasBegan = true;
+
+		$("#canvas_area span.selection_box").css("display","block");
+
+		//var chart_evt = Chart.Interaction.modes.nearest(global_settings.viewer, evt, global_settings.viewer.options.tooltips);
+		//if (chart_evt.length > 0) {
+			//var elem = chart_evt[0];
+			//global_settings.zoom.time_1 = global_settings.plotted_data[elem._datasetIndex].data.data[elem._index].x;
+		//}
+
+		global_settings.zoom.time_1 = new Date(global_settings.start_time.getTime() + evt.offsetX * TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds / global_settings.viewer.chart.width );
+	}
 })
 .mousemove(function(evt) {
 	
-	if (global_settings.dragging.mouseDown && !global_settings.auto_enabled) {
+	if (!global_settings.zoom.isZooming && !global_settings.auto_enabled && global_settings.dragging.mouseDown) {
 
 		global_settings.dragging.isDragging = true;
 	
 		var offset_x = global_settings.dragging.x - evt.offsetX,
-		new_date = new Date(global_settings.end_time.getTime() + offset_x * TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds / (global_settings.viewer.chart.width) );
+		new_date = new Date(global_settings.end_time.getTime() + offset_x * TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds / global_settings.viewer.chart.width );
 		
 		global_settings.dragging.x = evt.offsetX;
 		
 		setEndTime(new_date, true);
 		
-		updateTimeScale(global_settings.viewer, global_settings.window_time);
+		updateTimeScale(global_settings.window_time);
 
-		updateAllPlots();
+		updateAllPlots(true);
 
-		global_settings.viewer.update();
+		global_settings.viewer.update(0, false);
+	}
+
+	if (global_settings.zoom.isZooming && global_settings.zoom.hasBegan) {
+
+            // x,y,w,h = o retângulo entre os vértices
+			var x = Math.min(global_settings.zoom.begin_x, evt.clientX);
+			var y = Math.min(global_settings.zoom.begin_y, evt.clientY);
+			var w = Math.abs(global_settings.zoom.begin_x - evt.clientX);
+			var h = Math.abs(global_settings.zoom.begin_y - evt.clientY);
+
+			$("#canvas_area span.selection_box").css("left", x + "px");
+			$("#canvas_area span.selection_box").css("top", "0");
+			$("#canvas_area span.selection_box").css("width", w + "px");
+			$("#canvas_area span.selection_box").css("height", global_settings.viewer.chart.height  + "px");
 	}
  })
 .mouseup(function(evt) {
 	global_settings.dragging.isDragging = false;
 	global_settings.dragging.mouseDown = false;
+	
+	/*
+	Uncomment to disable auto refresh on dragging
+	updateAllPlots();
+	global_settings.viewer.update(0, false);
+	*/
+
+	if (global_settings.zoom.isZooming && global_settings.zoom.hasBegan) {
+		
+		/*var chart_evt = Chart.Interaction.modes.nearest(global_settings.viewer, evt, global_settings.viewer.options.tooltips);
+		if (chart_evt.length > 0) {
+			var elem = chart_evt[0];
+			global_settings.zoom.time_2 = global_settings.plotted_data[elem._datasetIndex].data.data[elem._index].x;
+		}*/
+
+		global_settings.zoom.time_2 = new Date(global_settings.start_time.getTime() + evt.offsetX * TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds / global_settings.viewer.chart.width );
+
+		if (global_settings.zoom.time_1 != undefined && global_settings.zoom.time_2 != undefined){
+			
+			if (global_settings.zoom.time_1.getTime() < global_settings.zoom.time_2.getTime()) {
+				global_settings.start_time = global_settings.zoom.time_1;
+				global_settings.end_time = global_settings.zoom.time_2;
+			}
+			else {
+				global_settings.start_time = global_settings.zoom.time_2;
+				global_settings.end_time = global_settings.zoom.time_1;
+			}
+
+			var i = 0;
+			while (global_settings.end_time.getTime() - global_settings.start_time.getTime() < TIME_AXIS_PREFERENCES[i].milliseconds && i < TIME_IDS.SEG_30)
+				i++;
+		
+			$('#window_table tr').eq(0).find('td').eq(global_settings.window_time)[0].className = "unpushed";
+			$('#window_table tr').eq(0).find('td').eq(i)[0].className = "pushed";
+
+			if (TIME_AXIS_PREFERENCES[i].optimized)
+				$("#obs").fadeIn();
+	        else $("#obs").fadeOut();
+			
+			global_settings.zoom.hasBegan = false;
+			$("#canvas_area span.selection_box").hide();
+			$("#canvas_area span.selection_box").css("width", 0);
+			$("#canvas_area span.selection_box").css("height", 0);
+
+			global_settings.window_time = i;
+			updateTimeScale(global_settings.window_time);
+			updateAllPlots(true);
+
+			global_settings.viewer.update(0, false);
+			
+		}
+	}
+
+	global_settings.zoom.hasBegan = false;
+	global_settings.zoom.isZooming = false;
+	$("#date .zoom").css('background-color',"white");
+
 });
 
 $("#archiver_viewer").on('click', function (evt) {
@@ -528,11 +637,11 @@ $("#archiver_viewer").on('click', function (evt) {
 			//setEndTime(d, true);
 			setEndTime(event_data, true);
 			
-			updateTimeScale(global_settings.viewer, global_settings.window_time);
+			updateTimeScale(global_settings.window_time);
 
 			updateAllPlots();
 
-			global_settings.viewer.update();
+			global_settings.viewer.update(0, false);
 
 			$("#date .loading").hide();
 		}
@@ -547,11 +656,11 @@ $("#date .now").on("click", function (e) {
 
 	setEndTime(new Date(), true);
 	
-	updateTimeScale(global_settings.viewer, global_settings.window_time);
+	updateTimeScale(global_settings.window_time);
 
 	updateAllPlots();
 
-	global_settings.viewer.update();
+	global_settings.viewer.update(0, false);
 
 	$("#date .loading").hide();
 });
@@ -562,11 +671,11 @@ $("#date .backward").on("click", function (e) {
 
 	setEndTime(new Date(global_settings.end_time.getTime() - TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds), true);
 	
-	updateTimeScale(global_settings.viewer, global_settings.window_time);
+	updateTimeScale(global_settings.window_time);
 
 	updateAllPlots();
 	
-	global_settings.viewer.update();
+	global_settings.viewer.update(0, false);
 
 	$("#date .loading").hide();
 });
@@ -577,13 +686,26 @@ $("#date .forward").on("click", function (e) {
 
 	setEndTime(new Date(global_settings.end_time.getTime() + TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds), true);
 	
-	updateTimeScale(global_settings.viewer, global_settings.window_time);
+	updateTimeScale(global_settings.window_time);
 
 	updateAllPlots();
 
-	global_settings.viewer.update();
+	global_settings.viewer.update(0, false);
 
 	$("#date .loading").hide();
+});
+
+$("#date .zoom").on("click", function (e) {
+	
+	if (global_settings.zoom.isZooming) {
+		$(this).css('background-color',"white");
+		global_settings.zoom.isZooming = false;
+	}
+	else {
+		$(this).css('background-color',"lightgrey");
+		global_settings.zoom.isZooming = true;
+	}
+
 });
 
 $("#date .auto").on("click", function (e) {
@@ -603,10 +725,10 @@ $("#date .auto").on("click", function (e) {
 			$("#date .loading").show();
 
 			setEndTime(new Date(), true);
-			updateTimeScale(global_settings.viewer, global_settings.window_time);
+			updateTimeScale(global_settings.window_time);
 
 			updateAllPlots();
-			global_settings.viewer.update();			
+			global_settings.viewer.update(0, false);			
 			$("#date .loading").hide();
 
 		}, REFRESH_INTERVAL * 1000);
@@ -636,9 +758,9 @@ $("#date").on('change', 'input', function (e) {
 	
 	updateAllPlots();
 
-	updateTimeScale(global_settings.viewer, global_settings.window_time);
+	updateTimeScale(global_settings.window_time);
 
-	global_settings.viewer.update();
+	global_settings.viewer.update(0, false);
 
 	$("#date .loading").hide();
 });
@@ -666,12 +788,12 @@ $(document).ready(function () {
 
 			tooltips: {
 				mode: 'nearest',
-				intersect: false
+				intersect: false,
 			},
 
 			hover: {
 				mode: 'nearest',
-				intersect: false
+				intersect: false,
 			},
 
 			title: {
@@ -710,6 +832,9 @@ $(document).ready(function () {
 
 	global_settings.auto_enabled = false;
 	global_settings.window_time = TIME_IDS.MIN_10;
+	global_settings.zoom = {};
+	global_settings.zoom.isZooming = false;
+	global_settings.zoom.hasBegan = false;
 
     $("#obs").hide();
 
@@ -732,9 +857,9 @@ $(document).ready(function () {
 		}
 	}
 
-	updateTimeScale(global_settings.viewer, global_settings.window_time);
+	updateTimeScale(global_settings.window_time);
 
-	global_settings.viewer.update();
+	global_settings.viewer.update(0, false);
 	
 });
 

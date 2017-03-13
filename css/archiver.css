@@ -294,3 +294,14 @@
     margin:0;
     margin-left:25px;
 }
+
+#canvas_area span.selection_box {
+    display: none;
+    position: absolute;
+    background: lightblue;
+    border-color: blue;
+    border-width: 1px;
+    border-style: solid;
+    opacity: 0.3;
+	pointer-events: none;
+}
