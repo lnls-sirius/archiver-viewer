@@ -2,8 +2,9 @@
 var global_settings = {
 	window_time : TIME_IDS.MIN_10,
 	plotted_data: [],
+	y_axis_ids: [],
 	dragging : {
-			isDragging : false,
+		isDragging : false,
 	}
 } 
 
@@ -25,7 +26,7 @@ function setEndTime(date, updateHtml) {
 	
 	if (updateHtml) {
 		
-        $("#day").datepicker("setDate", date);
+	        $("#day").datepicker("setDate", date);
 		$("#hour").val(pad_with_zeroes(date.getHours(), 2))
 		$("#minute").val(pad_with_zeroes(date.getMinutes(), 2))
 		$("#second").val(pad_with_zeroes(date.getSeconds(), 2))
@@ -167,16 +168,18 @@ function addDataset(pv_data) {
 	const pv_name = pv_data[0].meta.name;
 	
 	var all = parseData(pv_data[0].data, TIME_AXIS_PREFERENCES[global_settings.window_time].optimized);
-		
-	addYAxis(pv_name, parseInt(pv_data[0].meta.PREC) + 1)
 
-    var meta = getMetadata(pv_name), color = "rgba(" + getRandomInt(0, 128) + "," + getRandomInt(0, 128) + "," + getRandomInt(0, 128) + ", 0.8)";
+	var meta = getMetadata(pv_name), color = "rgba(" + getRandomInt(0, 128) + "," + getRandomInt(0, 128) + "," + getRandomInt(0, 128) + ", 0.8)";
 	
+	var unit = meta["EGU"]
+
+	addYAxis(unit, parseInt(pv_data[0].meta.PREC) + 1)
+
 	var new_dataset = {
 
 		label : pv_name,
 		xAxisID: TIME_AXIS_ID,
-		yAxisID: pv_name,
+		yAxisID: unit,
 		data : all,
 		showLine : true,
 		steppedLine : true,
@@ -190,7 +193,7 @@ function addDataset(pv_data) {
 		pv : pv_name,
 		data : new_dataset,
 		precision: parseInt(pv_data[0].meta.PREC) + 1,
-        type: meta.DBRType,
+        	type: meta.DBRType,
 	});
 	
 	global_settings.viewer.data.datasets.push(new_dataset);
@@ -198,7 +201,16 @@ function addDataset(pv_data) {
 
 function addYAxis(n_id, ticks_precision) {
 
-	var scaleOptions =  jQuery.extend(true, {}, SCALE_DEFAULTS)
+//	if (global_settings.y_axis_ids.includes(n_id)) {
+	if (n_id in global_settings.y_axis_ids) {
+
+		global_settings.y_axis_ids[n_id]++;
+		return ;
+	}
+
+	global_settings.y_axis_ids[n_id] = 1;
+
+	var scaleOptions =  jQuery.extend(true, {}, SCALE_DEFAULTS);
 
 	if (ticks_precision == undefined)
 		ticks_precision = 3;
@@ -206,6 +218,9 @@ function addYAxis(n_id, ticks_precision) {
 	scaleOptions.type = "linear";
 	scaleOptions.position = "left";
 	scaleOptions.id = n_id;
+
+	scaleOptions.scaleLabel.display = true;
+	scaleOptions.scaleLabel.labelString = n_id;
 
 	scaleOptions.ticks.callback = function (value) {
 		
@@ -826,6 +841,38 @@ $(document).ready(function () {
 				}],
 			},
 
+			legend : {
+
+				onClick : function(e, legendItem) {
+
+
+					var meta = global_settings.viewer.getDatasetMeta(legendItem.datasetIndex);
+
+					var unit = meta.yAxisID;
+
+					if (meta.hidden) {
+
+						global_settings.y_axis_ids[unit]++
+						global_settings.viewer.scales[unit].options.display = true;
+
+						meta.hidden = null;
+
+					}
+					else {
+
+						meta.hidden = true;
+						global_settings.y_axis_ids[unit]--;
+
+						if (global_settings.y_axis_ids[unit] <= 0)
+							global_settings.viewer.scales[unit].options.display = false;
+
+					}
+
+					global_settings.viewer.update(0, false);
+				}
+
+			},
+
 			maintainAspectRatio: false,		
 		}
 	});
@@ -836,7 +883,7 @@ $(document).ready(function () {
 	global_settings.zoom.isZooming = false;
 	global_settings.zoom.hasBegan = false;
 
-    $("#obs").hide();
+  	$("#obs").hide();
 
 	document.getElementsByClassName('enable_table')[0].checked = false;
 
