@@ -313,9 +313,9 @@ function addDataset(pv_data) {
 	var 	meta = getMetadataFromArchiver(pv_name),
 		color = "rgba(" + getRandomInt(0, 128) + "," + getRandomInt(0, 128) + "," + getRandomInt(0, 128) + ", 0.8)";
 
-	var unit = meta["EGU"]
+	var unit = meta["EGU"] != "" ? meta["EGU"] : pv_name;
 
-	addYAxis(unit, parseInt(pv_data[0].meta.PREC) + 1)
+	addYAxis(unit, pv_name, parseInt(pv_data[0].meta.PREC) + 1)
 
 	var new_dataset = {
 
@@ -341,9 +341,13 @@ function addDataset(pv_data) {
 	global_settings.viewer.data.datasets.push(new_dataset);
 }
 
-function addYAxis(n_id, ticks_precision) {
+function addYAxis(n_id, pv_name, ticks_precision) {
 
 //	if (global_settings.y_axis_ids.includes(n_id)) {
+
+	if (n_id == undefined || n_id == null)
+		n_id = pv_name;
+
 	if (n_id in global_settings.y_axis_ids) {
 
 		global_settings.y_axis_ids[n_id]++;
