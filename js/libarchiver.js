@@ -370,6 +370,9 @@ function addYAxis(n_id, pv_name, ticks_precision) {
 
 	scaleOptions.ticks.callback = function (value) {
 
+		if (ticks_precision > 4)
+			return value.toExponential(3)
+
 		return value.toFixed(ticks_precision);
 	};
 
