@@ -126,7 +126,7 @@ function backTimeWindow (e) {
 
 	updateTimeScale(global_settings.window_time);
 
-	updateAllPlots();
+	updateAllPlots(true);
 
 	global_settings.viewer.update(0, false);
 
@@ -144,7 +144,7 @@ function forwTimeWindow (e) {
 
 	updateTimeScale(global_settings.window_time);
 
-	updateAllPlots();
+	updateAllPlots(true);
 
 	global_settings.viewer.update(0, false);
 
@@ -204,6 +204,23 @@ function updateDataTable() {
 		$('#data_table_area').append(table);
 	}
 }
+
+/**
+* Shows or erases data table below the chart
+**/
+$('#data_table_area .enable_table:checkbox').change(function (evt) {
+
+        if (this.checked) {
+		updateDataTable();
+		$('#data_table_area .data_table').show();
+	}
+	else {
+		$("#data_table_area .data_table").remove();
+		$("#data_table_area h2").remove();
+		$('#data_table_area .data_table').hide();
+	}
+});
+
 
 /******* Fetching data functions *******/
 /**
@@ -649,12 +666,23 @@ function queryPV (key) {
 	}
 }
 
-/* Registers event handler function */
-$('#PV').keypress(queryPV);
-
-/******* Dragging functions *******/
 /**
-* The following functions manage the dragging operations in the chart.
+* Closes PV selection area.
+**/
+function refreshScreen (e) {
+	if( e.target.id != 'archived_PVs' && !$('#archived_PVs').find(e.target).length) {
+		$('#archived_PVs').hide();
+		$(document.body).children().css('opacity', '1.0');
+	}
+}
+
+/* Registers event handler functions */
+$('#PV').keypress(queryPV);
+$(document).click(refreshScreen);
+
+/******* Dragging and zoom functions *******/
+/**
+* The following functions manage the dragging and zoom operations in the chart.
 **/
 
 /**
@@ -717,7 +745,7 @@ function doDragging (evt) {
  }
 
 /**
-* Finishes dragging and applies zoom on the chart if this action was previously selected
+* Finishes dragging and applies zoom on the chart if this action was previously selected.
 **/
 function stopDragging (evt) {
 
@@ -780,13 +808,26 @@ function stopDragging (evt) {
 	$("#date .zoom").css('background-color',"white");
 }
 
-// Binds handlers to the dragging events
-$("#archiver_viewer").mousedown(startDragging);
-$("#archiver_viewer").mousemove(doDragging);
-$("#archiver_viewer").mouseup(stopDragging);
+/**
+* Adjusts the global variables to perform a zoom in the chart.
+**/
+function zoomClickHandler (e) {
 
+	if (global_settings.zoom.isZooming) {
+		$(this).css('background-color',"white");
+		global_settings.zoom.isZooming = false;
+	}
+	else {
+		$(this).css('background-color',"lightgrey");
+		global_settings.zoom.isZooming = true;
+	}
 
-$("#archiver_viewer").on('click', function (evt) {
+}
+
+/**
+* Updates the plot after the user clicks on a point.
+**/
+function dataClickHandler (evt) {
 
 	if (!global_settings.dragging.isDragging) {
 
@@ -794,14 +835,13 @@ $("#archiver_viewer").on('click', function (evt) {
 
 		if (event != undefined && event.length > 0) {
 
-			var	dataset_index = event[0]._datasetIndex,
-				index = event[0]._index,
-				event_data = global_settings.viewer.data.datasets[dataset_index].data[index].x,
-				d = new Date(event_data.getTime() + TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds / 2);
+			var dataset_index = event[0]._datasetIndex,
+			    index = event[0]._index,
+			    event_data = global_settings.viewer.data.datasets[dataset_index].data[index].x,
+			    d = new Date(event_data.getTime() + TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds / 2);
 
 			$("#date .loading").show();
 
-			//setEndTime(d, true);
 			setEndTime(event_data, true);
 
 			updateTimeScale(global_settings.window_time);
@@ -813,35 +853,35 @@ $("#archiver_viewer").on('click', function (evt) {
 			$("#date .loading").hide();
 		}
 	}
-});
+}
 
-$("#date .zoom").on("click", function (e) {
+// Binds handlers to the dragging events
+$("#archiver_viewer").mousedown(startDragging);
+$("#archiver_viewer").mousemove(doDragging);
+$("#archiver_viewer").mouseup(stopDragging);
+$("#archiver_viewer").on('click', dataClickHandler);
+$("#date .zoom").on("click", zoomClickHandler);
 
-	if (global_settings.zoom.isZooming) {
-		$(this).css('background-color',"white");
-		global_settings.zoom.isZooming = false;
-	}
-	else {
-		$(this).css('background-color',"lightgrey");
-		global_settings.zoom.isZooming = true;
-	}
+/******* Date control functions *******/
+/**
+* The following functions manage the date range plotted by the chart.
+**/
 
-});
-
-$("#date .auto").on("click", function (e) {
+/**
+* Enables or disables plot auto refreshing.
+**/
+function autoRefreshingHandler (e) {
 
 	if (global_settings.auto_enabled) {
 
 		$(this).css('background-color',"white");
 		global_settings.auto_enabled = false;
-
 		clearInterval(global_settings.timer);
 	}
 	else {
 
 		global_settings.timer = setInterval(function () {
 
-			//setEndTime(new Date(global_settings.end_time.getTime() + REFRESH_INTERVAL * 1000), true);
 			$("#date .loading").show();
 
 			setEndTime(new Date(), true);
@@ -856,43 +896,43 @@ $("#date .auto").on("click", function (e) {
 		$(this).css('background-color',"lightgrey");
 		global_settings.auto_enabled = true;
 	}
+}
 
-});
+/**
+* Updates the chart after a date is chosen by the user.
+**/
+function changeDateHandler (e) {
 
-$("#date").on('change', 'input', function (e) {
-
-	var 	date = $("#day").val().split("/"),
-		day = parseInt(date[0]),
-		month = parseInt(date[1]) - 1,
-		year = parseInt(date[2]),
-		hours = parseInt($("#hour").val()),
-		minutes = parseInt($("#minute").val()),
-		seconds = parseInt($("#second").val()),
-
-	new_date = new Date(year,month, day, hours, minutes, seconds, 0);
+	var date = $("#day").val().split("/"),
+	    day = parseInt(date[0]),
+	    month = parseInt(date[1]) - 1,
+	    year = parseInt(date[2]),
+	    hours = parseInt($("#hour").val()),
+	    minutes = parseInt($("#minute").val()),
+	    seconds = parseInt($("#second").val()),
+	    new_date = new Date (year,month, day, hours, minutes, seconds, 0);
 
 	$("#date .loading").show();
 
 	setEndTime(new_date, false);
 
-	updateAllPlots();
+	updateAllPlots(true);
 
 	updateTimeScale(global_settings.window_time);
 
 	global_settings.viewer.update(0, false);
 
 	$("#date .loading").hide();
-});
+}
 
-$(document).click(function(e) {
+// Binds events to the handlers
+$("#date .auto").on("click", autoRefreshingHandler);
+$("#date").on('change', 'input', changeDateHandler);
 
-	if( e.target.id != 'archived_PVs' && !$('#archived_PVs').find(e.target).length) {
-		$('#archived_PVs').hide();
-		$(document.body).children().css('opacity', '1.0');
-	}
-});
-
-
+/******* Initialization function *******/
+/**
+* Instantiates a new chart and global structures
+**/
 $(document).ready(function () {
 
 	global_settings.viewer = new Chart($("#archiver_viewer"), {
@@ -947,34 +987,28 @@ $(document).ready(function () {
 
 			legend : {
 
+				// Decides if a y axis should be displayed or not
 				onClick : function(e, legendItem) {
 
-
-					var meta = global_settings.viewer.getDatasetMeta(legendItem.datasetIndex);
-
-					var unit = meta.yAxisID;
+					var meta = global_settings.viewer.getDatasetMeta(legendItem.datasetIndex),
+					    unit = meta.yAxisID;
 
 					if (meta.hidden) {
 
 						global_settings.y_axis_ids[unit]++
 						global_settings.viewer.scales[unit].options.display = true;
-
 						meta.hidden = null;
-
 					}
 					else {
-
 						meta.hidden = true;
 						global_settings.y_axis_ids[unit]--;
 
 						if (global_settings.y_axis_ids[unit] <= 0)
 							global_settings.viewer.scales[unit].options.display = false;
-
 					}
 
 					global_settings.viewer.update(0, false);
 				}
-
 			},
 
 			maintainAspectRatio: false,
@@ -993,15 +1027,15 @@ $(document).ready(function () {
 
 	ARCHIVER_URL = window.location.origin;
 
-    $("#day").datepicker({dateFormat: "dd/mm/yy"});
+    	$("#day").datepicker({dateFormat: "dd/mm/yy"});
 
 	setEndTime(new Date(), true);
 
 	if (window.location.search != ""){
 
-		var search_paths = window.location.search.split('&'), i;
+		var search_paths = window.location.search.split('&');
 
-		for (i = 0; i < search_paths.length; i++){
+		for (var i = 0; i < search_paths.length; i++){
 
 			pv = search_paths[i].substr(search_paths[i].indexOf("=") + 1);
 			addNewPV(pv);
@@ -1011,27 +1045,9 @@ $(document).ready(function () {
 	updateTimeScale(global_settings.window_time);
 
 	global_settings.viewer.update(0, false);
-
 });
 
-$('#data_table_area .enable_table:checkbox').change(function(evt) {
-
-        if (this.checked) {
-
-		updateDataTable();
-		$('#data_table_area .data_table').show();
-
-	}
-	else {
-		$("#data_table_area .data_table").remove();
-		$("#data_table_area h2").remove();
-		$('#data_table_area .data_table').hide();
-	}
-
-});
-
-// Auxiliary functions
-
+/* Miscellaneous functions  */
 function pad_with_zeroes(number, length) {
 
 	var my_string = '' + number;
@@ -1041,7 +1057,6 @@ function pad_with_zeroes(number, length) {
 
 	return my_string;
 }
-
 
 function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
