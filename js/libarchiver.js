@@ -690,25 +690,33 @@ $(document).click(refreshScreen);
 
 function scrollChart (evt){
 
-	var window_time_old = global_settings.window_time;
+	if (global_settings.scrollingEnable) {
 
-	global_settings.window_time = evt.deltaY < 0 ? Math.max(global_settings.window_time - 1, 0) : Math.min(global_settings.window_time + 1, TIME_IDS.SEG_30);
+		global_settings.scrollingEnable = false;
 
-	if (window_time_old != global_settings.window_time) {
+		var window_time_old = global_settings.window_time;
 
-		$('#window_table tr').eq(0).find('td').eq(window_time_old)[0].className = "unpushed";
+		global_settings.window_time = evt.deltaY < 0 ? Math.max(global_settings.window_time - 1, 0) : Math.min(global_settings.window_time + 1, TIME_IDS.SEG_30);
 
-		$('#window_table tr').eq(0).find('td').eq(global_settings.window_time)[0].className = "pushed";
+		if (window_time_old != global_settings.window_time) {
 
-		global_settings.start_time = new Date(global_settings.end_time.getTime() - TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds);
+			$('#window_table tr').eq(0).find('td').eq(window_time_old)[0].className = "unpushed";
 
-		updateOptimizedWarning(global_settings.window_time);
+			$('#window_table tr').eq(0).find('td').eq(global_settings.window_time)[0].className = "pushed";
 
-		updateAllPlots(true);
+			global_settings.start_time = new Date(global_settings.end_time.getTime() - TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds);
 
-		updateTimeScale(global_settings.window_time);
+			updateOptimizedWarning(global_settings.window_time);
 
-		global_settings.viewer.update(0, false);
+			updateAllPlots(true);
+
+			updateTimeScale(global_settings.window_time);
+
+			global_settings.viewer.update(0, false);
+
+		}
+
+		global_settings.scrollingEnable = true;
 	}
 }
 
@@ -1048,6 +1056,8 @@ $(document).ready(function () {
 			maintainAspectRatio: false,
 		}
 	});
+
+	global_settings.scrollingEnable = true;
 
 	global_settings.auto_enabled = false;
 	global_settings.window_time = TIME_IDS.MIN_10;
