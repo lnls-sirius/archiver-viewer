@@ -107,7 +107,7 @@ function updateEndTimeNow (e) {
 
 	updateTimeScale(global_settings.window_time);
 
-	updateAllPlots();
+	updateAllPlots(true);
 
 	global_settings.viewer.update(0, false);
 
