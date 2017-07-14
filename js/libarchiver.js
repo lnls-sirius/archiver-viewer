@@ -49,6 +49,22 @@ function setEndTime(date, updateHtml) {
 	}
 }
 
+
+function updateOptimizedWarning (window_id) {
+
+	var can_optimize = false;
+	for (var i = 0; i < global_settings.plotted_data.length; i++) {
+		global_settings.plotted_data[i].data.data.length = 0;
+		if (global_settings.plotted_data[i].type != "DBR_SCALAR_ENUM")
+			can_optimize = true;
+	}
+
+	// Shows a pleasant warning that the request is fetching optimized data
+	if (TIME_AXIS_PREFERENCES[window_id].optimized && can_optimize)
+		$("#obs").fadeIn();
+       	else 	$("#obs").fadeOut();
+}
+
 /**
 * updateTimeWindow is called when a button event in one of the time window options is captured.
 * Sets global_settings.start_time accoording to this new time window and updates the Chartjs
@@ -63,19 +79,9 @@ function updateTimeWindow(e) {
 
 		e.target.className = "pushed";
 
-		var i, can_optimize = false;
-		for (i = 0; i < global_settings.plotted_data.length; i++) {
-			global_settings.plotted_data[i].data.data.length = 0;
-			if (global_settings.plotted_data[i].type != "DBR_SCALAR_ENUM")
-				can_optimize = true;
-		}
-
-		// Shows a pleasant warning that the request is fetching optimized data
-		if (TIME_AXIS_PREFERENCES[e.target.cellIndex].optimized && can_optimize)
-			$("#obs").fadeIn();
-        	else 	$("#obs").fadeOut();
-
 		global_settings.window_time = e.target.cellIndex;
+
+		updateOptimizedWarning(global_settings.window_time);
 
 		$("#date .loading").show();
 
@@ -679,6 +685,34 @@ function refreshScreen (e) {
 /* Registers event handler functions */
 $('#PV').keypress(queryPV);
 $(document).click(refreshScreen);
+
+/******* Scrolling functions *******/
+
+function scrollChart (evt){
+
+	var window_time_old = global_settings.window_time;
+
+	global_settings.window_time = evt.deltaY < 0 ? Math.max(global_settings.window_time - 1, 0) : Math.min(global_settings.window_time + 1, TIME_IDS.SEG_30);
+
+	if (window_time_old != global_settings.window_time) {
+
+		$('#window_table tr').eq(0).find('td').eq(window_time_old)[0].className = "unpushed";
+
+		$('#window_table tr').eq(0).find('td').eq(global_settings.window_time)[0].className = "pushed";
+
+		global_settings.start_time = new Date(global_settings.end_time.getTime() - TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds);
+
+		updateOptimizedWarning(global_settings.window_time);
+
+		updateAllPlots(true);
+
+		updateTimeScale(global_settings.window_time);
+
+		global_settings.viewer.update(0, false);
+	}
+}
+
+$("#archiver_viewer").mousewheel(scrollChart);
 
 /******* Dragging and zoom functions *******/
 /**
