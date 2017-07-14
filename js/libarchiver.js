@@ -13,6 +13,7 @@ var global_settings = {
 	y_axis_ids: [],
 	dragging : {
 		isDragging : false,
+		updateOnComplete : true,
 	}
 }
 
@@ -388,12 +389,12 @@ function appendDataset(pv_data) {
 	const pv_name = pv_data[0].meta.name;
 
 	// Parses the data fetched from the archiver the way that the chart's internal classes can plot
-	var 	all = parseArchiverData(pv_data[0].data, TIME_AXIS_PREFERENCES[global_settings.window_time].optimized),
-		// Asks for the PV's metadata in order to retrieve its unit
-		meta = getMetadataFromArchiver(pv_name),
-		// Chooses the curve's color randomically
-		color = "rgba(" + getRandomInt(0, 128) + "," + getRandomInt(0, 128) + "," + getRandomInt(0, 128) + ", 1.0)",
-		unit = meta["EGU"] != "" || meta["EGU"] == undefined ? meta["EGU"] : pv_name;
+	var all = parseArchiverData(pv_data[0].data, TIME_AXIS_PREFERENCES[global_settings.window_time].optimized),
+	    // Asks for the PV's metadata in order to retrieve its unit
+	    meta = getMetadataFromArchiver(pv_name),
+	    // Chooses the curve's color randomically
+	    color = "rgba(" + getRandomInt(0, 128) + "," + getRandomInt(0, 128) + "," + getRandomInt(0, 128) + ", 1.0)",
+	    unit = meta["EGU"] != "" || meta["EGU"] == undefined ? meta["EGU"] : pv_name;
 
 	// Adds a new vertical axis if no other with the same unit exists
 	appendVerticalAxis(unit, parseInt(pv_data[0].meta.PREC) + 1)
@@ -418,6 +419,7 @@ function appendDataset(pv_data) {
 		data : new_dataset,
 		precision: parseInt(pv_data[0].meta.PREC) + 1,
         	type: meta.DBRType,
+		samplingPeriod: parseFloat(meta["samplingPeriod"])
 	});
 
 	// Pushes it into the chart
@@ -530,6 +532,22 @@ function updatePlot(pv_index) {
 		Array.prototype.push.apply(global_settings.plotted_data[pv_index].data.data, parseArchiverData(new_data, optimize));
 	}
 }
+
+/**
+* Checks if the request must optimized because of the variable's data volume. It returns -1 if no optimization is required or the number of bins otherwise.
+**/
+function shouldOptimizeRequest (pv_index) {
+
+	var data_estimative = TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds / (1000 * global_settings.plotted_data[pv_index].samplingPeriod);
+
+	if (data_estimative > 950)
+		return 950;
+
+	return -1;
+
+}
+
+
 /**
 * Updates all plots added so far. Resets informs if the user wants to reset the data in the dataset.
 **/
@@ -687,6 +705,9 @@ $('#PV').keypress(queryPV);
 $(document).click(refreshScreen);
 
 /******* Scrolling functions *******/
+/**
+* The following function manages mouse wheel events in the canvas area
+**/
 
 function scrollChart (evt){
 
@@ -765,7 +786,8 @@ function doDragging (evt) {
 
 		updateTimeScale(global_settings.window_time);
 
-		updateAllPlots(true);
+		if (!global_settings.dragging.updateOnComplete)
+			updateAllPlots(true);
 
 		global_settings.viewer.update(0, false);
 	}
@@ -794,11 +816,10 @@ function stopDragging (evt) {
 	global_settings.dragging.isDragging = false;
 	global_settings.dragging.mouseDown = false;
 
-	/*
-	Uncomment to disable auto refresh on dragging
-	updateAllPlots();
-	global_settings.viewer.update(0, false);
-	*/
+	if (global_settings.dragging.updateOnComplete) {
+		updateAllPlots(true);
+		global_settings.viewer.update(0, false);
+	}
 
 	// Finishes zoom and updates the chart
 	if (global_settings.zoom.isZooming && global_settings.zoom.hasBegan) {
