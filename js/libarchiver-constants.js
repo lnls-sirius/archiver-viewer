@@ -12,6 +12,7 @@ const REFRESH_INTERVAL = 1;
 const SIZE_MIN = 1;
 const SIZE_MAX = 1000;
 const DEFAULT_BINS = 100;
+const DATA_VOLUME_MAX = 2000;
 var TRIM_STEP = 10;
 const TIME_IDS = {
 	YEAR : 0,
@@ -32,7 +33,7 @@ const TIME_IDS = {
 	MIN_1: 15,
 	SEG_30: 16
 };
-const TRIM_LIMIT = TIME_IDS.HOUR_4;	
+const TRIM_LIMIT = TIME_IDS.HOUR_4;
 const TIME_AXIS_PREFERENCES = [
 	{ // 1 year
 		unit : "month",
@@ -51,20 +52,20 @@ const TIME_AXIS_PREFERENCES = [
 	{ // 2 weeks
 		unit : "day",
 		unitStepSize: 2,
-		milliseconds:  2 * 7 * 24 * 3600 * 1000, 
+		milliseconds:  2 * 7 * 24 * 3600 * 1000,
 		optimized: true,
         bins: 800,
 	},
 	{ // 1 week
 		unit : "day",
 		unitStepSize: 2,
-		milliseconds:  7 * 24 * 3600 * 1000, 
+		milliseconds:  7 * 24 * 3600 * 1000,
 		optimized: true,
         bins: 800,
 	},
 	{ // 2.5 days
 		unit : "hour",
-		unitStepSize: 12, 
+		unitStepSize: 12,
 		milliseconds:  2.5 * 24 * 3600 * 1000,
 		optimized: true,
         bins: 800,
@@ -79,7 +80,7 @@ const TIME_AXIS_PREFERENCES = [
 	{ // 18 hours
 		unit : "hour",
 		unitStepSize: 2,
-		milliseconds:  18 * 3600 * 1000, 
+		milliseconds:  18 * 3600 * 1000,
 		optimized: true,
         bins: 800,
 	},
@@ -107,14 +108,14 @@ const TIME_AXIS_PREFERENCES = [
 	{ // 2 hours
 		unit : "minute",
 		unitStepSize: 15,
-		milliseconds:  2 * 3600 * 1000, 
+		milliseconds:  2 * 3600 * 1000,
 		optimized: true,
         bins: 800,
 	},
 	{ // 1 hour
 		unit : "minute",
 		unitStepSize: 15,
-		milliseconds:  3600 * 1000, 
+		milliseconds:  3600 * 1000,
 		optimized: false,
 	},
 	{ // 30 minutes

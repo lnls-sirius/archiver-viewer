@@ -51,17 +51,15 @@ function setEndTime(date, updateHtml) {
 }
 
 
-function updateOptimizedWarning (window_id) {
+function updateOptimizedWarning () {
 
 	var can_optimize = false;
-	for (var i = 0; i < global_settings.plotted_data.length; i++) {
-		global_settings.plotted_data[i].data.data.length = 0;
-		if (global_settings.plotted_data[i].type != "DBR_SCALAR_ENUM")
-			can_optimize = true;
-	}
+
+	for (var i = 0; i < global_settings.plotted_data.length; i++)
+		can_optimize |= global_settings.plotted_data[i].optimized;
 
 	// Shows a pleasant warning that the request is fetching optimized data
-	if (TIME_AXIS_PREFERENCES[window_id].optimized && can_optimize)
+	if (can_optimize)
 		$("#obs").fadeIn();
        	else 	$("#obs").fadeOut();
 }
@@ -82,13 +80,13 @@ function updateTimeWindow(e) {
 
 		global_settings.window_time = e.target.cellIndex;
 
-		updateOptimizedWarning(global_settings.window_time);
+		//updateOptimizedWarning(global_settings.window_time);
 
 		$("#date .loading").show();
 
 		global_settings.start_time = new Date(global_settings.end_time.getTime() - TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds);
 
-		updateAllPlots();
+		updateAllPlots(true);
 
 		updateTimeScale(global_settings.window_time);
 
@@ -384,26 +382,23 @@ function appendVerticalAxis(n_id, ticks_precision) {
 /**
 * Appends a new dataset into the chart. pv_data is the data retrieved from the archiver.
 **/
-function appendDataset(pv_data) {
+function appendDataset(pv_data, pv_samplingPeriod, pv_type, pv_unit, bins) {
 
 	const pv_name = pv_data[0].meta.name;
 
 	// Parses the data fetched from the archiver the way that the chart's internal classes can plot
-	var all = parseArchiverData(pv_data[0].data, TIME_AXIS_PREFERENCES[global_settings.window_time].optimized),
-	    // Asks for the PV's metadata in order to retrieve its unit
-	    meta = getMetadataFromArchiver(pv_name),
+	var all = parseArchiverData(pv_data[0].data, bins < 0 ? false : true),
 	    // Chooses the curve's color randomically
-	    color = "rgba(" + getRandomInt(0, 128) + "," + getRandomInt(0, 128) + "," + getRandomInt(0, 128) + ", 1.0)",
-	    unit = meta["EGU"] != "" || meta["EGU"] == undefined ? meta["EGU"] : pv_name;
+	    color = "rgba(" + getRandomInt(0, 128) + "," + getRandomInt(0, 128) + "," + getRandomInt(0, 128) + ", 1.0)";
 
 	// Adds a new vertical axis if no other with the same unit exists
-	appendVerticalAxis(unit, parseInt(pv_data[0].meta.PREC) + 1)
+	appendVerticalAxis(pv_unit, parseInt(pv_data[0].meta.PREC) + 1)
 
 	var new_dataset = {
 
 		label : pv_name,
 		xAxisID: TIME_AXIS_ID,
-		yAxisID: unit,
+		yAxisID: pv_unit,
 		data : all,
 		showLine : true,
 		steppedLine : true,
@@ -418,8 +413,9 @@ function appendDataset(pv_data) {
 		pv : pv_name,
 		data : new_dataset,
 		precision: parseInt(pv_data[0].meta.PREC) + 1,
-        	type: meta.DBRType,
-		samplingPeriod: parseFloat(meta["samplingPeriod"])
+        	type: pv_type,
+		samplingPeriod: pv_samplingPeriod,
+		optimized : bins < 0 ? false : true,
 	});
 
 	// Pushes it into the chart
@@ -445,12 +441,17 @@ function updatePlot(pv_index) {
 		// we need to append data to the beginning of the data set
 		if (first.getTime() > global_settings.start_time.getTime()) {
 
-  			var bins = Math.round(TIME_AXIS_PREFERENCES[global_settings.window_time].bins * (first.getTime() - global_settings.start_time.getTime()) / TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds),
+  			var bins = shouldOptimizeRequest(global_settings.plotted_data[pv_index].samplingPeriod, global_settings.plotted_data[pv_index].type);
+
+		    	global_settings.plotted_data[pv_index].optimized = bins < 0 ? false : true;
+
+			var proportional_bins = Math.round(bins * (first.getTime() - global_settings.start_time.getTime()) / TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds),
 			    // Fetches data from the global_settings.start_time to the first measure's time
                 	    new_data = requestDataFromArchiver(global_settings.plotted_data[pv_index].pv,
 			                                       global_settings.start_time, first,
-			                                       TIME_AXIS_PREFERENCES[global_settings.window_time].optimized,
-		                                               bins);
+			                                       global_settings.plotted_data[pv_index].optimized, proportional_bins);
+
+			updateOptimizedWarning();
 
 			// Appends new data into the dataset
 			if (new_data.length > 0) {
@@ -466,7 +467,7 @@ function updatePlot(pv_index) {
 				}
 
 				Array.prototype.unshift.apply(global_settings.plotted_data[pv_index].data.data,
-				                              parseArchiverData(new_data,  TIME_AXIS_PREFERENCES[global_settings.window_time].optimized));
+				                              parseArchiverData(new_data, global_settings.plotted_data[pv_index].optimized));
 			}
 		}
 		// We can remove unnecessary data from the beginning of the dataset to save memory and improve performance
@@ -486,11 +487,16 @@ function updatePlot(pv_index) {
 		// we need to append data to the end of the data set
 		if (last.getTime() < global_settings.end_time.getTime()) {
 
-			var bins = Math.round(TIME_AXIS_PREFERENCES[global_settings.window_time].bins * (global_settings.end_time.getTime() - last.getTime()) / TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds),
+			var bins = shouldOptimizeRequest(global_settings.plotted_data[pv_index].samplingPeriod, global_settings.plotted_data[pv_index].type);
+
+		    	global_settings.plotted_data[pv_index].optimized = bins < 0 ? false : true;
+
+			var proportional_bins = Math.round(bins * (global_settings.end_time.getTime() - last.getTime()) / TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds),
 			    // Fetches data from the last measure's time to the global_settings.end_time
         		    new_data = requestDataFromArchiver(global_settings.plotted_data[pv_index].pv,
 			                                       last, global_settings.end_time,
-							       TIME_AXIS_PREFERENCES[global_settings.window_time].optimized);
+							       global_settings.plotted_data[pv_index].optimized, proportional_bins);
+			updateOptimizedWarning();
 
 			// Appends new data into the dataset
 			if (new_data.length > 0) {
@@ -506,7 +512,7 @@ function updatePlot(pv_index) {
 				}
 
 				Array.prototype.push.apply(global_settings.plotted_data[pv_index].data.data,
-					                   parseArchiverData(new_data, TIME_AXIS_PREFERENCES[global_settings.window_time].optimized));
+					                   parseArchiverData(new_data, global_settings.plotted_data[pv_index].optimized));
 			}
 		}
 		// We can remove unnecessary data from the end of the dataset to save memory and improve performance
@@ -524,24 +530,37 @@ function updatePlot(pv_index) {
 	// If the dataset is already empty, no verification are needed
 	if (global_settings.plotted_data[pv_index].data.data.length == 0) {
 
-		var optimize = global_settings.plotted_data[pv_index].type == "DBR_SCALAR_ENUM" ? false : TIME_AXIS_PREFERENCES[global_settings.window_time].optimized,
-            	    new_data = requestDataFromArchiver(global_settings.plotted_data[pv_index].pv,
-			                               global_settings.start_time,  global_settings.end_time,
-						       optimize)[0].data;
+		var bins = shouldOptimizeRequest(global_settings.plotted_data[pv_index].samplingPeriod, global_settings.plotted_data[pv_index].type);
 
-		Array.prototype.push.apply(global_settings.plotted_data[pv_index].data.data, parseArchiverData(new_data, optimize));
+		global_settings.plotted_data[pv_index].optimized = bins < 0 ? false : true;
+            	
+		var new_data = requestDataFromArchiver(global_settings.plotted_data[pv_index].pv,
+			                               global_settings.start_time,  global_settings.end_time,
+						       global_settings.plotted_data[pv_index].optimized, bins);
+
+		if (new_data.length > 0) {
+
+			new_data = new_data[0].data;
+
+			updateOptimizedWarning();
+		
+			Array.prototype.push.apply(global_settings.plotted_data[pv_index].data.data, parseArchiverData(new_data, global_settings.plotted_data[pv_index].optimized));
+		}
 	}
 }
 
 /**
 * Checks if the request must optimized because of the variable's data volume. It returns -1 if no optimization is required or the number of bins otherwise.
 **/
-function shouldOptimizeRequest (pv_index) {
+function shouldOptimizeRequest (pv_samplingPeriod, pv_type) {
 
-	var data_estimative = TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds / (1000 * global_settings.plotted_data[pv_index].samplingPeriod);
+	if (pv_type == "DBR_SCALAR_ENUM")
+		return -1;
 
-	if (data_estimative > 950)
-		return 950;
+	var data_estimative = TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds / (1000 * pv_samplingPeriod);
+
+	if (data_estimative > DATA_VOLUME_MAX)
+		return DATA_VOLUME_MAX;
 
 	return -1;
 
@@ -582,7 +601,7 @@ function parseArchiverData(data, optimized) {
 
 			chart_data.push({
 				x : chart_x,
-				y : optimized ? data[i].val[0] : data[i].val
+				y : data[i].val.length > 0 ? data[i].val[0] : data[i].val
 			});
 		}
 	}
@@ -611,14 +630,19 @@ function getPlotIndex(pv_name) {
 **/
 function addNewPV(pv) {
 
-	var data = requestDataFromArchiver(pv, global_settings.start_time,
+	// Asks for the PV's metadata in order to retrieve its unit, type and samping period
+	var metadata = getMetadataFromArchiver(pv),
+	    unit = metadata["EGU"] != "" || metadata["EGU"] == undefined ? metadata["EGU"] : pv,
+	    bins = shouldOptimizeRequest(parseFloat(metadata["samplingPeriod"]), metadata["DBRType"]),
+ 	    data = requestDataFromArchiver(pv, global_settings.start_time,
 		                           global_settings.end_time,
-					   TIME_AXIS_PREFERENCES[global_settings.window_time].optimized);
+					   bins < 0 ? false : true,
+	                                   bins);
 
 	if (data == undefined || data == null || data[0].data.length == 0)
 		alert("No data was received from server.");
 	else
-		appendDataset(data);
+		appendDataset(data, parseFloat(metadata["samplingPeriod"]), metadata["DBRType"], unit, bins);
 }
 
 /**
@@ -726,8 +750,6 @@ function scrollChart (evt){
 			$('#window_table tr').eq(0).find('td').eq(global_settings.window_time)[0].className = "pushed";
 
 			global_settings.start_time = new Date(global_settings.end_time.getTime() - TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds);
-
-			updateOptimizedWarning(global_settings.window_time);
 
 			updateAllPlots(true);
 
@@ -1085,6 +1107,8 @@ $(document).ready(function () {
 	global_settings.zoom = {};
 	global_settings.zoom.isZooming = false;
 	global_settings.zoom.hasBegan = false;
+
+	global_settings.optimizedPlots = 0;
 
   	$("#obs").hide();
 
