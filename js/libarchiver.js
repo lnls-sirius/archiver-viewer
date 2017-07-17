@@ -533,7 +533,7 @@ function updatePlot(pv_index) {
 		var bins = shouldOptimizeRequest(global_settings.plotted_data[pv_index].samplingPeriod, global_settings.plotted_data[pv_index].type);
 
 		global_settings.plotted_data[pv_index].optimized = bins < 0 ? false : true;
-            	
+
 		var new_data = requestDataFromArchiver(global_settings.plotted_data[pv_index].pv,
 			                               global_settings.start_time,  global_settings.end_time,
 						       global_settings.plotted_data[pv_index].optimized, bins);
@@ -543,7 +543,7 @@ function updatePlot(pv_index) {
 			new_data = new_data[0].data;
 
 			updateOptimizedWarning();
-		
+
 			Array.prototype.push.apply(global_settings.plotted_data[pv_index].data.data, parseArchiverData(new_data, global_settings.plotted_data[pv_index].optimized));
 		}
 	}
@@ -560,7 +560,7 @@ function shouldOptimizeRequest (pv_samplingPeriod, pv_type) {
 	var data_estimative = TIME_AXIS_PREFERENCES[global_settings.window_time].milliseconds / (1000 * pv_samplingPeriod);
 
 	if (data_estimative > DATA_VOLUME_MAX)
-		return DATA_VOLUME_MAX;
+		return TIME_AXIS_PREFERENCES[global_settings.window_time].bins;
 
 	return -1;
 
@@ -643,6 +643,8 @@ function addNewPV(pv) {
 		alert("No data was received from server.");
 	else
 		appendDataset(data, parseFloat(metadata["samplingPeriod"]), metadata["DBRType"], unit, bins);
+
+	updateOptimizedWarning();
 }
 
 /**
