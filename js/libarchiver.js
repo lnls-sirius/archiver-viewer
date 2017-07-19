@@ -1118,6 +1118,8 @@ $(document).ready(function () {
 
 	ARCHIVER_URL = window.location.origin;
 
+	$("#home").attr("href", ARCHIVER_URL.split(':')[0] + ":" + ARCHIVER_URL.split(':')[1]);
+
     	$("#day").datepicker({dateFormat: "dd/mm/yy"});
 
 	setEndTime(new Date(), true);
