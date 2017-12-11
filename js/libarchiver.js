@@ -43,7 +43,10 @@ function setEndTime(date, updateHtml) {
 
 	if (updateHtml) {
 
-	        $("#day").datepicker("setDate", date);
+                var day = ("0" + global_settings.end_time.getDate()).slice(-2),
+                    month = ("0" + (global_settings.end_time.getMonth() + 1)).slice(-2);
+
+                $("#day").val(global_settings.end_time.getFullYear() + "-" + month + "-" + day);
 		$("#hour").val(pad_with_zeroes(date.getHours(), 2))
 		$("#minute").val(pad_with_zeroes(date.getMinutes(), 2))
 		$("#second").val(pad_with_zeroes(date.getSeconds(), 2))
@@ -990,10 +993,10 @@ function autoRefreshingHandler (e) {
 **/
 function changeDateHandler (e) {
 
-	var date = $("#day").val().split("/"),
-	    day = parseInt(date[0]),
+	var date = $("#day").val().split("-"),
+	    day = parseInt(date[2]),
 	    month = parseInt(date[1]) - 1,
-	    year = parseInt(date[2]),
+	    year = parseInt(date[0]),
 	    hours = parseInt($("#hour").val()),
 	    minutes = parseInt($("#minute").val()),
 	    seconds = parseInt($("#second").val()),
@@ -1001,7 +1004,7 @@ function changeDateHandler (e) {
 
 	$("#date .loading").show();
 
-	setEndTime(new_date, false);
+	setEndTime(new_date, true);
 
 	updateAllPlots(true);
 
@@ -1120,7 +1123,7 @@ $(document).ready(function () {
 
 	$("#home").attr("href", ARCHIVER_URL.split(':')[0] + ":" + ARCHIVER_URL.split(':')[1]);
 
-    	$("#day").datepicker({dateFormat: "dd/mm/yy"});
+        // $("#day").datepicker({dateFormat: "dd/mm/yy"});
 
 	setEndTime(new Date(), true);
 

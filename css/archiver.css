@@ -60,14 +60,14 @@
 #date .date {
 	
 	margin: 0 0 0 5px;
-	
-	width: 120px;
+	height : 36px;
+	width: 150px;
 }
 
 #date .hh {
 	
 	margin: 0 5px 0 5px;
-	
+	height : 36px;
 	width: 36px;
 }
 
