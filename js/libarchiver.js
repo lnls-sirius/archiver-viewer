@@ -1048,7 +1048,6 @@ $(document).ready(function () {
 
 			title: {
 				display: true,
-				text: "LNLS Archiver Web Viewer",
 			},
 
 			scales: {
