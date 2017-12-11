@@ -317,15 +317,16 @@ function requestDataFromArchiver(pv, from, to, optimized, bins) {
 **/
 
 /**
-* Updates chart's time axes, but does not updates it by calling update().
+* Updates chart's time axes, but does not updates it by calling update(0, false).
 **/
 function updateTimeScale(new_index) {
 
 	global_settings.viewer.options.scales.xAxes[TIME_AXIS_INDEX].time.unit = TIME_AXIS_PREFERENCES[new_index].unit;
-	global_settings.viewer.options.scales.xAxes[TIME_AXIS_INDEX].time.unitStepSize = TIME_AXIS_PREFERENCES[new_index].unitStepSize;
+	global_settings.viewer.options.scales.xAxes[TIME_AXIS_INDEX].time.stepSize = TIME_AXIS_PREFERENCES[new_index].unitStepSize;
 
 	global_settings.viewer.options.scales.xAxes[TIME_AXIS_INDEX].time.min = global_settings.start_time;
 	global_settings.viewer.options.scales.xAxes[TIME_AXIS_INDEX].time.max = global_settings.end_time;
+
 }
 
 /**
@@ -356,6 +357,11 @@ function appendVerticalAxis(n_id, ticks_precision) {
 	scaleOptions.scaleLabel.display = true;
 	scaleOptions.scaleLabel.labelString = n_id;
 
+        scaleOptions.ticks.minor.display = true;
+        scaleOptions.ticks.minor.padding = 0;
+        scaleOptions.ticks.minor.labelOffset = 0;
+
+
 	// Function which is called when the scale is being drawn.
 	scaleOptions.ticks.callback = function (value) {
 
@@ -372,7 +378,8 @@ function appendVerticalAxis(n_id, ticks_precision) {
 		id: n_id,
 		options: scaleOptions,
 		ctx: global_settings.viewer.chart.ctx,
-		chart: global_settings.viewer
+		chart: global_settings.viewer,
+                position: "left",
 	});
 
 	/* Stores a reference of the axis */
