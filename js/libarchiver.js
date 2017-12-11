@@ -402,6 +402,7 @@ function appendDataset(pv_data, pv_samplingPeriod, pv_type, pv_unit, bins) {
 		label : pv_name,
 		xAxisID: TIME_AXIS_ID,
 		yAxisID: pv_unit,
+                borderWidth: 1.5,
 		data : all,
 		showLine : true,
 		steppedLine : true,
