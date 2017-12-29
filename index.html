@@ -1,82 +1,106 @@
 <html>
 <head>
-
-<meta http-equiv="content-type" content="text/html; charset=utf-8" />
-<link rel="stylesheet" type="text/css" href="css/archiver.css">
-<link rel="stylesheet" type="text/css" href="css/jquery-ui.css">
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" type="text/css" href="css/archiver.css">
+    <link rel="stylesheet" type="text/css" href="css/jquery-ui.css">
 </head>
 
 <body>
+    <!-- HEADER section: PV search text box and logo images -->
+    <div id="header">
 
-<div id="header">
-    <div id="header_title">
-	    <img src="img/search.png" style="width:18px; margin-right:5px;"> <input type="text" id="PV">
+        <div id="header_title">
+            <img src="img/search.png">
+            <input type="text" id="PV">
+        </div>
 
-    </div>
-	    <div id="header_logo">
+        <div id="warning">
+            <h4>No PVs corresponding to the search string have been found.</h4>
+        </div>
+
+        <div id="header_logo">
             <a href="" id="home">
-  	    	<img src="img/labLogo.png" style="max-height:95%;">
-	    	<img src="img/labLogo2.png" style="max-height:95%;">
-	    </a>
+                <img src="img/labLogo.png"  style="max-height:70%;">
+                <img src="img/labLogo2.png" style="max-height:70%;">
+            </a>
+        </div>
     </div>
-</div>
+    <!-- HEADER section end -->
 
-<div id="window_size">
-<table id="window_table">
-<tr>
-	<td class="unpushed">1 year</td>
-	<td class="unpushed">1 month</td>
-	<td class="unpushed">2 w</td>
-	<td class="unpushed">1 w</td>
-	<td class="unpushed">2.5d </td>
-	<td class="unpushed">1d</td>
-	<td class="unpushed">18h</td>
-	<td class="unpushed">12h</td>
-	<td class="unpushed">8h</td>
-	<td class="unpushed">4h</td>
-	<td class="unpushed">2h</td>
-	<td class="unpushed">1h</td>
-	<td class="unpushed">30m</td>
-	<td class="pushed">10m</td>
-	<td class="unpushed">5m</td>
-	<td class="unpushed">1m</td>
-	<td class="unpushed">30s</td>
-</tr>
-</table>
-</div>
+    <!-- WINDOW TIME section: buttons to select window time size -->
+    <div id="window_size">
+        <table id="window_table">
+            <tr>
+                <td class="unpushed">1 year</td>
+                <td class="unpushed">1 month</td>
+                <td class="unpushed">2 w</td>
+                <td class="unpushed">1 w</td>
+                <td class="unpushed">2.5d </td>
+                <td class="unpushed">1d</td>
+                <td class="unpushed">18h</td>
+                <td class="unpushed">12h</td>
+                <td class="unpushed">8h</td>
+                <td class="unpushed">4h</td>
+                <td class="unpushed">2h</td>
+                <td class="unpushed">1h</td>
+                <td class="unpushed">30m</td>
+                <td class="unpushed">10m</td>
+                <td class="unpushed">5m</td>
+                <td class="unpushed">1m</td>
+                <td class="unpushed">30s</td>
+            </tr>
+        </table>
+    </div>
+    <!-- WINDOW TIME section end -->
 
-<div id="date">
-End time: <input type="date" class="date" id="day"> <input type="text" class="hh" id="hour"> : <input type="text" class="hh" id="minute"> : <input type="text" class="hh" id="second">
-<span class="now">NOW</span>  <span class="backward"><</span> <span class="forward">></span> <span class="zoom">ZOOM</span> <img src="img/loading.gif" class="loading"> <span class="auto">AUTO</span>
-</div>
+    <div id="date">
+        END: <input type="date" class="date" id="day" required="required"> | <input type="text" class="hh" id="hour"> : <input type="text" class="hh" id="minute"> : <input type="text" class="hh" id="second"> |
+        <span class="now">NOW</span> | <span class="backward"><</span> <span class="forward">></span> | <span class="zoom">ZOOM</span> | <span class="auto">AUTO</span>
+        <img src="img/loading.gif" class="loading">
+        <img src="img/excel.ico" id="xlsx" class="export">
+        <img src="img/ods.png" id="ods" class="export">
+        <img src="img/csv.png" id="csv" class="export">
+    </div>
 
-<div id="obs">
-<h4> In order to reduce the data amount retrieved from server, an optimization is used. Each point corresponds to an average calculated over its neighborhood. </h4>
-</div>
+    <div id="obs">
+        <h4> In order to reduce the data amount retrieved from server, an optimization is used. Each point corresponds to an average calculated over its neighborhood. </h4>
+    </div>
 
-<div id="canvas_area">
-    <canvas id="archiver_viewer" width="450" height="450"></canvas>
-	<span class="selection_box"></span>
+    <div id="canvas_area">
+        <canvas id="archiver_viewer" width="450" height="450"></canvas>
+        <span class="selection_box"></span>
+    </div>
 
-</div>
+    <div id="archived_PVs">
+        <h2>Retrieved PVs</h2>
+        <table id="table_PVs">
+        </table>
+        <span id="next" class="change">></span>
+        <span id="previous" class="change"><</span>
+    </div>
 
-<div id="archived_PVs">
-	<h2>Retrieved PVs</h2>
-	<table id="table_PVs">
-	</table>
-</div>
+    <!--
+    <div id="data_table_area">
+        <input type="checkbox" class="enable_table"> Display Data
+        <table class="data_table"></table>
+    </div>
+    -->
 
-<div id="data_table_area">
-<input type="checkbox" class="enable_table"> Display Data
-<table class="data_table">
-</table>
-</div>
+    <div id="data_pv_info">
+    </div>
 
-<script type="text/javascript" src="js/jquery-3.1.1.min.js"></script>
-<script type="text/javascript" src="js/jquery.mousewheel.min.js"></script>
-<script type="text/javascript" src="js/Chart.bundle.js"></script>
-<script type="text/javascript" src="js/libarchiver-constants.js"></script>
-<script type="text/javascript" src="js/libarchiver.js"></script>
+    <script type="text/javascript" src="https://rawgit.com/eligrey/Blob.js/master/Blob.js"></script>
+    <script type="text/javascript" src="https://rawgit.com/eligrey/FileSaver.js/master/FileSaver.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+    <script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="js/jquery.mousewheel.min.js"></script>
+    <script type="text/javascript" src="js/Chart.bundle.js"></script>
+    <script type="text/javascript" src="js/ui.js"></script>
+    <script type="text/javascript" src="js/chartUtils.js"></script>
+    <script type="text/javascript" src="js/archInterface.js"></script>
+    <script type="text/javascript" src="js/control.js"></script>
+    <script type="text/javascript" src="js/handlers.js"></script>
+    <script type="text/javascript" src="js/init.js"></script>
 
 </body>
 </html>

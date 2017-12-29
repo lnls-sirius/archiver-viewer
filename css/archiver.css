@@ -2,23 +2,69 @@
     
     position: relative;
     
-    height: 125px;
-    width: 85%;
+    height: 100px;
+    width: 90%;
     margin-top: 25px;
-    margin-left: 7.5%;
+    margin-left: 5%;
     
 }
 
 #header_title {
-	
-	position: relative;
-	
-	top: 25px;
-	
-	font-family: "Open Sans, Arial";
+    
+    position: relative;
+    
+    margin-left: 16.5%;
 
-	float: left;
-	height: 100%;
+    top: 25px;
+    
+    font-family: "Helvetica Neue", "Helvetica", "Arial", "sans-serif";
+
+    float: left;
+    height: 80%;
+
+    width: 20%;
+}
+
+#header_title input {
+    
+    font-family: "Helvetica Neue", "Helvetica", "Arial", "sans-serif";
+    width: 90%;
+}
+
+#header_title img {
+
+    position: relative;
+    top: 3px;
+    width: 18px;
+    margin-right: 3px;
+}
+
+#warning {
+
+    position: relative;
+
+    padding: 10px 0 10px 0;
+
+    top: 23px;
+
+    font-family: "Helvetica Neue", "Helvetica", "Arial", "sans-serif";
+    font-size: 14px;
+    
+    border-width: 0px;
+    border-style: solid;
+    border-color: rgba(255, 0, 0, 0.3);
+    border-radius: 5px;
+
+    float: left;
+
+    background-color: rgba(255, 0, 0, 0.3);
+}
+
+#warning h4 {
+
+    margin:0;
+    margin-left:20px;
+    margin-right:20px;
 }
 
 #header_logo {
@@ -28,262 +74,299 @@
 }
 
 #canvas_area {
-	
-	position: relative;
-	
-	top: 25px;
-	width: 95%;
-	
-	margin-top: 20px;
-	padding-left: 2.5%;
+
+    position: relative;
+    
+    top: 10px;
+    width: 95%;
+    height: 65%;
+    
+    padding-left: 2.5%;
 }
 
 #date {
 
     position: relative;
-	
-	font-family: "Helvetica Neue", "Helvetica", "Arial", "sans-serif";
-	font-size: 14px;
-	font-weight: bold;
-	color: #666;
-	
-	margin: 0 0 0 5px;
-	
-	margin-bottom: 15px;
-	
-	left: 7.5%;
-    top: 25px;
-	
-	width: 85%;
+    
+    font-family: "Helvetica Neue", "Helvetica", "Arial", "sans-serif";
+    font-size: 14px;
+    font-weight: bold;
+    color: #666;
+    
+    margin: 0 0 0 5px;
+
+    left: 20%;
+    top: 5px;
+    
+    height: 35px;
+    width: 60%;
 }
 
-#date .date {
-	
-	margin: 0 0 0 5px;
-	height : 36px;
-	width: 150px;
+#date input {
+
+    font-family: "Helvetica Neue", "Helvetica", "Arial", "sans-serif";
+    font-size: 14px;
 }
 
-#date .hh {
-	
-	margin: 0 5px 0 5px;
-	height : 36px;
-	width: 36px;
+#date input.date {
+
+    height: 35px;
+    width: 150px;
+}
+
+#date input.hh {
+    
+    width: 35px;
 }
 
 #date span {
-	
-	margin: 0 5px 0 5px;
-	padding: 9px;
-	
-	width: 72px;
-	
-	border-width: 1px;
-	border-style: solid;
-	border-color: lightgrey;
-	
-	cursor: pointer;
+    
+    margin: 0 2px 0 2px;
+    padding: 9px;
+    
+    border-width: 1px;
+    border-style: solid;
+    border-color: lightgrey;
+    
+    cursor: pointer;
 }
 
 #date span:hover {
-	
-	background-color: lightgray;
+    
+    background-color: lightgray;
 }
 
-#date span.auto {
-	
-	float: right;
-	width: 52px;
-
-	text-align: center;
-}
 
 #date img.loading {
-	
-	position: relative;
+    
+    position: relative;
 
-	top: 5px;
+    top: 5px;
 
-	height: 20px;
+    height: 20px;
 
-	margin: 0 5px 0 5px;
+    margin: 0 5px 0 5px;
 
-	display:none;
+    display:none;
+}
+
+#date img.export {
+    
+    float: right;
+
+    position: relative;
+
+    top: 10%;
+    height: 80%;
+
+    margin: 0 5px 0 5px;
+
+    cursor: pointer;
 }
 
 #window_size {
-		
-	position: relative;
-	top: 30px;
-	
-	left: 7.5%;
-	width: 85%;
-
-    margin-bottom: 15px;
+        
+    position: relative;
+    left: 20%;
+    width: 60%;
+    height: 35px;
 }
 
 #window_size table {
-	width: 100%;
+    width: 100%;
+    height: 90%;
 }
 
 #window_size table tr td {
 
-	padding: 5px 5px 5px 5px;
-	
-	font-family: "Helvetica Neue", "Helvetica", "Arial", "sans-serif";
-	font-size: 12px;
-	
-	text-align: center;
-	
-	width: 5.8%;	
-	
-	border-width: 1px;
-	border-style: solid;
-	border-color: lightgrey;
-	
-	color: #666;
-	
-	cursor: pointer;
+    padding: 5px 5px 5px 5px;
+    
+    font-family: "Helvetica Neue", "Helvetica", "Arial", "sans-serif";
+    font-size: 12px;
+    
+    text-align: center;
+    
+    width: auto;   
+    
+    border-width: 1px;
+    border-style: solid;
+    border-color: lightgrey;
+    
+    color: #666;
+    
+    cursor: pointer;
 }
 
 #window_size table tr td.unpushed {
-	background-color: white;
-	
+    background-color: white;
 }
 
 #window_size table tr td.pushed {
-	background-color: lightgray;
+    background-color: lightgray;
 }
 
 #archived_PVs {
 
-	position: fixed;
+    position: fixed;
 
-	background-color:white;
+    background-color:white;
 
-	display:none;
+    display: none;
 
-	border-width: 1px;
-	border-style: solid;
-	border-radius: 5px;
-	border-color: lightgrey;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 5px;
+    border-color: lightgrey;
 
-	top: 50px;
-	left: 7.5%;
+    top: 50px;
+    left: 7.5%;
 
-	width: 85%;
-
+    width: 85%;
 }
 
 #archived_PVs h2 {
 
-	margin: 0;
+    margin: 0;
 
-	padding: 15px 0 15px 15px;
+    padding: 15px 0 15px 15px;
 
-	background-color: lightgrey;
+    background-color: lightgrey;
 
-	font-family: Arial,Helvetica,sans-serif;
-	font-size: 14px;
+    font-family: Arial,Helvetica,sans-serif;
+    font-size: 14px;
 
-	font-weight: bold;
+    font-weight: bold;
+
+    height: 20px;
 }
 
 #archived_PVs table {
 
-	width: 100%;
+    width: 100%;
 }
 
 #archived_PVs table tr td {
-	
-	padding: 15px 15px 15px 15px;
-	
-	font-family: Arial,Helvetica,sans-serif;
-	font-size: 14px;
+    
+    padding: 15px 15px 15px 15px;
+    
+    height: 20px;
 
-	cursor: pointer;
+    font-family: Arial,Helvetica,sans-serif;
+    font-size: 14px;
 
+    cursor: pointer;
 }
 
 #archived_PVs table tr td:hover {
-		
-	font-weight: bold;
+        
+    font-weight: bold;
 }
 
+#archived_PVs span.change {
+
+    position: relative;
+    
+    height: 20px;
+    width: 20px;
+
+    margin: 0 2px 0 2px;
+    padding: 2px;
+    
+    border-width: 1px;
+    border-style: solid;
+    border-color: lightgrey;
+    border-radius: 5px;
+    
+    text-align: center;
+
+    cursor: pointer;
+
+    font-family: Arial,Helvetica,sans-serif;
+
+    float: right;
+
+    right: 50%;
+}
+
+#archived_PVs span.change:hover {
+    
+    background-color: lightgray;
+}
+
+
 #data_table_area {
-	
-	position: relative;
-	
-	width: 95%;
-	
-	margin-top: 45px;
-	padding-left: 2.5%;
+    
+    position: relative;
+    
+    width: 95%;
+    
+    margin-top: 45px;
+    padding-left: 2.5%;
 
-	font-family: Arial,Helvetica,sans-serif;
-	font-size: 14px;
+    font-family: Arial,Helvetica,sans-serif;
+    font-size: 14px;
 
-	font-weight: bold;
+    font-weight: bold;
 }
 
 #data_table_area .data_table {
-	
-	font-size: 14px;
+    
+    font-size: 14px;
 
-	display: none;
+    display: none;
 
-	border-width: 2px;
-	border-style: solid;
-	border-color: lightgrey;
-	
+    border-width: 2px;
+    border-style: solid;
+    border-color: lightgrey;
 }
 
 #data_table_area .data_table tr td {
-	
-	padding: 5px;
-	border-width: 1px;
-	border-style: solid;
-	border-color: lightgrey;
+    
+    padding: 5px;
+    border-width: 1px;
+    border-style: solid;
+    border-color: lightgrey;
 }
 
 #data_table_area .data_table tr td.pv_time {
-	
-	background-color: lightgrey;
-	font-weight: bold;
+    
+    background-color: lightgrey;
+    font-weight: bold;
 }
 
 #data_table_area h2 {
 
-	margin-top: 20px;
-	margin-bottom: 0px;
+    margin-top: 20px;
+    margin-bottom: 0px;
 
-	padding: 15px 0 15px 15px;
+    padding: 15px 0 15px 15px;
 
-	background-color: lightgrey;
+    background-color: lightgrey;
 
-	font-family: Arial,Helvetica,sans-serif;
-	font-size: 14px;
+    font-family: Arial,Helvetica,sans-serif;
+    font-size: 14px;
 
-	font-weight: bold;
+    font-weight: bold;
 }
 
 #obs {
 
-	position: relative;
+    position: relative;
 
     padding: 10px 0 10px 0;
 
     font-family: Arial,Helvetica,sans-serif;
-	font-size: 14px;
-	
-   	border-width: 1px;
-	border-style: solid;
-	border-color: lightgrey;
+    font-size: 14px;
+    
+    border-width: 1px;
+    border-style: solid;
+    border-color: lightgrey;
     border-radius: 5px;
 
-	left: 7.5%;
-	width: 85%;
-	
-	top: 20px;
+    left: 20%;
+    width: 60%;
+    
+    top: 20px;
 
     background-color: lightblue;
 }
@@ -303,5 +386,34 @@
     border-width: 1px;
     border-style: solid;
     opacity: 0.3;
-	pointer-events: none;
+    pointer-events: none;
+}
+
+#data_pv_info {
+    
+    position: relative;
+    
+    width: 95%;
+    
+    margin-top: 15px;
+    padding-left: 2.5%;
+}
+
+#data_pv_info tr td {
+    
+    padding: 5px;
+    border-width: 1px;
+    border-style: solid;
+    border-color: lightgrey;
+
+    font-family: Arial,Helvetica,sans-serif;
+    font-size: 12px;
+    color: #666;
+    font-weight: bold;
+}
+
+#data_pv_info tr td label {
+
+    position: relative;
+    top: -3px;
 }
