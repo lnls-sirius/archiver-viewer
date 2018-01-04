@@ -6,15 +6,6 @@ var chartUtils = (function () {
 
     const TIME_AXIS_ID = "x-axis-0";
     const TIME_AXIS_INDEX = 0;
-    const COLOR_ARRAY = [
-        "rgba(0  ,0  ,0  ,1.0)",
-        "rgba(255,0  ,0  ,1.0)",
-        "rgba(0  ,255,0  ,1.0)",
-        "rgba(0  ,0  ,255,1.0)",
-        "rgba(255,255,0  ,1.0)",
-        "rgba(255,0  ,255,1.0)",
-        "rgba(0  ,255,255,1.0)",
-    ];
     const TIME_AXIS_PREFERENCES = [
 	    { // 1 year
 		    unit : "month",
@@ -156,9 +147,16 @@ var chartUtils = (function () {
 	    SEG_30: 16
     };
 
-
     var yAxisUseCounter = [];
-    var colorIndex = 1;
+
+    var colorStack = [
+        "rgba(0  ,0  ,0  ,1.0)",
+        "rgba(255,0  ,0  ,1.0)",
+        "rgba(0  ,255,0  ,1.0)",
+        "rgba(0  ,0  ,255,1.0)",
+    ];
+
+    var axisPositionLeft = true;
 
     /**
     * Updates chart's time axes, but does not updates it by calling update(0, false).
@@ -193,7 +191,7 @@ var chartUtils = (function () {
             ticks_precision = 3;
 
         scaleOptions.type = "linear";
-        scaleOptions.position = Object.keys(chartUtils.yAxisUseCounter).length % 2 ? "left" : "right",
+        scaleOptions.position = chartUtils.axisPositionLeft ? "left" : "right",
         scaleOptions.id = n_id;
 
         scaleOptions.scaleLabel.display = true;
@@ -224,8 +222,10 @@ var chartUtils = (function () {
             options: scaleOptions,
             ctx: chart.ctx,
             chart: chart,
-            position: Object.keys(chartUtils.yAxisUseCounter).length % 2 ? "left" : "right",
+            position: chartUtils.axisPositionLeft ? "left" : "right",
         });
+
+        chartUtils.axisPositionLeft = !chartUtils.axisPositionLeft;
 
         /* Stores a reference of the axis */
         chart.scales[n_id] = n_scale;
@@ -234,12 +234,10 @@ var chartUtils = (function () {
         Chart.layoutService.addBox(chart, n_scale);
     };
 
-    var appendDataset = function (chart, pv_name, data, samplingPeriod, type, unit, bins, precision) {
+    var appendDataset = function (chart, pv_name, data, samplingPeriod, type, unit, bins, precision, desc) {
 
         // Parses the data fetched from the archiver the way that the chart's internal classes can plot
-        var color = COLOR_ARRAY[colorIndex];
-
-        colorIndex = (colorIndex + 1) % COLOR_ARRAY.length;
+        var color = chartUtils.colorStack.pop ();
 
         if (unit == undefined)
             unit = pv_name;
@@ -269,6 +267,7 @@ var chartUtils = (function () {
                 type: type,
                 samplingPeriod: samplingPeriod,
                 optimized : bins < 0 ? false : true,
+                desc: desc,
             },
         });
     };
@@ -322,6 +321,8 @@ var chartUtils = (function () {
         timeAxisID: TIME_AXIS_ID,
         timeAxisPreferences: TIME_AXIS_PREFERENCES,
         timeIDs: TIME_IDS,
+        colorStack: colorStack,
+        axisPositionLeft: axisPositionLeft,
         updateTimeAxis: updateTimeAxis,
         appendDataAxis: appendDataAxis,
         appendDataset: appendDataset,
