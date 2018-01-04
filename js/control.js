@@ -10,6 +10,15 @@ var control = (function () {
 
     const DATA_VOLUME_MAX = 5000;
 
+    const STACK_ACTIONS = {
+        REMOVE_PV : 0,
+        APPEND_PV : 1,
+        CHANGE_WINDOW_TIME : 2,
+        CHANGE_END_TIME : 3,
+        ZOOM : 4,
+    };
+
+
     /* chartjs instance reference */
     var chart = null;
 
@@ -33,10 +42,52 @@ var control = (function () {
         hasBegan: false,
     };
 
+    var undo_stack = [], redo_stack = [];
+
+    var updateTimeWindow = function (window) {
+
+        ui.toogleWindowButton (window, control.window_time);
+
+        control.window_time = window;
+
+        if (control.window_time < chartUtils.timeIDs.MIN_30)
+            ui.disable ($("#date span.auto"));
+        else 
+            ui.enable ($("#date span.auto"));
+
+        ui.enableLoading();
+
+        control.start = new Date(control.end.getTime() - chartUtils.timeAxisPreferences[control.window_time].milliseconds);
+
+        control.optimizeAllGraphs ();
+
+        control.updateAllPlots(true);
+        control.updateURL();
+
+        chartUtils.updateTimeAxis (control.chart, chartUtils.timeAxisPreferences[control.window_time].unit, chartUtils.timeAxisPreferences[control.window_time].unitStepSize, control.start, control.end);
+
+        control.chart.update(0, false);
+
+        ui.disableLoading();
+
+        /*
+        if (document.getElementsByClassName('enable_table')[0].checked) {
+            control.updateDataTable();
+            $('#data_table_area .data_table').show();
+        }
+        */
+    }
+
     /**
     * Appends a new variable into the chart.
     **/
-    var appendPV = function (pv, optimized) {
+    var appendPV = function (pv, optimized, undo) {
+
+        if (chartUtils.colorStack.length == 0) {
+
+            ui.toogleSearchWarning ("Maximum plotted PV number has already been reached.");
+            return;
+        }
 
         // Asks for the PV's metadata in order to retrieve its unit, type and samping period
         var metadata = archInterface.fetchMetadata(pv),
@@ -44,25 +95,26 @@ var control = (function () {
 
         var bins = control.shouldOptimizeRequest(parseFloat(metadata["samplingPeriod"]), metadata["DBRType"]);
 
-        if (optimized == false)
+        if (!optimized)
             bins = -1;
-        else if (bins == -1)        
+        else if (optimized && bins == -1)        
             bins = chartUtils.timeAxisPreferences[control.window_time].bins;
 
         var data = archInterface.fetchData(pv, control.start, control.end, bins < 0 ? false : true, bins);
 
-        //control.chart.data.datasets[pv_index].pv.optimized = bins < 0 ? false : true;
-
         if (data == undefined || data == null || data[0].data.length == 0)
-            alert("No data was received from server.");
+            ui.toogleSearchWarning ("No data was received from server.");
         else
-            chartUtils.appendDataset (control.chart, data[0].meta.name, archInterface.parseData(data[0].data, bins < 0 ? false : true), parseFloat(metadata["samplingPeriod"]), metadata["DBRType"], unit, bins, parseInt(data[0].meta.PREC) + 1);
+            chartUtils.appendDataset (control.chart, data[0].meta.name, control.improveData (archInterface.parseData(data[0].data)), parseFloat(metadata["samplingPeriod"]), metadata["DBRType"], unit, bins, parseInt(data[0].meta.PREC) + 1, metadata["DESC"]);
 
         control.updateOptimizedWarning();
 
         control.updateURL();
 
-        ui.updatePVInfoTable(control.chart.data.datasets);
+        ui.updatePVInfoTable(control.chart.data.datasets, control.hideAxis, control.optimizeHandler, control.removeHandler);
+
+        if (!undo || undo == undefined)
+            control.undo_stack.push ({action : STACK_ACTIONS.APPEND_PV, pv : pv});
     }
 
     /**
@@ -96,10 +148,13 @@ var control = (function () {
     * Sets control.end to date and updates control.start according
     * to the time window size. Updates HTML elements in the case updateHtml is true.
     **/
-    var updateEnd = function (date, updateHtml) {
+    var updateEnd = function (date, updateHtml, undo) {
 
         if (updateHtml == undefined || updateHtml == null)
             updateHtml = false;
+
+        if (!undo || undo == undefined)
+            control.undo_stack.push ({action: control.stackActions.CHANGE_END_TIME, end_time: control.end});
 
         var now = new Date();
 
@@ -127,6 +182,29 @@ var control = (function () {
             ui.hideWarning ();
     }
 
+    var improveData = function (data) {
+
+        if (data.length > 0)  {
+
+            var first = data[0],
+                last  = data[data.length - 1];
+
+            if (first.x.getTime() > control.start.getTime())
+                data.unshift ({
+                    x : control.start,
+                    y : first.y
+                });
+
+            if (last.x.getTime() < control.end.getTime())
+                data.push ({
+                    x : control.end,
+                    y : last.y
+                });
+        }
+
+        return data;
+    }
+
     /**
     * Updates a plot of index pv_index.
     **/
@@ -142,12 +220,9 @@ var control = (function () {
 
             var fetchedData = archInterface.fetchData (control.chart.data.datasets[pv_index].label, control.start, control.end, control.chart.data.datasets[pv_index].pv.optimized, bins);
 
-            if (fetchedData.length > 0) {
+            if (fetchedData.length > 0)
+                Array.prototype.push.apply(control.chart.data.datasets[pv_index].data, control.improveData (archInterface.parseData(fetchedData[0].data)));
 
-                fetchedData = fetchedData[0].data;
-
-                Array.prototype.push.apply(control.chart.data.datasets[pv_index].data, archInterface.parseData(fetchedData, control.chart.data.datasets[pv_index].pv.optimized));
-            }
         }
         else {
 
@@ -179,7 +254,7 @@ var control = (function () {
                             x.setUTCMilliseconds(appendData[appendData.length - 1].secs * 1e3 + appendData[appendData.length - 1].nanos * 1e-6);
                     }
 
-                    Array.prototype.unshift.apply(control.chart.data.datasets[pv_index].data, archInterface.parseData(appendData, false));
+                    Array.prototype.unshift.apply(control.chart.data.datasets[pv_index].data, archInterface.parseData(appendData));
                 }
             }
             // We can remove unnecessary data from the beginning of the dataset to save memory and improve performance
@@ -210,7 +285,7 @@ var control = (function () {
                             x.setUTCMilliseconds(appendData[0].secs * 1e3 + appendData[0].nanos * 1e-6);
                     }
 
-                    Array.prototype.push.apply(control.chart.data.datasets[pv_index].data, archInterface.parseData(appendData, false));
+                    Array.prototype.push.apply(control.chart.data.datasets[pv_index].data, archInterface.parseData(appendData));
                 }
             }
             // We can remove unnecessary data from the end of the dataset to save memory and improve performance
@@ -252,7 +327,7 @@ var control = (function () {
             control.updatePlot(i);
         }
 
-        ui.updatePVInfoTable(control.chart.data.datasets);
+        ui.updatePVInfoTable(control.chart.data.datasets, control.hideAxis, control.optimizeHandler, control.removeHandler);
     };
 
     /**
@@ -262,8 +337,9 @@ var control = (function () {
 
         // Iterates over the dataset to check if a pv named pv_name exists
         for (var i = 0; i < control.chart.data.datasets.length; i++)
-            if (control.chart.data.datasets[i].label == pv_name)
+            if (control.chart.data.datasets[i].label == pv_name || control.chart.data.datasets[i].label == decodeURIComponent(pv_name))
                 return i;
+
         return null;
     }
 
@@ -353,9 +429,58 @@ var control = (function () {
         ui.disableLoading ();
 
         control.updateURL ();
-    }
+    };
+
+    var removeDataset = function (datasetIndex, undo) {
+
+        chartUtils.yAxisUseCounter [control.chart.data.datasets[datasetIndex].yAxisID]--;
+
+        chartUtils.colorStack.push (control.chart.data.datasets[datasetIndex].backgroundColor);
+
+        if (!undo || undo == undefined)
+            control.undo_stack.push ({action : STACK_ACTIONS.REMOVE_PV, pv : control.chart.data.datasets[datasetIndex].label, optimized : control.chart.data.datasets[datasetIndex].pv.optimized});
+
+        if (chartUtils.yAxisUseCounter [control.chart.data.datasets[datasetIndex].yAxisID] == 0) {
+
+            delete chartUtils.yAxisUseCounter [control.chart.data.datasets[datasetIndex].yAxisID];
+
+            control.chart.scales[control.chart.data.datasets[datasetIndex].yAxisID].options.display = false;
+
+            chartUtils.axisPositionLeft = control.chart.scales[control.chart.data.datasets[datasetIndex].yAxisID].position == "left";
+
+            delete control.chart.scales[control.chart.data.datasets[datasetIndex].yAxisID];
+        }
+        
+        control.chart.data.datasets.splice (datasetIndex, 1);
+
+        control.chart.update (0, false);
+
+        control.updateURL ();
+
+        ui.updatePVInfoTable(control.chart.data.datasets, control.hideAxis, control.optimizeHandler, control.removeHandler);
+
+        control.updateOptimizedWarning ();
+    };
+
+    var hideAxis = function (event) {
+
+        chartUtils.hidesAxis (control.chart.getDatasetMeta (event.data.datasetIndex), control.chart);
+        control.chart.update (0, false);
+    };
+
+    var optimizeHandler = function (event) {
+
+        control.optimizePlot (event.data.datasetIndex, this.checked);
+    };
+
+    var removeHandler = function (event) {
+
+        control.removeDataset (event.data.datasetIndex);
+    };
 
     return {
+
+        stackActions: STACK_ACTIONS,
 
         chart: chart,
         start: start,
@@ -366,11 +491,15 @@ var control = (function () {
         scrolling_enabled: scrolling_enabled,
         drag_flags: drag_flags,
         zoom_flags: zoom_flags,
+        undo_stack: undo_stack,
+        redo_stack: redo_stack,
 
+        updateTimeWindow : updateTimeWindow,
         appendPV: appendPV,
         updateEnd: updateEnd,
         shouldOptimizeRequest: shouldOptimizeRequest,
         updateOptimizedWarning: updateOptimizedWarning,
+        improveData: improveData,
         updatePlot: updatePlot,
         optimizeAllGraphs: optimizeAllGraphs,
         updateAllPlots: updateAllPlots,
@@ -378,6 +507,11 @@ var control = (function () {
         updateURL: updateURL,
         loadFromURL: loadFromURL,
         optimizePlot: optimizePlot,
+
+        removeDataset: removeDataset,
+        hideAxis: hideAxis,
+        optimizeHandler: optimizeHandler,
+        removeHandler: removeHandler, 
     };
 
 })();

@@ -35,31 +35,9 @@ var handlers = (function () {
 
         if (button.target.className == "unpushed") {
 
-            ui.toogleWindowButton (button.target.cellIndex, control.window_time);
+            control.undo_stack.push ({action : control.stackActions.CHANGE_WINDOW_TIME, window : control.window_time});
 
-            control.window_time = button.target.cellIndex;
-
-            ui.enableLoading();
-
-            control.start = new Date(control.end.getTime() - chartUtils.timeAxisPreferences[control.window_time].milliseconds);
-
-            control.optimizeAllGraphs ();
-
-            control.updateAllPlots(true);
-            control.updateURL();
-
-            chartUtils.updateTimeAxis (control.chart, chartUtils.timeAxisPreferences[control.window_time].unit, chartUtils.timeAxisPreferences[control.window_time].unitStepSize, control.start, control.end);
-
-            control.chart.update(0, false);
-
-            ui.disableLoading();
-
-            /*
-            if (document.getElementsByClassName('enable_table')[0].checked) {
-                control.updateDataTable();
-                $('#data_table_area .data_table').show();
-            }
-            */
+            control.updateTimeWindow (button.target.cellIndex);            
         }
     };
 
@@ -137,7 +115,7 @@ var handlers = (function () {
 
         if (key.which == KEY_ENTER) {
             ui.enableLoading ();
-            ui.showSearchResults (archInterface.query ($('#PV').val()));
+            ui.showSearchResults (archInterface.query ($('#PV').val()), handlers.appendPVHandler);
             ui.disableLoading ();
         }
     }
@@ -184,9 +162,16 @@ var handlers = (function () {
 
             if (window_time_old != control.window_time) {
 
+                if (control.window_time < chartUtils.timeIDs.MIN_30)
+                    ui.disable ($("#date span.auto"));
+                else 
+                    ui.enable ($("#date span.auto"));
+
                 ui.toogleWindowButton (control.window_time, window_time_old);
 
                 control.start = new Date(control.end.getTime() - chartUtils.timeAxisPreferences[control.window_time].milliseconds);
+
+                control.optimizeAllGraphs ();
 
                 control.updateAllPlots(true);
 
@@ -211,13 +196,17 @@ var handlers = (function () {
 
         if (control.auto_enabled) {
 
-            $(this).css('background-color',"white");
-
-            control.auto_enabled = false;
+            $(this).css("background-color", "white");
 
             clearInterval(control.timer);
 
-            ui.disableDate();
+            ui.enableDate();
+            ui.enable ($("#date span.now"));
+            ui.enable ($("#date span.zoom"));
+            ui.enable ($("#date span.forward"));
+            ui.enable ($("#date span.backward"));
+
+            $("#date img").css({"cursor" : "pointer"});
 
         }
         else {
@@ -226,7 +215,7 @@ var handlers = (function () {
 
                 ui.enableLoading();
 
-                control.updateEnd(new Date(), true);
+                control.updateEnd(new Date(), true, true);
 
                 chartUtils.updateTimeAxis (control.chart, chartUtils.timeAxisPreferences[control.window_time].unit, chartUtils.timeAxisPreferences[control.window_time].unitStepSize, control.start, control.end);
 
@@ -242,10 +231,16 @@ var handlers = (function () {
 
             $(this).css('background-color',"lightgrey");
 
-            control.auto_enabled = true;
+            ui.disableDate();
+            ui.disable ($("#date span.now"));
+            ui.disable ($("#date span.zoom"));
+            ui.disable ($("#date span.forward"));
+            ui.disable ($("#date span.backward"));
 
-            ui.enableDate();
+            $("#date img").css ({"cursor" : "not-allowed"});
         }
+
+        control.auto_enabled = !control.auto_enabled;
     };
 
     /**
@@ -293,6 +288,8 @@ var handlers = (function () {
 
         control.drag_flags.x = evt.offsetX;
 
+        control.drag_flags.end_time = control.end;
+
         if (control.zoom_flags.isZooming) {
 
             control.zoom_flags.begin_x = evt.clientX;
@@ -319,12 +316,15 @@ var handlers = (function () {
 
             control.drag_flags.x = evt.offsetX;
 
-            control.updateEnd(new_date, true);
+            control.updateEnd(new_date, true, true);
 
             chartUtils.updateTimeAxis (control.chart, chartUtils.timeAxisPreferences[control.window_time].unit, chartUtils.timeAxisPreferences[control.window_time].unitStepSize, control.start, control.end);
 
-            if (!control.drag_flags.updateOnComplete)
+            if (!control.drag_flags.updateOnComplete) {
+
                 control.updateAllPlots(true);
+                control.updateURL();
+            }
 
             control.chart.update(0, false);
         }
@@ -353,6 +353,8 @@ var handlers = (function () {
             control.updateURL();
             control.chart.update(0, false);
 
+            control.undo_stack.push ({action: control.stackActions.CHANGE_END_TIME, end_time: control.drag_flags.end_time});
+
             ui.disableLoading ();
         }
 
@@ -365,6 +367,8 @@ var handlers = (function () {
 
             if (control.zoom_flags.time_1 != undefined && control.zoom_flags.time_2 != undefined) {
 
+                control.undo_stack.push ({action: control.stackActions.ZOOM, start_time : control.start, end_time : control.end, window_time : control.window_time});
+
                 // Checks which zoom times should be used as start time or end time
                 if (control.zoom_flags.time_1.getTime() < control.zoom_flags.time_2.getTime()) {
 
@@ -372,6 +376,7 @@ var handlers = (function () {
                     control.end   = control.zoom_flags.time_2;
                 }
                 else {
+
                     control.start = control.zoom_flags.time_2;
                     control.end   = control.zoom_flags.time_1;
                 }
@@ -435,7 +440,7 @@ var handlers = (function () {
         }
         else 
             ui.resetTable ();
-    }
+    };
 
     function s2ab(s) {
 	    if(typeof ArrayBuffer !== 'undefined') {
@@ -452,10 +457,13 @@ var handlers = (function () {
 
     var exportAs = function (t) {
 
+        if (control.auto_enabled)
+            return undefined;
+
         var book = XLSX.utils.book_new(), sheets = [];
 
         for (var i = 0; i < control.chart.data.datasets.length; i++)
-            XLSX.utils.book_append_sheet(book, XLSX.utils.json_to_sheet (control.chart.data.datasets[i].data, {cellDates: true, dateNF: "dd/mm/yy h:mm:ss"}), control.chart.data.datasets[i].label.replace(new RegExp(':', 'g'), '_'));
+            XLSX.utils.book_append_sheet(book, XLSX.utils.json_to_sheet (control.chart.data.datasets[i].data, {cellDates: true, dateNF: "dd/mm/yy hh:mm:ss"}), control.chart.data.datasets[i].label.replace(new RegExp(':', 'g'), '_'));
 
         var wbout = XLSX.write(book, {bookType:t, type: 'binary'});
 
@@ -464,6 +472,131 @@ var handlers = (function () {
         } catch(e) { if(typeof console != 'undefined') console.log(e, wbout); }
 
         return wbout;      
+    };
+
+    var undoHandler = function () {
+
+        if (control.undo_stack.length > 0 && !control.auto_enabled) {
+
+            var undo = control.undo_stack.pop ();
+
+            switch (undo.action) {
+
+                case control.stackActions.REMOVE_PV:
+
+                    control.redo_stack.push ({action : control.stackActions.REMOVE_PV, pv : undo.pv});
+                    control.appendPV (undo.pv, undo.optimized, true);
+                    break;
+
+                case control.stackActions.APPEND_PV:
+
+                    var index = control.getPlotIndex (undo.pv);
+
+                    control.redo_stack.push ({action : control.stackActions.APPEND_PV, pv : undo.pv, optimized : control.chart.data.datasets[index].pv.optimized});
+                    control.removeDataset (index, true);
+                    break;
+
+                case control.stackActions.CHANGE_WINDOW_TIME:
+
+                    control.redo_stack.push ({action : control.stackActions.CHANGE_WINDOW_TIME, window : control.window_time});
+                    control.updateTimeWindow (undo.window);
+                    break;
+
+                case control.stackActions.CHANGE_END_TIME:
+
+                    control.redo_stack.push ({action : control.stackActions.CHANGE_END_TIME, end_time : control.end});
+
+                    control.updateEnd(undo.end_time, true, true);
+
+                    // does not change the time window, only updates all plots
+                    control.updateTimeWindow (control.window_time);
+
+                    break;
+
+                case control.stackActions.ZOOM:
+
+                    control.redo_stack.push ({action : control.stackActions.ZOOM, start_time: control.start, end_time : control.end, window_time: control.window_time});
+
+                    control.updateEnd(undo.end_time, true, true);
+
+                    control.updateTimeWindow (undo.window_time);
+
+                    control.chart.update(0, false);
+
+                    break;
+            }
+
+            control.chart.update (0, false);
+        }
+    };
+
+    var redoHandler = function () {
+
+        if (control.redo_stack.length > 0 && !control.auto_enabled) {
+
+            var redo = control.redo_stack.pop ();
+
+            switch (redo.action) {
+
+                case control.stackActions.REMOVE_PV:
+
+                    control.removeDataset (control.getPlotIndex (redo.pv));
+                    break;
+
+                case control.stackActions.APPEND_PV:
+
+                    control.appendPV (redo.pv, redo.optimized);
+                    break;
+
+                case control.stackActions.CHANGE_WINDOW_TIME:
+
+                    control.updateTimeWindow (redo.window);
+                    break;
+
+                case control.stackActions.CHANGE_END_TIME:
+
+                    ui.enableLoading();
+
+                    control.updateEnd(redo.end_time, true);
+                    control.updateAllPlots(true);
+                    control.updateURL();
+
+                    chartUtils.updateTimeAxis (control.chart, chartUtils.timeAxisPreferences[control.window_time].unit, chartUtils.timeAxisPreferences[control.window_time].unitStepSize, control.start, control.end);
+
+                    control.chart.update(0, false);
+
+                    ui.disableLoading();
+
+                    break;
+
+                case control.stackActions.ZOOM:
+
+                    ui.toogleWindowButton (undefined, control.window_time);
+
+                    // Updates the chart attributes
+                    control.window_time = redo.window_time;
+                    control.start = redo.start_time;
+                    control.end = redo.end_time;
+
+                    chartUtils.updateTimeAxis (control.chart, chartUtils.timeAxisPreferences[control.window_time].unit, chartUtils.timeAxisPreferences[control.window_time].unitStepSize, control.start, control.end);
+
+                    control.optimizeAllGraphs ();
+                    control.updateAllPlots(true);
+                    control.updateURL();
+
+                    ui.updateDateComponents (control.end);
+
+                    // Redraws the chart
+                    control.chart.update(0, false);
+
+                    control.updateOptimizedWarning();
+
+                    break;
+            }
+
+            control.chart.update (0, false);
+
+        }
     }
 
     return {
@@ -487,6 +620,8 @@ var handlers = (function () {
 
         toogleTable: toogleTable,
         exportAs: exportAs,
+        undoHandler: undoHandler,
+        redoHandler: redoHandler,
     };
 
 }) ();
