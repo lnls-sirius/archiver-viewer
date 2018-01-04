@@ -6,42 +6,30 @@
 ***/
 
 /* Registers event handler functions */
+
+$(document).click(handlers.refreshScreen);
+
 $("#window_size table tr td").on("click", handlers.updateTimeWindow);
 
+$("#date").on('change', 'input', handlers.onChangeDateHandler);
 $("#date .now").on("click", handlers.updateEndNow);
 $("#date .backward").on("click", handlers.backTimeWindow);
 $("#date .forward").on("click", handlers.forwTimeWindow);
+$("#date .zoom").on("click", handlers.zoomClickHandler);
+$("#date .auto").on("click", handlers.autoRefreshingHandler);
+
 $('#data_table_area .enable_table:checkbox').change(handlers.toogleTable);
+$("#undo").on("click", handlers.undoHandler);
+$("#redo").on("click", handlers.redoHandler);
 
 $('#PV').keypress(handlers.queryPVs);
-$(document).click(handlers.refreshScreen);
 
+$("#archiver_viewer").on('click', handlers.dataClickHandler);
 $("#archiver_viewer").mousewheel(handlers.scrollChart);
-
 // Binds handlers to the dragging events
 $("#archiver_viewer").mousedown(handlers.startDragging);
 $("#archiver_viewer").mousemove(handlers.doDragging);
 $("#archiver_viewer").mouseup(handlers.stopDragging);
-$("#archiver_viewer").on('click', handlers.dataClickHandler);
-$("#date .zoom").on("click", handlers.zoomClickHandler);
-
-$("#date .auto").on("click", handlers.autoRefreshingHandler);
-$("#date").on('change', 'input', handlers.onChangeDateHandler);
-
-$("#undo").on("click", handlers.undoHandler);
-$("#redo").on("click", handlers.redoHandler);
-
-$("#xlsx").click ({"type" : "xlsx"}, function (event) {
-    handlers.exportAs(event.data.type);
-});
-
-$("#ods").click ({"type" : "ods"}, function (event) {
-    handlers.exportAs(event.data.type);
-});
-
-$("#csv").click ({"type" : "csv"}, function (event) {
-    handlers.exportAs(event.data.type);
-});
 
 /******* Initialization function *******/
 /**
