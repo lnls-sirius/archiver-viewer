@@ -2,10 +2,10 @@
 
 var ui = (function () {
 
-    const PV_PER_ROW = 5;
+    const PV_PER_ROW = 4;
     const PV_PER_ROW_DATA_TABLE = 8;
     const PV_MAX_ROW_PER_PAGE = 10;
-    const PV_PER_ROW_INFO = 6;
+    const PV_PER_ROW_INFO = 4;
 
     var current_page = 0;
 
@@ -74,7 +74,7 @@ var ui = (function () {
         return new Date (year, month, day, hours, minutes, seconds, 0);
     };
 
-    var enableDate = function () {
+    var disableDate = function () {
 
         $("#day").prop('disabled', true);
         $("#hour").prop('disabled', true);
@@ -82,7 +82,7 @@ var ui = (function () {
         $("#second").prop('disabled', true);
     };
 
-    var disableDate = function () {
+    var enableDate = function () {
 
         $("#day").prop('disabled', false);
         $("#hour").prop('disabled', false);
@@ -105,7 +105,7 @@ var ui = (function () {
 
     };
 
-    var showSearchResultsAtPage = function (index, data) {
+    var showSearchResultsAtPage = function (index, data, eventHandler) {
 
         $("#table_PVs tr").remove();
 
@@ -114,19 +114,17 @@ var ui = (function () {
 
             var row;
             if (!( (i - index * PV_MAX_ROW_PER_PAGE * PV_PER_ROW) % PV_PER_ROW )) {
+
                 row = $("<tr></tr>")
                 row.appendTo($("#table_PVs"));
             }
 
             $('<td></td>').attr('id', 'pv' + i).text(data[i]).appendTo(row);
-            $('#pv' + i).click(handlers.appendPVHandler);
+            $('#pv' + i).unbind().click(eventHandler);
         }
-
-        $("#archived_PVs").height( (Math.ceil( (i - index * PV_MAX_ROW_PER_PAGE * PV_PER_ROW) / PV_PER_ROW + 1) * 50 + 28) + "px");
-
     };
 
-    var showSearchResults = function (data) {
+    var showSearchResults = function (data, eventHandler) {
 
         if (data != null && data.length > 0) {
 
@@ -137,9 +135,9 @@ var ui = (function () {
             
             ui.current_page = 0;
 
-            ui.showSearchResultsAtPage (0, data);
+            ui.showSearchResultsAtPage (0, data, eventHandler);
 
-            $(document.body).children().css('opacity', '0.4');
+            $(document.body).children().css('opacity', '0.3');
             $("#archived_PVs").show();
             $("#archived_PVs").css('opacity', '1.0');
 
@@ -271,7 +269,7 @@ var ui = (function () {
         $('#data_table_area .data_table').hide();
     };
 
-    var updatePVInfoTable = function (datasets) {
+    var updatePVInfoTable = function (datasets, legendHandler, optimizeHandler, removeHandler) {
 
         // Remove all data before rewriting
         $("#data_pv_info .pv_info_table").remove();
@@ -286,27 +284,23 @@ var ui = (function () {
                 row.appendTo(table);
             }
 
-            $('<td></td>').css({"background-color": datasets[i].backgroundColor, "width": "30px", "cursor" : "pointer"}).click({"datasetIndex" : i}, function (event) {
-            
-                chartUtils.hidesAxis (control.chart.getDatasetMeta (event.data.datasetIndex), control.chart);
-
-                control.chart.update (0, false);
-
-            }).appendTo(row);
+            $('<td></td>').css({"background-color": datasets[i].backgroundColor, "width": "30px", "cursor" : "pointer"}).click({"datasetIndex" : i}, legendHandler).appendTo(row);
 
             $('<td></td>').text(datasets[i].label).appendTo(row);
 
             var tdOptimized = $('<td></td>');
 
-            $('<input />').attr({"type" : "checkbox", "checked" : datasets[i].pv.optimized, "disabled" : datasets[i].pv.type == "DBR_SCALAR_ENUM"}).click({"datasetIndex" : i}, function (event) {
+            $('<input />').attr({"type" : "checkbox", "checked" : datasets[i].pv.optimized, "disabled" : datasets[i].pv.type == "DBR_SCALAR_ENUM"}).click({"datasetIndex" : i}, optimizeHandler).appendTo (tdOptimized);
 
-                control.optimizePlot (event.data.datasetIndex, this.checked);
-
-            }).appendTo (tdOptimized);
-
-            $('<label></label>:').text("OPTIMIZED?").appendTo (tdOptimized);
+            $('<label></label>:').text("Optimize?").appendTo (tdOptimized);
 
             tdOptimized.appendTo(row);
+
+            var tdRemove = $('<td></td>');
+
+            tdRemove.css({"cursor" : "pointer"}).text("Remove").click ({"datasetIndex" : i}, removeHandler);
+
+            tdRemove.appendTo (row);
         }
 
         $('#data_pv_info').append(table);
@@ -322,7 +316,18 @@ var ui = (function () {
         $("#warning").fadeOut();
     };
 
+    var disable = function (button) {
 
+        button.addClass("disabled");
+        button.css({"background-color" : "lightblue", "cursor" : "default", "pointerEvents" : "none"});
+    }
+
+    var enable = function (button) {
+
+        button.removeClass("disabled");
+        button.css({"background-color" : "white", "cursor" : "pointer", "pointerEvents" : "auto"});
+    }
+    
     return {
 
         updateDateComponents : updateDateComponents,
@@ -349,6 +354,8 @@ var ui = (function () {
         showSearchWarning: showSearchWarning,
         hideSearchWarning: hideSearchWarning,
         toogleSearchWarning: toogleSearchWarning,
+        disable: disable,
+        enable: enable,
     };
 
 }) ();
