@@ -131,16 +131,26 @@
     cursor: pointer;
 }
 
-#date span:hover {
+#date span:not(.disabled):hover {
     
-    background-color: lightgray;
+    background-color: lightgray!important;
 }
 
+#date img {
+
+    position: relative;
+
+    height: 80%;
+
+    top: 20%;
+
+    margin: 0 5px 0 5px;
+
+    cursor: pointer;
+}
 
 #date img.loading {
     
-    position: relative;
-
     top: 5px;
 
     height: 20px;
@@ -148,20 +158,13 @@
     margin: 0 5px 0 5px;
 
     display:none;
+
+    cursor: auto;
 }
 
 #date img.export {
     
     float: right;
-
-    position: relative;
-
-    top: 10%;
-    height: 80%;
-
-    margin: 0 5px 0 5px;
-
-    cursor: pointer;
 }
 
 #window_size {
@@ -247,9 +250,9 @@
 
 #archived_PVs table tr td {
     
-    padding: 15px 15px 15px 15px;
+    padding: 15px 5px 15px 5px;
     
-    height: 20px;
+    height: 50px;
 
     font-family: Arial,Helvetica,sans-serif;
     font-size: 14px;
@@ -269,7 +272,7 @@
     height: 20px;
     width: 20px;
 
-    margin: 0 2px 0 2px;
+    margin: 0 2px 5px 2px;
     padding: 2px;
     
     border-width: 1px;

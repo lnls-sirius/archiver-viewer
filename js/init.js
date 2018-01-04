@@ -28,6 +28,9 @@ $("#date .zoom").on("click", handlers.zoomClickHandler);
 $("#date .auto").on("click", handlers.autoRefreshingHandler);
 $("#date").on('change', 'input', handlers.onChangeDateHandler);
 
+$("#undo").on("click", handlers.undoHandler);
+$("#redo").on("click", handlers.redoHandler);
+
 $("#xlsx").click ({"type" : "xlsx"}, function (event) {
     handlers.exportAs(event.data.type);
 });
