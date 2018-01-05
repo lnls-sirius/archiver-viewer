@@ -219,7 +219,7 @@ var handlers = (function () {
 
                 chartUtils.updateTimeAxis (control.chart, chartUtils.timeAxisPreferences[control.window_time].unit, chartUtils.timeAxisPreferences[control.window_time].unitStepSize, control.start, control.end);
 
-                control.updateAllPlots();
+                control.updateAllPlots(true);
 
                 control.updateURL();
 
