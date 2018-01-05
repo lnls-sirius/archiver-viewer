@@ -38,7 +38,7 @@ var archInterface = (function () {
         if (pv == undefined)
             return null;
 
-        var jsonurl = ARCHIVER_URL + '/retrieval/bpl/getMetadata?pv=' + pv,
+        var jsonurl = archInterface.url + '/retrieval/bpl/getMetadata?pv=' + pv,
             components = jsonurl.split('?'),
             HTTPMethod = jsonurl.length > 2048 ? 'POST' : 'GET',
             returnData = null;
@@ -53,7 +53,7 @@ var archInterface = (function () {
                 returnData = textStatus == "success" ? data : null;
             },
             error: function(xmlHttpRequest, textStatus, errorThrown) {
-                alert("Connection failed with " + xmlHttpRequest + " -- " + textStatus + " -- " + errorThrown);
+                ui.toogleSearchWarning ("Connection failed with " + xmlHttpRequest + " -- " + textStatus + " -- " + errorThrown);
             }
         });
 
@@ -68,13 +68,13 @@ var archInterface = (function () {
         if (from == undefined || to == undefined)
             return null;
 
-        var jsonurl = ARCHIVER_URL + '/retrieval/data/getData.json?pv=' + pv + "&from=" + from.toJSON() + "&to=" + to.toJSON();
+        var jsonurl = archInterface.url + '/retrieval/data/getData.json?pv=' + pv + "&from=" + from.toJSON() + "&to=" + to.toJSON();
 
         if (isOptimized) {
             /*if (bins == undefined)
                 bins = TIME_AXIS_PREFERENCES[global_settings.window_time].bins;
             */
-            jsonurl = ARCHIVER_URL + '/retrieval/data/getData.json?pv=optimized_' + bins + '(' + pv + ")&from=" + from.toJSON() + "&to=" + to.toJSON();
+            jsonurl = archInterface.url + '/retrieval/data/getData.json?pv=optimized_' + bins + '(' + pv + ")&from=" + from.toJSON() + "&to=" + to.toJSON();
         }
 
         var components = jsonurl.split('?'),
@@ -91,7 +91,7 @@ var archInterface = (function () {
                 returnData = textStatus == "success" ? data : null;
             },
             error: function(xmlHttpRequest, textStatus, errorThrown) {
-                alert("Connection failed with " + xmlHttpRequest + " -- " + textStatus + " -- " + errorThrown);
+                ui.toogleSearchWarning ("Connection failed with " + xmlHttpRequest + " -- " + textStatus + " -- " + errorThrown);
             }
         });
 
@@ -104,7 +104,7 @@ var archInterface = (function () {
     **/
     var query = function (pvs) {  
 
-        var jsonurl = ARCHIVER_URL + '/retrieval/bpl/getMatchingPVs?pv=' + pvs + "&limit=4000",
+        var jsonurl = archInterface.url + '/retrieval/bpl/getMatchingPVs?pv=' + pvs + "&limit=4000",
             components = jsonurl.split('?'),
             querystring = components.length > 1 ? querystring = components[1] : '',
             HTTPMethod = jsonurl.length > 2048 ? 'POST' : 'GET',

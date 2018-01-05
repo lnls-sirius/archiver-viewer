@@ -103,6 +103,8 @@ $(document).ready(function () {
         }
     });
 
+    archInterface.url = window.location.origin;
+
     // document.getElementsByClassName('enable_table')[0].checked = false;
 
     $("#home").attr("href", archInterface.url.split(':')[0] + ":" + archInterface.url.split(':')[1]);
