@@ -31,6 +31,19 @@ $("#archiver_viewer").mousedown(handlers.startDragging);
 $("#archiver_viewer").mousemove(handlers.doDragging);
 $("#archiver_viewer").mouseup(handlers.stopDragging);
 
+$("#xlsx").click ({"type" : "xlsx"}, function (event) {
+    handlers.exportAs(event.data.type);
+});
+
+$("#ods").click ({"type" : "ods"}, function (event) {
+    handlers.exportAs(event.data.type);
+});
+
+$("#csv").click ({"type" : "csv"}, function (event) {
+    handlers.exportAs(event.data.type);
+});
+
+
 /******* Initialization function *******/
 /**
 * Instantiates a new chart and global structures
@@ -103,7 +116,7 @@ $(document).ready(function () {
         }
     });
 
-    archInterface.url = window.location.origin;
+    //archInterface.url = window.location.origin;
 
     // document.getElementsByClassName('enable_table')[0].checked = false;
 
