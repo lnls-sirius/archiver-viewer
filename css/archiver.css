@@ -106,11 +106,11 @@
 
     font-family: "Helvetica Neue", "Helvetica", "Arial", "sans-serif";
     font-size: 14px;
+    height: 35px;
 }
 
 #date input.date {
 
-    height: 35px;
     width: 150px;
 }
 
