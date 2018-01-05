@@ -50,10 +50,28 @@ var control = (function () {
 
         control.window_time = window;
 
-        if (control.window_time < chartUtils.timeIDs.MIN_30)
+        if (control.window_time < chartUtils.timeIDs.MIN_30) {
+
+            if (control.auto_enabled) {
+
+                control.auto_enabled = false;
+
+                clearInterval(control.timer);
+
+                ui.enableDate();
+                ui.enable ($("#date span.now"));
+                ui.enable ($("#date span.zoom"));
+                ui.enable ($("#date span.forward"));
+                ui.enable ($("#date span.backward"));
+
+                $("#date img").css({"cursor" : "pointer"});
+            }
+
             ui.disable ($("#date span.auto"));
-        else 
+        }
+        else if (!control.auto_enabled)
             ui.enable ($("#date span.auto"));
+
 
         ui.enableLoading();
 
@@ -298,6 +316,8 @@ var control = (function () {
                     control.chart.data.datasets[pv_index].data.pop();
 
             }
+
+            control.improveData(control.chart.data.datasets[pv_index].data);
         }
 
         control.updateOptimizedWarning();
