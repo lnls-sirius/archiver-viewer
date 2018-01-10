@@ -58513,7 +58513,7 @@ $(document).ready(function () {
         }
     }));
 
-    //archInterface.updateURL(window.location.origin);
+    archInterface.updateURL(window.location.origin);
 
     //document.getElementsByClassName('enable_table')[0].checked = false;
 
