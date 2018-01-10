@@ -1,12 +1,18 @@
 /******* Time window control functions *******/
 /**
 * The following functions control the start and end time that will be plotted on the graph.
-* control.end stands for the most recent time, meanwhile control.start
+* end stands for the most recent time, meanwhile start
 * stands for the beginning of the window time.
 **/
 /* require archInterface, chartUtils */
 
-var control = (function () {
+/* Module dependencies */
+var $ = require('jquery-browserify');
+var ui = require ("./ui.js");
+var chartUtils = require ("./chartUtils.js");
+var archInterface = require ("./archInterface.js");
+
+module.exports = (function () {
 
     const DATA_VOLUME_MAX = 5000;
 
@@ -31,7 +37,9 @@ var control = (function () {
 
     /* Control flags */
     var auto_enabled = false;
+
     var scrolling_enabled = true;
+
     var drag_flags = {
         drag_started: false,
         updateOnComplete: true,
@@ -44,19 +52,24 @@ var control = (function () {
 
     var undo_stack = [], redo_stack = [];
 
+    var init = function (c) {
+
+        chart = c;
+    };
+
     var updateTimeWindow = function (window) {
 
-        ui.toogleWindowButton (window, control.window_time);
+        ui.toogleWindowButton (window, window_time);
 
-        control.window_time = window;
+        window_time = window;
 
-        if (control.window_time < chartUtils.timeIDs.MIN_30) {
+        if (window_time < chartUtils.timeIDs.MIN_30) {
 
-            if (control.auto_enabled) {
+            if (auto_enabled) {
 
-                control.auto_enabled = false;
+                auto_enabled = false;
 
-                clearInterval(control.timer);
+                clearInterval(timer);
 
                 ui.enableDate();
                 ui.enable ($("#date span.now"));
@@ -69,28 +82,27 @@ var control = (function () {
 
             ui.disable ($("#date span.auto"));
         }
-        else if (!control.auto_enabled)
+        else if (!auto_enabled)
             ui.enable ($("#date span.auto"));
-
 
         ui.enableLoading();
 
-        control.start = new Date(control.end.getTime() - chartUtils.timeAxisPreferences[control.window_time].milliseconds);
+        start = new Date(end.getTime() - chartUtils.timeAxisPreferences[window_time].milliseconds);
 
-        control.optimizeAllGraphs ();
+        optimizeAllGraphs ();
 
-        control.updateAllPlots(true);
-        control.updateURL();
+        updateAllPlots(true);
+        updateURL();
 
-        chartUtils.updateTimeAxis (control.chart, chartUtils.timeAxisPreferences[control.window_time].unit, chartUtils.timeAxisPreferences[control.window_time].unitStepSize, control.start, control.end);
+        chartUtils.updateTimeAxis (chart, chartUtils.timeAxisPreferences[window_time].unit, chartUtils.timeAxisPreferences[window_time].unitStepSize, start, end);
 
-        control.chart.update(0, false);
+        chart.update(0, false);
 
         ui.disableLoading();
 
         /*
         if (document.getElementsByClassName('enable_table')[0].checked) {
-            control.updateDataTable();
+            updateDataTable();
             $('#data_table_area .data_table').show();
         }
         */
@@ -101,7 +113,7 @@ var control = (function () {
     **/
     var appendPV = function (pv, optimized, undo) {
 
-        if (chartUtils.colorStack.length == 0) {
+        if (chartUtils.colorStack ().length == 0) {
 
             ui.toogleSearchWarning ("Maximum plotted PV number has already been reached.");
             return;
@@ -111,28 +123,28 @@ var control = (function () {
         var metadata = archInterface.fetchMetadata(pv),
             unit = metadata["EGU"] != "" || metadata["EGU"] == undefined ? metadata["EGU"] : pv;
 
-        var bins = control.shouldOptimizeRequest(parseFloat(metadata["samplingPeriod"]), metadata["DBRType"]);
+        var bins = shouldOptimizeRequest(parseFloat(metadata["samplingPeriod"]), metadata["DBRType"]);
 
-        if (!optimized)
+        if (optimized == false)
             bins = -1;
         else if (optimized && bins == -1)        
-            bins = chartUtils.timeAxisPreferences[control.window_time].bins;
+            bins = chartUtils.timeAxisPreferences[window_time].bins;
 
-        var data = archInterface.fetchData(pv, control.start, control.end, bins < 0 ? false : true, bins);
+        var data = archInterface.fetchData(pv, start, end, bins < 0 ? false : true, bins);
 
         if (data == undefined || data == null || data[0].data.length == 0)
             ui.toogleSearchWarning ("No data was received from server.");
         else
-            chartUtils.appendDataset (control.chart, data[0].meta.name, control.improveData (archInterface.parseData(data[0].data)), parseFloat(metadata["samplingPeriod"]), metadata["DBRType"], unit, bins, parseInt(data[0].meta.PREC) + 1, metadata["DESC"]);
+            chartUtils.appendDataset (chart, data[0].meta.name, improveData (archInterface.parseData(data[0].data)), parseFloat(metadata["samplingPeriod"]), metadata["DBRType"], unit, bins, parseInt(data[0].meta.PREC) + 1, metadata["DESC"]);
 
-        control.updateOptimizedWarning();
+        updateOptimizedWarning();
 
-        control.updateURL();
+        updateURL();
 
-        ui.updatePVInfoTable(control.chart.data.datasets, control.hideAxis, control.optimizeHandler, control.removeHandler);
+        ui.updatePVInfoTable(chart.data.datasets, hideAxis, optimizeHandler, removeHandler);
 
         if (!undo || undo == undefined)
-            control.undo_stack.push ({action : STACK_ACTIONS.APPEND_PV, pv : pv});
+            undo_stack.push ({action : STACK_ACTIONS.APPEND_PV, pv : pv});
     }
 
     /**
@@ -144,14 +156,14 @@ var control = (function () {
             return -1;
 
         /*
-        var dataEstimative = chartUtils.timeAxisPreferences[control.window_time].milliseconds / (1000 * samplingPeriod);
+        var dataEstimative = chartUtils.timeAxisPreferences[window_time].milliseconds / (1000 * samplingPeriod);
 
         if (dataEstimative > DATA_VOLUME_MAX)
-            return chartUtils.timeAxisPreferences[control.window_time].bins;
+            return chartUtils.timeAxisPreferences[window_time].bins;
         */
 
-        if (control.window_time < chartUtils.timeIDs.HOUR_2)
-            return chartUtils.timeAxisPreferences[control.window_time].bins;
+        if (window_time < chartUtils.timeIDs.HOUR_2)
+            return chartUtils.timeAxisPreferences[window_time].bins;
 
         return -1;
     }
@@ -163,35 +175,35 @@ var control = (function () {
     **/
 
     /**
-    * Sets control.end to date and updates control.start according
+    * Sets end to date and updates start according
     * to the time window size. Updates HTML elements in the case updateHtml is true.
     **/
-    var updateEnd = function (date, updateHtml, undo) {
+    var updateStartAndEnd = function (date, updateHtml, undo) {
 
         if (updateHtml == undefined || updateHtml == null)
             updateHtml = false;
 
         if (!undo || undo == undefined)
-            control.undo_stack.push ({action: control.stackActions.CHANGE_END_TIME, end_time: control.end});
+            undo_stack.push ({action: STACK_ACTIONS.CHANGE_END_TIME, end_time: end});
 
         var now = new Date();
 
         if (date.getTime() <= now.getTime())
-            control.end = date;
-        else control.end = now;
+            end = date;
+        else end = now;
 
-        control.start = new Date(control.end.getTime() - chartUtils.timeAxisPreferences[control.window_time].milliseconds);
+        start = new Date(end.getTime() - chartUtils.timeAxisPreferences[window_time].milliseconds);
 
         if (updateHtml) 
-            ui.updateDateComponents (control.end);
+            ui.updateDateComponents (end);
     };
 
     var updateOptimizedWarning = function () {
 
         var can_optimize = false;
 
-        for (var i = 0; i < control.chart.data.datasets.length; i++)
-            can_optimize |= control.chart.data.datasets[i].pv.optimized;
+        for (var i = 0; i < chart.data.datasets.length; i++)
+            can_optimize |= chart.data.datasets[i].pv.optimized;
 
         // Shows a pleasant warning that the request is fetching optimized data
         if (can_optimize)
@@ -207,15 +219,15 @@ var control = (function () {
             var first = data[0],
                 last  = data[data.length - 1];
 
-            if (first.x.getTime() > control.start.getTime())
+            if (first.x.getTime() > start.getTime())
                 data.unshift ({
-                    x : control.start,
+                    x : start,
                     y : first.y
                 });
 
-            if (last.x.getTime() < control.end.getTime())
+            if (last.x.getTime() < end.getTime())
                 data.push ({
-                    x : control.end,
+                    x : end,
                     y : last.y
                 });
         }
@@ -229,32 +241,32 @@ var control = (function () {
     var updatePlot = function (pv_index) {
 
         // If the dataset is already empty, no verification is needed. All optimized request must be pass this condition.
-        if (control.chart.data.datasets[pv_index].data.length == 0) {
+        if (chart.data.datasets[pv_index].data.length == 0) {
 
-            //var bins = control.shouldOptimizeRequest(control.chart.data.datasets[pv_index].pv.samplingPeriod, control.chart.data.datasets[pv_index].pv.type);
-            //control.chart.data.datasets[pv_index].pv.optimized = bins < 0 ? false : true;
+            //var bins = shouldOptimizeRequest(chart.data.datasets[pv_index].pv.samplingPeriod, chart.data.datasets[pv_index].pv.type);
+            //chart.data.datasets[pv_index].pv.optimized = bins < 0 ? false : true;
 
-            var bins = chartUtils.timeAxisPreferences[control.window_time].bins;
+            var bins = chartUtils.timeAxisPreferences[window_time].bins;
 
-            var fetchedData = archInterface.fetchData (control.chart.data.datasets[pv_index].label, control.start, control.end, control.chart.data.datasets[pv_index].pv.optimized, bins);
+            var fetchedData = archInterface.fetchData (chart.data.datasets[pv_index].label, start, end, chart.data.datasets[pv_index].pv.optimized, bins);
 
             if (fetchedData.length > 0)
-                Array.prototype.push.apply(control.chart.data.datasets[pv_index].data, control.improveData (archInterface.parseData(fetchedData[0].data)));
+                Array.prototype.push.apply(chart.data.datasets[pv_index].data, improveData (archInterface.parseData(fetchedData[0].data)));
 
         }
         else {
 
             // Gets the time of the first and last element of the dataset
-            var first = control.chart.data.datasets[pv_index].data[0].x,
-                last  = control.chart.data.datasets[pv_index].data[control.chart.data.datasets[pv_index].data.length - 1].x;
+            var first = chart.data.datasets[pv_index].data[0].x,
+                last  = chart.data.datasets[pv_index].data[chart.data.datasets[pv_index].data.length - 1].x;
 
-            //control.chart.data.datasets[pv_index].pv.optimized = false;
+            //chart.data.datasets[pv_index].pv.optimized = false;
 
             // we need to append data to the beginning of the data set
-            if (first.getTime() > control.start.getTime()) {
+            if (first.getTime() > start.getTime()) {
 
-                // Fetches data from the control.start to the first measure's time
-                var appendData = archInterface.fetchData(control.chart.data.datasets[pv_index].label, control.start, first, false);
+                // Fetches data from the start to the first measure's time
+                var appendData = archInterface.fetchData(chart.data.datasets[pv_index].label, start, first, false);
 
                 // Appends new data into the dataset
                 if (appendData.length > 0) {
@@ -272,20 +284,20 @@ var control = (function () {
                             x.setUTCMilliseconds(appendData[appendData.length - 1].secs * 1e3 + appendData[appendData.length - 1].nanos * 1e-6);
                     }
 
-                    Array.prototype.unshift.apply(control.chart.data.datasets[pv_index].data, archInterface.parseData(appendData));
+                    Array.prototype.unshift.apply(chart.data.datasets[pv_index].data, archInterface.parseData(appendData));
                 }
             }
             // We can remove unnecessary data from the beginning of the dataset to save memory and improve performance
             else {
-                while (control.chart.data.datasets[pv_index].data.length > 0 && control.chart.data.datasets[pv_index].data[0].x.getTime() < control.start.getTime())
-                    control.chart.data.datasets[pv_index].data.shift();
+                while (chart.data.datasets[pv_index].data.length > 0 && chart.data.datasets[pv_index].data[0].x.getTime() < start.getTime())
+                    chart.data.datasets[pv_index].data.shift();
             }
 
             // we need to append data to the end of the data set
-            if (last.getTime() < control.end.getTime()) {
+            if (last.getTime() < end.getTime()) {
 
-                // Fetches data from the last measure's time to the control.end
-                var appendData = archInterface.fetchData(control.chart.data.datasets[pv_index].label, last, control.end, false);
+                // Fetches data from the last measure's time to the end
+                var appendData = archInterface.fetchData(chart.data.datasets[pv_index].label, last, end, false);
 
                 // Appends new data into the dataset
                 if (appendData.length > 0) {
@@ -303,31 +315,31 @@ var control = (function () {
                             x.setUTCMilliseconds(appendData[0].secs * 1e3 + appendData[0].nanos * 1e-6);
                     }
 
-                    Array.prototype.push.apply(control.chart.data.datasets[pv_index].data, archInterface.parseData(appendData));
+                    Array.prototype.push.apply(chart.data.datasets[pv_index].data, archInterface.parseData(appendData));
                 }
             }
             // We can remove unnecessary data from the end of the dataset to save memory and improve performance
             else {
-                var i = control.chart.data.datasets[pv_index].data.length - 1;
+                var i = chart.data.datasets[pv_index].data.length - 1;
 
-                for (var i = control.chart.data.datasets[pv_index].data.length - 1;
-                     control.chart.data.datasets[pv_index].data.length > 0 && control.chart.data.datasets[pv_index].data[i].x.getTime() > control.end.getTime();
+                for (var i = chart.data.datasets[pv_index].data.length - 1;
+                     chart.data.datasets[pv_index].data.length > 0 && chart.data.datasets[pv_index].data[i].x.getTime() > end.getTime();
                      i--)
-                    control.chart.data.datasets[pv_index].data.pop();
+                    chart.data.datasets[pv_index].data.pop();
 
             }
 
-            control.improveData(control.chart.data.datasets[pv_index].data);
+            improveData(chart.data.datasets[pv_index].data);
         }
 
-        control.updateOptimizedWarning();
+        updateOptimizedWarning();
     }
 
     var optimizeAllGraphs = function () {
 
-        for (var i = 0; i < control.chart.data.datasets.length; i++) {
-            var bins = control.shouldOptimizeRequest(control.chart.data.datasets[i].pv.samplingPeriod, control.chart.data.datasets[i].pv.type);
-            control.chart.data.datasets[i].pv.optimized = bins < 0 ? false : true;
+        for (var i = 0; i < chart.data.datasets.length; i++) {
+            var bins = shouldOptimizeRequest(chart.data.datasets[i].pv.samplingPeriod, chart.data.datasets[i].pv.type);
+            chart.data.datasets[i].pv.optimized = bins < 0 ? false : true;
         }
     }
 
@@ -339,15 +351,15 @@ var control = (function () {
         if (reset == undefined)
             reset = false;
 
-        for (var i = 0; i < control.chart.data.datasets.length; i++) {
+        for (var i = 0; i < chart.data.datasets.length; i++) {
 
-            if (control.chart.data.datasets[i].pv.optimized || reset)
-                control.chart.data.datasets[i].data.length = 0;
+            if (chart.data.datasets[i].pv.optimized || reset)
+                chart.data.datasets[i].data.length = 0;
 
-            control.updatePlot(i);
+            updatePlot(i);
         }
 
-        ui.updatePVInfoTable(control.chart.data.datasets, control.hideAxis, control.optimizeHandler, control.removeHandler);
+        ui.updatePVInfoTable(chart.data.datasets, hideAxis, optimizeHandler, removeHandler);
     };
 
     /**
@@ -356,8 +368,8 @@ var control = (function () {
     var getPlotIndex = function (pv_name) {
 
         // Iterates over the dataset to check if a pv named pv_name exists
-        for (var i = 0; i < control.chart.data.datasets.length; i++)
-            if (control.chart.data.datasets[i].label == pv_name || control.chart.data.datasets[i].label == decodeURIComponent(pv_name))
+        for (var i = 0; i < chart.data.datasets.length; i++)
+            if (chart.data.datasets[i].label == pv_name || chart.data.datasets[i].label == decodeURIComponent(pv_name))
                 return i;
 
         return null;
@@ -367,15 +379,15 @@ var control = (function () {
 
         var searchString = "?";
 
-        for (var i = 0; i < control.chart.data.datasets.length; i++) {
-            if (control.chart.data.datasets[i].pv.optimized)
-                searchString += "pv=optimized_" + chartUtils.timeAxisPreferences[control.window_time].bins + "(" + encodeURIComponent (control.chart.data.datasets[i].label) + ")&";
+        for (var i = 0; i < chart.data.datasets.length; i++) {
+            if (chart.data.datasets[i].pv.optimized)
+                searchString += "pv=optimized_" + chartUtils.timeAxisPreferences[window_time].bins + "(" + encodeURIComponent (chart.data.datasets[i].label) + ")&";
             else 
-                searchString += "pv=" + encodeURIComponent (control.chart.data.datasets[i].label) + "&";
+                searchString += "pv=" + encodeURIComponent (chart.data.datasets[i].label) + "&";
         }
 
-        searchString += "from=" + encodeURIComponent (control.start.toJSON()) + "&";
-        searchString += "to=" + encodeURIComponent (control.end.toJSON());
+        searchString += "from=" + encodeURIComponent (start.toJSON()) + "&";
+        searchString += "to=" + encodeURIComponent (end.toJSON());
 
         ui.updateAddress (searchString);
 
@@ -383,7 +395,7 @@ var control = (function () {
 
     var loadFromURL = function (searchPath) {
 
-        var pvs = [], start = null, end = null;
+        var pvs = [], urlStart = null, urlEnd = null;
 
         if (searchPath != "") {
 
@@ -394,29 +406,29 @@ var control = (function () {
                 if (search_paths[i].indexOf("pv=") != -1)
                     pvs.push (search_paths[i].substr(search_paths[i].indexOf("=") + 1));
                 else if (search_paths[i].indexOf("from=") != -1)
-                    start = decodeURIComponent(search_paths[i].substr(search_paths[i].indexOf("=") + 1));
+                    urlStart = decodeURIComponent(search_paths[i].substr(search_paths[i].indexOf("=") + 1));
                 else if (search_paths[i].indexOf("to=") != -1)
-                    end = decodeURIComponent(search_paths[i].substr(search_paths[i].indexOf("=") + 1));
+                    urlEnd = decodeURIComponent(search_paths[i].substr(search_paths[i].indexOf("=") + 1));
             }
         }
 
-        if (start != null && end != null) {
+        if (urlStart != null && urlEnd != null) {
 
-            control.start = new Date (start);
-            control.end = new Date (end);
+            start = new Date (urlStart);
+            end = new Date (urlEnd);
 
-            control.window_time = 0;
-            while (control.end.getTime() - control.start.getTime() < chartUtils.timeAxisPreferences[control.window_time].milliseconds && control.window_time < chartUtils.timeIDs.SEG_30)
-                control.window_time++;
+            window_time = 0;
+            while (end.getTime() - start.getTime() < chartUtils.timeAxisPreferences[window_time].milliseconds && window_time < chartUtils.timeIDs.SEG_30)
+                window_time++;
         }
         else
-            control.updateEnd (new Date (), true);
+            updateStartAndEnd (new Date (), true);
 
-        ui.toogleWindowButton (control.window_time, undefined);
+        ui.toogleWindowButton (window_time, undefined);
 
-        ui.updateDateComponents (control.end);
+        ui.updateDateComponents (end);
 
-        chartUtils.updateTimeAxis (control.chart, chartUtils.timeAxisPreferences[control.window_time].unit, chartUtils.timeAxisPreferences[control.window_time].unitStepSize, control.start, control.end);
+        chartUtils.updateTimeAxis (chart, chartUtils.timeAxisPreferences[window_time].unit, chartUtils.timeAxisPreferences[window_time].unitStepSize, start, end);
 
         for (var i = 0; i < pvs.length; i++) {
  
@@ -428,95 +440,120 @@ var control = (function () {
                 optimized = true;
             }
 
-            control.appendPV (pvs[i], optimized);
+            appendPV (pvs[i], optimized);
         }
 
-        control.chart.update(0, false);
+        chart.update(0, false);
     };
 
     var optimizePlot = function (datasetIndex, optimize) {
 
-        control.chart.data.datasets[datasetIndex].pv.optimized = optimize;
+        chart.data.datasets[datasetIndex].pv.optimized = optimize;
 
         ui.enableLoading ();
 
-        control.chart.data.datasets[datasetIndex].data.length = 0;
+        chart.data.datasets[datasetIndex].data.length = 0;
 
-        control.updatePlot (datasetIndex);
+        updatePlot (datasetIndex);
 
-        control.chart.update (0, false);
+        chart.update (0, false);
 
         ui.disableLoading ();
 
-        control.updateURL ();
+        updateURL ();
     };
 
     var removeDataset = function (datasetIndex, undo) {
 
-        chartUtils.yAxisUseCounter [control.chart.data.datasets[datasetIndex].yAxisID]--;
+        chartUtils.yAxisUseCounter () [chart.data.datasets[datasetIndex].yAxisID]--;
 
-        chartUtils.colorStack.push (control.chart.data.datasets[datasetIndex].backgroundColor);
+        chartUtils.colorStack ().push (chart.data.datasets[datasetIndex].backgroundColor);
 
         if (!undo || undo == undefined)
-            control.undo_stack.push ({action : STACK_ACTIONS.REMOVE_PV, pv : control.chart.data.datasets[datasetIndex].label, optimized : control.chart.data.datasets[datasetIndex].pv.optimized});
+            undo_stack.push ({action : STACK_ACTIONS.REMOVE_PV, pv : chart.data.datasets[datasetIndex].label, optimized : chart.data.datasets[datasetIndex].pv.optimized});
 
-        if (chartUtils.yAxisUseCounter [control.chart.data.datasets[datasetIndex].yAxisID] == 0) {
+        if (chartUtils.yAxisUseCounter () [chart.data.datasets[datasetIndex].yAxisID] == 0) {
 
-            delete chartUtils.yAxisUseCounter [control.chart.data.datasets[datasetIndex].yAxisID];
+            delete chartUtils.yAxisUseCounter () [chart.data.datasets[datasetIndex].yAxisID];
 
-            control.chart.scales[control.chart.data.datasets[datasetIndex].yAxisID].options.display = false;
+            chart.scales[chart.data.datasets[datasetIndex].yAxisID].options.display = false;
 
-            chartUtils.axisPositionLeft = control.chart.scales[control.chart.data.datasets[datasetIndex].yAxisID].position == "left";
+            chartUtils.updateAxisPositionLeft (chart.scales[chart.data.datasets[datasetIndex].yAxisID].position == "left");
 
-            delete control.chart.scales[control.chart.data.datasets[datasetIndex].yAxisID];
+            delete chart.scales[chart.data.datasets[datasetIndex].yAxisID];
         }
         
-        control.chart.data.datasets.splice (datasetIndex, 1);
+        chart.data.datasets.splice (datasetIndex, 1);
 
-        control.chart.update (0, false);
+        chart.update (0, false);
 
-        control.updateURL ();
+        updateURL ();
 
-        ui.updatePVInfoTable(control.chart.data.datasets, control.hideAxis, control.optimizeHandler, control.removeHandler);
+        ui.updatePVInfoTable(chart.data.datasets, hideAxis, optimizeHandler, removeHandler);
 
-        control.updateOptimizedWarning ();
+        updateOptimizedWarning ();
     };
 
     var hideAxis = function (event) {
 
-        chartUtils.hidesAxis (control.chart.getDatasetMeta (event.data.datasetIndex), control.chart);
-        control.chart.update (0, false);
+        chartUtils.hidesAxis (chart.getDatasetMeta (event.data.datasetIndex), chart);
+        chart.update (0, false);
     };
 
     var optimizeHandler = function (event) {
 
-        control.optimizePlot (event.data.datasetIndex, this.checked);
+        optimizePlot (event.data.datasetIndex, this.checked);
     };
 
     var removeHandler = function (event) {
 
-        control.removeDataset (event.data.datasetIndex);
+        removeDataset (event.data.datasetIndex);
     };
 
     return {
 
+        /* const references */
         stackActions: STACK_ACTIONS,
 
-        chart: chart,
-        start: start,
-        end: end,
-        window_time: window_time,
-        timer: timer,
-        auto_enabled: auto_enabled,
-        scrolling_enabled: scrolling_enabled,
-        drag_flags: drag_flags,
-        zoom_flags: zoom_flags,
-        undo_stack: undo_stack,
-        redo_stack: redo_stack,
+        /* Getters */
+        chart: function () { return chart; },
+        start: function () { return start; },
+        end: function () { return end; },
+        window_time: function () { return window_time; },
+        timer: function () { return timer; },
+        auto_enabled: function () { return auto_enabled; },
+        scrolling_enabled: function () { return scrolling_enabled; },
+        drag_flags: function () { return drag_flags; },
+        zoom_flags: function () { return zoom_flags; },
+        undo_stack: function () { return undo_stack; },
+        redo_stack: function () { return redo_stack; },
+
+        /* Setters */
+        startTimer : function (t) { timer = t; }, 
 
         updateTimeWindow : updateTimeWindow,
+        updateTimeWindowOnly : function (t) { window_time = t; },
+        updateStartTime : function (s) { start = s; },
+        updateEndTime : function (e) { end = e; },
+        updateStartAndEnd: updateStartAndEnd,
+
+        toggleAuto : function () { auto_enabled = !auto_enabled; },
+        disableAuto : function () { auto_enabled = false; },
+        enableAuto : function () { auto_enabled = true; },
+
+        disableScrolling : function () { scrolling_enabled = false; },
+        enableScrolling : function () { scrolling_enabled = true; },
+
+        startDrag: function () { drag_flags.drag_started = true; }, 
+        stopDrag: function () { drag_flags.drag_started = false; },
+        updateDragEndTime : function (t) { drag_flags.end_time = t; },
+        updateDragOffsetX : function (x) { drag_flags.x = x; },
+
+        enableZoom: function () { zoom_flags.isZooming = true; },
+        disableZoom: function () { zoom_flags.isZooming = false;  },
+
+        init: init,
         appendPV: appendPV,
-        updateEnd: updateEnd,
         shouldOptimizeRequest: shouldOptimizeRequest,
         updateOptimizedWarning: updateOptimizedWarning,
         improveData: improveData,

@@ -1,8 +1,9 @@
 /******* Chart control functions *******/
 
-// requires controlChartjs, jQuery
+/* Module dependencies */
+var $ = require('jquery-browserify');
 
-var chartUtils = (function () {
+module.exports = (function () {
 
     const TIME_AXIS_ID = "x-axis-0";
     const TIME_AXIS_INDEX = 0;
@@ -150,6 +151,10 @@ var chartUtils = (function () {
     var yAxisUseCounter = [];
 
     var colorStack = [
+        "rgba(170,110, 40,1.0)",
+        "rgba(240,50 ,230,1.0)",
+        "rgba(145,30 ,180,1.0)",
+        "rgba(245,130, 48,1.0)",
         "rgba(0  ,0  ,0  ,1.0)",
         "rgba(255,0  ,0  ,1.0)",
         "rgba(0  ,255,0  ,1.0)",
@@ -174,15 +179,15 @@ var chartUtils = (function () {
     **/
     var appendDataAxis = function (chart, n_id, ticks_precision) {
 
-        if (n_id in chartUtils.yAxisUseCounter) {
+        if (n_id in yAxisUseCounter) {
 
             /* Increments the number of times this axis is used by a PV. */
-            chartUtils.yAxisUseCounter[n_id]++;
+            yAxisUseCounter[n_id]++;
             return ;
         }
 
-        /* chartUtils.yAxisUseCounter[n_id] stands for the times this axis is used */
-        chartUtils.yAxisUseCounter[n_id] = 1;
+        /* yAxisUseCounter[n_id] stands for the times this axis is used */
+        yAxisUseCounter[n_id] = 1;
 
         /* Extends the default scale options for the axis */
         var scaleOptions = jQuery.extend(true, {}, Chart.defaults.scale);
@@ -191,14 +196,14 @@ var chartUtils = (function () {
             ticks_precision = 3;
 
         scaleOptions.type = "linear";
-        scaleOptions.position = chartUtils.axisPositionLeft ? "left" : "right",
+        scaleOptions.position = axisPositionLeft ? "left" : "right",
         scaleOptions.id = n_id;
 
         scaleOptions.scaleLabel.display = true;
         scaleOptions.scaleLabel.labelString = n_id;
 
-        if (Object.keys(chartUtils.yAxisUseCounter).length > 1)
-            scaleOptions.gridLines.borderDash = [5, 5 * Object.keys(chartUtils.yAxisUseCounter).length];
+        if (Object.keys(yAxisUseCounter).length > 1)
+            scaleOptions.gridLines.borderDash = [5, 5 * Object.keys(yAxisUseCounter).length];
 
         //scaleOptions.ticks.maxTicksLimit = 5;
         scaleOptions.ticks.minor.display = true;
@@ -222,10 +227,10 @@ var chartUtils = (function () {
             options: scaleOptions,
             ctx: chart.ctx,
             chart: chart,
-            position: chartUtils.axisPositionLeft ? "left" : "right",
+            position: axisPositionLeft ? "left" : "right",
         });
 
-        chartUtils.axisPositionLeft = !chartUtils.axisPositionLeft;
+        axisPositionLeft = !axisPositionLeft;
 
         /* Stores a reference of the axis */
         chart.scales[n_id] = n_scale;
@@ -237,7 +242,7 @@ var chartUtils = (function () {
     var appendDataset = function (chart, pv_name, data, samplingPeriod, type, unit, bins, precision, desc) {
 
         // Parses the data fetched from the archiver the way that the chart's internal classes can plot
-        var color = chartUtils.colorStack.pop ();
+        var color = colorStack.pop ();
 
         if (unit == undefined)
             unit = pv_name;
@@ -245,13 +250,13 @@ var chartUtils = (function () {
         unit = unit.replace ("?", "o");
 
         // Adds a new vertical axis if no other with the same unit exists
-        chartUtils.appendDataAxis(chart, unit, precision)
+        appendDataAxis(chart, unit, precision)
 
         // Pushes it into the chart
         chart.data.datasets.push({
 
             label : pv_name,
-            xAxisID: chartUtils.timeAxisID,
+            xAxisID: TIME_AXIS_ID,
             yAxisID: unit,
             borderWidth: 1.5,
             data : data,
@@ -276,7 +281,7 @@ var chartUtils = (function () {
 
         if (metadata.hidden) {
 
-            chartUtils.yAxisUseCounter [metadata.yAxisID]++
+            yAxisUseCounter [metadata.yAxisID]++
             chart.scales [metadata.yAxisID].options.display = true;
 
             metadata.hidden = null;
@@ -284,9 +289,9 @@ var chartUtils = (function () {
         else {
 
             metadata.hidden = true;
-            chartUtils.yAxisUseCounter[metadata.yAxisID]--;
+            yAxisUseCounter[metadata.yAxisID]--;
 
-            if (chartUtils.yAxisUseCounter[metadata.yAxisID] <= 0)
+            if (yAxisUseCounter[metadata.yAxisID] <= 0)
                 chart.scales[metadata.yAxisID].options.display = false;
         }
 
@@ -299,7 +304,7 @@ var chartUtils = (function () {
 
         var meta = this.chart.getDatasetMeta(legendItem.datasetIndex);
 
-        chartUtils.hidesAxis (meta, this.chart);
+        hidesAxis (meta, this.chart);
 
         this.chart.update(0, false);
     };
@@ -317,19 +322,25 @@ var chartUtils = (function () {
 
     return {
 
-        yAxisUseCounter: yAxisUseCounter,
+        /* const references */
         timeAxisID: TIME_AXIS_ID,
         timeAxisPreferences: TIME_AXIS_PREFERENCES,
         timeIDs: TIME_IDS,
-        colorStack: colorStack,
-        axisPositionLeft: axisPositionLeft,
+
+        /* Getters */
+        yAxisUseCounter: function () { return yAxisUseCounter; },
+        colorStack: function () { return colorStack; },
+        axisPositionLeft: function () { return axisPositionLeft; },
+
+        /* Setters */
+        updateAxisPositionLeft: function (a) { axisPositionLeft = a; } ,
+
         updateTimeAxis: updateTimeAxis,
         appendDataAxis: appendDataAxis,
         appendDataset: appendDataset,
         hidesAxis: hidesAxis,
         legendCallback: legendCallback,
         labelCallback: labelCallback,
-
     };
 
-})();
+}) ();

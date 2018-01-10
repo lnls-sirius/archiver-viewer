@@ -5,6 +5,18 @@
 * LNLS - Brazilian Synchrotron Laboratory
 ***/
 
+/* Module dependencies */
+var $ = require('jquery-browserify');
+require('jquery-mousewheel')($);
+
+var Chart = require ('chart.js');
+
+var ui = require ("./lib/ui.js");
+var chartUtils = require ("./lib/chartUtils.js");
+var archInterface = require ("./lib/archInterface.js");
+var control = require ("./lib/control.js");
+var handlers = require ("./lib/handlers.js");
+
 /* Registers event handler functions */
 
 $(document).click(handlers.refreshScreen);
@@ -26,6 +38,7 @@ $('#PV').keypress(handlers.queryPVs);
 
 $("#archiver_viewer").on('click', handlers.dataClickHandler);
 $("#archiver_viewer").mousewheel(handlers.scrollChart);
+
 // Binds handlers to the dragging events
 $("#archiver_viewer").mousedown(handlers.startDragging);
 $("#archiver_viewer").mousemove(handlers.doDragging);
@@ -50,7 +63,7 @@ $("#csv").click ({"type" : "csv"}, function (event) {
 **/
 $(document).ready(function () {
 
-    control.chart = new Chart($("#archiver_viewer"), {
+    control.init (new Chart($("#archiver_viewer"), {
 
         type: 'line',
         data: [],
@@ -114,13 +127,13 @@ $(document).ready(function () {
 
             maintainAspectRatio: false,
         }
-    });
+    }));
 
-    //archInterface.url = window.location.origin;
+    //archInterface.updateURL(window.location.origin);
 
-    // document.getElementsByClassName('enable_table')[0].checked = false;
+    //document.getElementsByClassName('enable_table')[0].checked = false;
 
-    $("#home").attr("href", archInterface.url.split(':')[0] + ":" + archInterface.url.split(':')[1]);
+    $("#home").attr("href", archInterface.url().split(':')[0] + ":" + archInterface.url().split(':')[1]);
 
     ui.hideWarning ();
 

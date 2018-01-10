@@ -4,9 +4,13 @@
 * fetch data from the archiver.
 **/
 
-var archInterface = (function () {
+/* Module dependencies */
+var $ = require('jquery-browserify');
+var ui = require ("./ui.js");
 
-    const ARCHIVER_URL = "http://10.0.4.57:11998";
+module.exports = (function () {
+
+    var url = "http://10.0.4.57:11998";
 
     /**
     * Parses the data retrieved from the archiver in a way that it can be understood by the chart controller
@@ -38,7 +42,7 @@ var archInterface = (function () {
         if (pv == undefined)
             return null;
 
-        var jsonurl = archInterface.url + '/retrieval/bpl/getMetadata?pv=' + pv,
+        var jsonurl = url + '/retrieval/bpl/getMetadata?pv=' + pv,
             components = jsonurl.split('?'),
             HTTPMethod = jsonurl.length > 2048 ? 'POST' : 'GET',
             returnData = null;
@@ -68,13 +72,13 @@ var archInterface = (function () {
         if (from == undefined || to == undefined)
             return null;
 
-        var jsonurl = archInterface.url + '/retrieval/data/getData.json?pv=' + pv + "&from=" + from.toJSON() + "&to=" + to.toJSON();
+        var jsonurl = url + '/retrieval/data/getData.json?pv=' + pv + "&from=" + from.toJSON() + "&to=" + to.toJSON();
 
         if (isOptimized) {
             /*if (bins == undefined)
                 bins = TIME_AXIS_PREFERENCES[global_settings.window_time].bins;
             */
-            jsonurl = archInterface.url + '/retrieval/data/getData.json?pv=optimized_' + bins + '(' + pv + ")&from=" + from.toJSON() + "&to=" + to.toJSON();
+            jsonurl = url + '/retrieval/data/getData.json?pv=optimized_' + bins + '(' + pv + ")&from=" + from.toJSON() + "&to=" + to.toJSON();
         }
 
         var components = jsonurl.split('?'),
@@ -104,7 +108,7 @@ var archInterface = (function () {
     **/
     var query = function (pvs) {  
 
-        var jsonurl = archInterface.url + '/retrieval/bpl/getMatchingPVs?pv=' + pvs + "&limit=4000",
+        var jsonurl = url + '/retrieval/bpl/getMatchingPVs?pv=' + pvs + "&limit=4000",
             components = jsonurl.split('?'),
             querystring = components.length > 1 ? querystring = components[1] : '',
             HTTPMethod = jsonurl.length > 2048 ? 'POST' : 'GET',
@@ -129,11 +133,14 @@ var archInterface = (function () {
     }
 
     return {
-        url: ARCHIVER_URL,
+
+        url: function () { return url; },
+        updateURL: function (u) { url = u },
+
         parseData: parseData,
         fetchMetadata : fetchMetadata,
         fetchData: fetchData,
         query: query,
     }
 
-}) ();
+})();

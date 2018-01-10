@@ -1,6 +1,6 @@
+var $ = require('jquery-browserify');
 
-
-var ui = (function () {
+module.exports = (function () {
 
     const PV_PER_ROW = 4;
     const PV_PER_ROW_DATA_TABLE = 8;
@@ -94,11 +94,11 @@ var ui = (function () {
 
         $("#warning h4").text (warning);
 
-        ui.showSearchWarning ();
+        showSearchWarning ();
 
         var timer = setInterval(function () {
 
-            ui.hideSearchWarning ();
+            hideSearchWarning ();
             clearInterval (timer);
 
         }, 5000);
@@ -133,9 +133,9 @@ var ui = (function () {
             else 
                 $("#archived_PVs h2").text("1 PV has been found.");
             
-            ui.current_page = 0;
+            current_page = 0;
 
-            ui.showSearchResultsAtPage (0, data, eventHandler);
+            showSearchResultsAtPage (0, data, eventHandler);
 
             $(document.body).children().css('opacity', '0.3');
             $("#archived_PVs").show();
@@ -145,10 +145,10 @@ var ui = (function () {
 
             $("#previous").unbind().click ({pvs: data}, function (event) {
 
-                ui.current_page = ui.current_page - 1;
-                ui.showSearchResultsAtPage (ui.current_page, event.data.pvs);
+                current_page = current_page - 1;
+                showSearchResultsAtPage (current_page, event.data.pvs);
 
-                if (!ui.current_page)
+                if (!current_page)
                     $("#previous").hide();
 
                 $("#next").show();
@@ -156,10 +156,10 @@ var ui = (function () {
 
             $("#next").unbind().click ({pvs: data}, function (event) {
 
-                ui.current_page = ui.current_page + 1;
-                ui.showSearchResultsAtPage (ui.current_page, event.data.pvs);
+                current_page = current_page + 1;
+                showSearchResultsAtPage (current_page, event.data.pvs);
 
-                if ((ui.current_page + 1) * PV_MAX_ROW_PER_PAGE * PV_PER_ROW >= event.data.pvs.length )
+                if ((current_page + 1) * PV_MAX_ROW_PER_PAGE * PV_PER_ROW >= event.data.pvs.length )
                     $("#next").hide();
 
                 $("#previous").show();
@@ -171,7 +171,7 @@ var ui = (function () {
                 $("#next").show();
         }
         else if (data != null)
-            ui.toogleSearchWarning ("No PVs corresponding to the search string have been found.");
+            toogleSearchWarning ("No PVs corresponding to the search string have been found.");
     };
 
     var hideSearchedPVs = function () {
@@ -183,7 +183,7 @@ var ui = (function () {
     var refreshScreen = function (event) {
 
         if (event.target.id != 'archived_PVs' && !$('#archived_PVs').find(event.target).length)
-            ui.hideSearchedPVs();
+            hideSearchedPVs();
     }
 
     var toggleZoomButton = function (enable) {
@@ -358,4 +358,4 @@ var ui = (function () {
         enable: enable,
     };
 
-}) ();
+})();
