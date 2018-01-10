@@ -151,6 +151,8 @@ module.exports = (function () {
     var yAxisUseCounter = [];
 
     var colorStack = [
+        "rgba(230,190,255,1.0)",
+        "rgba(128,  0,  0,1.0)",
         "rgba(170,110, 40,1.0)",
         "rgba(240,50 ,230,1.0)",
         "rgba(145,30 ,180,1.0)",
