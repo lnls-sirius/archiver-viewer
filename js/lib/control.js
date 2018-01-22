@@ -404,7 +404,7 @@ module.exports = (function () {
             for (var i = 0; i < search_paths.length; i++){
 
                 if (search_paths[i].indexOf("pv=") != -1)
-                    pvs.push (search_paths[i].substr(search_paths[i].indexOf("=") + 1));
+                    pvs.push (decodeURIComponent(search_paths[i].substr(search_paths[i].indexOf("=") + 1)));
                 else if (search_paths[i].indexOf("from=") != -1)
                     urlStart = decodeURIComponent(search_paths[i].substr(search_paths[i].indexOf("=") + 1));
                 else if (search_paths[i].indexOf("to=") != -1)
