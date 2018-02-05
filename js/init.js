@@ -56,6 +56,9 @@ $("#csv").click ({"type" : "csv"}, function (event) {
     handlers.exportAs(event.data.type);
 });
 
+$("#print").click (function (event) {
+    handlers.printCanvas(document.getElementById("archiver_viewer"));
+});
 
 /******* Initialization function *******/
 /**

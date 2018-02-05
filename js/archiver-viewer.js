@@ -58440,6 +58440,9 @@ $("#csv").click ({"type" : "csv"}, function (event) {
     handlers.exportAs(event.data.type);
 });
 
+$("#print").click (function (event) {
+    handlers.printCanvas(document.getElementById("archiver_viewer"));
+});
 
 /******* Initialization function *******/
 /**
@@ -60065,6 +60068,37 @@ module.exports = (function () {
         return wbout;      
     };
 
+    var printCanvas = function (canvas) {
+
+       var dataUrl = canvas.toDataURL(); //attempt to save base64 string to server using this var  
+
+       var windowContent = '<!DOCTYPE html>';
+       windowContent += '<html>'
+       windowContent += '<head><title>Print canvas</title></head>';
+       windowContent += '<body>'
+       windowContent += '<img style="position: relative; width: 110%; height: 500px; margin-top: 50px;" src="' + dataUrl + '">';
+
+       for (var i = 0; i < control.chart ().data.datasets.length; i++) {
+
+           var datasetMetadata = control.chart ().chart.getDatasetMeta (i);
+
+           if (!datasetMetadata.hidden)
+               windowContent += "<span style=\"position: relative; padding: 5px; font-size: 14px; color:" + control.chart ().data.datasets [i].backgroundColor + " \">" + control.chart ().data.datasets [i].label + "</span>";
+       }
+
+       windowContent += '<br> <span style=\"position: relative; padding: 5px; font-size: 14px;\"> From ' + control.start () + ' to ' + control.end() + '</span>';
+       windowContent += '</body>';
+       windowContent += '</html>';
+
+       var printWin = window.open('','','width=340,height=260');
+       printWin.document.open();
+       printWin.document.write(windowContent);
+       printWin.document.close();
+       printWin.focus();
+       printWin.print();
+       printWin.close();
+    };
+
     var undoHandler = function () {
 
         if (control.undo_stack().length > 0 && !control.auto_enabled ()) {
@@ -60210,6 +60244,7 @@ module.exports = (function () {
 
         toogleTable: toogleTable,
         exportAs: exportAs,
+        printCanvas: printCanvas,
         undoHandler: undoHandler,
         redoHandler: redoHandler,
     };
