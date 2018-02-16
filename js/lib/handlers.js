@@ -450,8 +450,18 @@ module.exports = (function () {
 
         var book = XLSX.utils.book_new(), sheets = [];
 
-        for (var i = 0; i < control.chart ().data.datasets.length; i++)
-            XLSX.utils.book_append_sheet(book, XLSX.utils.json_to_sheet (control.chart ().data.datasets[i].data, {cellDates: true, dateNF: "dd/mm/yy hh:mm:ss"}), control.chart ().data.datasets[i].label.replace(new RegExp(':', 'g'), '_'));
+        for (var i = 0; i < control.chart ().data.datasets.length; i++) {
+
+            var data_array = control.chart ().data.datasets[i].data.map (function(data) { 
+
+                  return {
+                    x: data.x.toLocaleString("br-BR"),
+                    y: data.y,
+                  };
+            });
+
+            XLSX.utils.book_append_sheet(book, XLSX.utils.json_to_sheet (data_array), control.chart ().data.datasets[i].label.replace(new RegExp(':', 'g'), '_'));
+        }
 
         var wbout = XLSX.write(book, {bookType:t, type: 'binary'});
 
