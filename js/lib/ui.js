@@ -292,7 +292,11 @@ module.exports = (function () {
 
             $('<input />').attr({"type" : "checkbox", "checked" : datasets[i].pv.optimized, "disabled" : datasets[i].pv.type == "DBR_SCALAR_ENUM"}).click({"datasetIndex" : i}, optimizeHandler).appendTo (tdOptimized);
 
-            $('<label></label>:').text("Optimize?").appendTo (tdOptimized);
+            var div = $('<label></label>').attr('class', 'tooltip').text('Optimize?');
+
+            $('<span></span>').attr('class', 'tooltiptext').text('Uncheck it if you want raw data sent from the server.').appendTo(div);
+
+            div.appendTo (tdOptimized);
 
             tdOptimized.appendTo(row);
 
