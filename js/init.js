@@ -29,6 +29,7 @@ $("#date .backward").on("click", handlers.backTimeWindow);
 $("#date .forward").on("click", handlers.forwTimeWindow);
 $("#date .zoom").on("click", handlers.zoomClickHandler);
 $("#date .auto").on("click", handlers.autoRefreshingHandler);
+$("#date .type").on("change", handlers.updateReferenceTime);
 
 $('#data_table_area .enable_table:checkbox').change(handlers.toogleTable);
 $("#undo").on("click", handlers.undoHandler);

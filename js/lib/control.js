@@ -21,7 +21,13 @@ module.exports = (function () {
         APPEND_PV : 1,
         CHANGE_WINDOW_TIME : 2,
         CHANGE_END_TIME : 3,
-        ZOOM : 4,
+        CHANGE_START_TIME : 4,
+        ZOOM : 5,
+    };
+
+    const REFERENCE = {
+        START : 0,
+        END : 1,
     };
 
 
@@ -29,7 +35,7 @@ module.exports = (function () {
     var chart = null;
 
     /* start and end timedates */
-    var start, end;
+    var start, end, reference = REFERENCE.END;
 
     var window_time = chartUtils.timeIDs.MIN_10;
 
@@ -87,11 +93,22 @@ module.exports = (function () {
 
         ui.enableLoading();
 
-        start = new Date(end.getTime() - chartUtils.timeAxisPreferences[window_time].milliseconds);
+        if (reference == REFERENCE.END)
+            start = new Date(end.getTime() - chartUtils.timeAxisPreferences[window_time].milliseconds);
+
+        else if (reference == REFERENCE.START) {
+
+            var now = new Date ();
+
+            if (start.getTime() + chartUtils.timeAxisPreferences[window_time].milliseconds <= now.getTime()) 
+                end = new Date(start.getTime() + chartUtils.timeAxisPreferences[window_time].milliseconds);
+            else end = now;
+        }
 
         optimizeAllGraphs ();
 
         updateAllPlots(true);
+
         updateURL();
 
         chartUtils.updateTimeAxis (chart, chartUtils.timeAxisPreferences[window_time].unit, chartUtils.timeAxisPreferences[window_time].unitStepSize, start, end);
@@ -183,19 +200,37 @@ module.exports = (function () {
         if (updateHtml == undefined || updateHtml == null)
             updateHtml = false;
 
-        if (!undo || undo == undefined)
-            undo_stack.push ({action: STACK_ACTIONS.CHANGE_END_TIME, end_time: end});
-
         var now = new Date();
 
-        if (date.getTime() <= now.getTime())
-            end = date;
-        else end = now;
+        if (reference == REFERENCE.END) {
 
-        start = new Date(end.getTime() - chartUtils.timeAxisPreferences[window_time].milliseconds);
+            if (!undo || undo == undefined)
+                undo_stack.push ({action: STACK_ACTIONS.CHANGE_END_TIME, end_time: end});
 
-        if (updateHtml) 
-            ui.updateDateComponents (end);
+            if (date.getTime() <= now.getTime())
+                end = date;
+            else end = now;
+
+            start = new Date(end.getTime() - chartUtils.timeAxisPreferences[window_time].milliseconds);
+
+            if (updateHtml) ui.updateDateComponents (end);
+        }
+        else {
+
+            if (!undo || undo == undefined)
+                undo_stack.push ({action: STACK_ACTIONS.CHANGE_START_TIME, start_time: start});
+
+            if (date.getTime() + chartUtils.timeAxisPreferences[window_time].milliseconds <= now.getTime()) {
+                start = date;
+                end = new Date (date.getTime() + chartUtils.timeAxisPreferences[window_time].milliseconds);
+            }
+            else {
+                start = new Date(now.getTime() - chartUtils.timeAxisPreferences[window_time].milliseconds);
+                end = now;
+            }
+
+            if (updateHtml) ui.updateDateComponents (start);
+        }
     };
 
     var updateOptimizedWarning = function () {
@@ -514,11 +549,13 @@ module.exports = (function () {
 
         /* const references */
         stackActions: STACK_ACTIONS,
+        references: REFERENCE,
 
         /* Getters */
         chart: function () { return chart; },
         start: function () { return start; },
         end: function () { return end; },
+        reference : function () { return reference; },
         window_time: function () { return window_time; },
         timer: function () { return timer; },
         auto_enabled: function () { return auto_enabled; },
@@ -535,6 +572,7 @@ module.exports = (function () {
         updateTimeWindowOnly : function (t) { window_time = t; },
         updateStartTime : function (s) { start = s; },
         updateEndTime : function (e) { end = e; },
+        updateTimeReference : function (r) { reference = r; },
         updateStartAndEnd: updateStartAndEnd,
 
         toggleAuto : function () { auto_enabled = !auto_enabled; },

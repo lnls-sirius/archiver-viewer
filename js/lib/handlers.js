@@ -45,7 +45,7 @@ module.exports = (function () {
 
             control.undo_stack().push ({action : control.stackActions.CHANGE_WINDOW_TIME, window : control.window_time ()});
 
-            control.updateTimeWindow (button.target.cellIndex);            
+            control.updateTimeWindow (button.target.cellIndex);
         }
     };
 
@@ -57,6 +57,12 @@ module.exports = (function () {
         if (!control.auto_enabled ()) {
 
             ui.enableLoading();
+
+            if (control.reference () == control.references.START) {
+
+                control.updateTimeReference (control.references.END);
+                ui.enableReference(control.references.END);
+            }
 
             control.updateStartAndEnd(new Date(), true);
 
@@ -81,7 +87,11 @@ module.exports = (function () {
 
             ui.enableLoading();
 
-            control.updateStartAndEnd(new Date(control.end ().getTime() - chartUtils.timeAxisPreferences[control.window_time ()].milliseconds), true);
+            var date = control.start ();
+            if (control.reference () == control.references.END)
+                date = control.end ();
+
+            control.updateStartAndEnd(new Date(date.getTime() - chartUtils.timeAxisPreferences[control.window_time ()].milliseconds), true);
 
             chartUtils.updateTimeAxis (control.chart (), chartUtils.timeAxisPreferences[control.window_time ()].unit, chartUtils.timeAxisPreferences[control.window_time ()].unitStepSize, control.start (), control.end ());
 
@@ -103,7 +113,11 @@ module.exports = (function () {
 
             ui.enableLoading();
 
-            control.updateStartAndEnd(new Date(control.end ().getTime() + chartUtils.timeAxisPreferences[control.window_time ()].milliseconds), true);
+            var date = control.start ();
+            if (control.reference () == control.references.END)
+                date = control.end ();
+
+            control.updateStartAndEnd(new Date(date.getTime() + chartUtils.timeAxisPreferences[control.window_time ()].milliseconds), true);
 
             chartUtils.updateTimeAxis (control.chart (), chartUtils.timeAxisPreferences[control.window_time ()].unit, chartUtils.timeAxisPreferences[control.window_time ()].unitStepSize, control.start (), control.end ());
 
@@ -200,6 +214,11 @@ module.exports = (function () {
             control.startTimer (setInterval(function () {
 
                 ui.enableLoading();
+
+                if (control.reference () == control.references.START) {
+                    control.updateTimeReference (control.references.END);
+                    ui.enableReference(control.references.END);
+                }
 
                 control.updateStartAndEnd(new Date(), true, true);
 
@@ -300,6 +319,9 @@ module.exports = (function () {
             var offset_x = control.drag_flags ().x - evt.offsetX,
                 new_date = new Date(control.end ().getTime() + offset_x * chartUtils.timeAxisPreferences[control.window_time ()].milliseconds / control.chart ().chart.width );
 
+            if (control.reference () == control.references.START)
+                new_date = new Date(control.start ().getTime() + offset_x * chartUtils.timeAxisPreferences[control.window_time ()].milliseconds / control.chart ().chart.width );
+
             control.updateDragOffsetX (evt.offsetX);
 
             control.updateStartAndEnd (new_date, true, true);
@@ -384,7 +406,7 @@ module.exports = (function () {
                 control.updateAllPlots(true);
                 control.updateURL();
 
-                ui.updateDateComponents (control.end ());
+                ui.updateDateComponents (control.reference () == control.references.END ? control.end () : control.start ());
 
                 // Redraws the chart
                 control.chart ().update(0, false);
@@ -535,7 +557,22 @@ module.exports = (function () {
 
                     control.redo_stack().push ({action : control.stackActions.CHANGE_END_TIME, end_time : control.end ()});
 
+                    control.updateTimeReference (control.references.END);
+
                     control.updateStartAndEnd(undo.end_time, true, true);
+
+                    // does not change the time window, only updates all plots
+                    control.updateTimeWindow (control.window_time ());
+
+                    break;
+
+                case control.stackActions.CHANGE_START_TIME:
+
+                    control.redo_stack().push ({action : control.stackActions.CHANGE_START_TIME, start_time : control.start ()});
+
+                    control.updateTimeReference (control.references.START);
+
+                    control.updateStartAndEnd(undo.start_time, true, true);
 
                     // does not change the time window, only updates all plots
                     control.updateTimeWindow (control.window_time ());
@@ -582,9 +619,29 @@ module.exports = (function () {
                     control.updateTimeWindow (redo.window);
                     break;
 
+                case control.stackActions.CHANGE_START_TIME:
+
+                    ui.enableLoading();
+
+                    control.updateTimeReference (control.references.START);
+
+                    control.updateStartAndEnd(redo.start_time, true);
+                    control.updateAllPlots(true);
+                    control.updateURL();
+
+                    chartUtils.updateTimeAxis (control.chart (), chartUtils.timeAxisPreferences[control.window_time ()].unit, chartUtils.timeAxisPreferences[control.window_time ()].unitStepSize, control.start (), control.end ());
+
+                    control.chart ().update(0, false);
+
+                    ui.disableLoading();
+
+                    break;
+
                 case control.stackActions.CHANGE_END_TIME:
 
                     ui.enableLoading();
+
+                    control.updateTimeReference (control.references.END);
 
                     control.updateStartAndEnd(redo.end_time, true);
                     control.updateAllPlots(true);
@@ -625,7 +682,19 @@ module.exports = (function () {
             control.chart ().update (0, false);
 
         }
-    }
+    };
+
+    var updateReferenceTime = function () {
+
+        if (ui.isEndSelected ()) {
+            ui.updateDateComponents (control.end ());
+            control.updateTimeReference (control.references.END);
+        }
+        else {
+            ui.updateDateComponents (control.start ());
+            control.updateTimeReference (control.references.START);
+        }
+    };
 
     return {
 
@@ -651,6 +720,7 @@ module.exports = (function () {
         printCanvas: printCanvas,
         undoHandler: undoHandler,
         redoHandler: redoHandler,
+        updateReferenceTime: updateReferenceTime,
     };
 
 })();

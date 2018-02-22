@@ -58413,6 +58413,7 @@ $("#date .backward").on("click", handlers.backTimeWindow);
 $("#date .forward").on("click", handlers.forwTimeWindow);
 $("#date .zoom").on("click", handlers.zoomClickHandler);
 $("#date .auto").on("click", handlers.autoRefreshingHandler);
+$("#date .type").on("change", handlers.updateReferenceTime);
 
 $('#data_table_area .enable_table:checkbox').change(handlers.toogleTable);
 $("#undo").on("click", handlers.undoHandler);
@@ -59051,7 +59052,13 @@ module.exports = (function () {
         APPEND_PV : 1,
         CHANGE_WINDOW_TIME : 2,
         CHANGE_END_TIME : 3,
-        ZOOM : 4,
+        CHANGE_START_TIME : 4,
+        ZOOM : 5,
+    };
+
+    const REFERENCE = {
+        START : 0,
+        END : 1,
     };
 
 
@@ -59059,7 +59066,7 @@ module.exports = (function () {
     var chart = null;
 
     /* start and end timedates */
-    var start, end;
+    var start, end, reference = REFERENCE.END;
 
     var window_time = chartUtils.timeIDs.MIN_10;
 
@@ -59117,11 +59124,22 @@ module.exports = (function () {
 
         ui.enableLoading();
 
-        start = new Date(end.getTime() - chartUtils.timeAxisPreferences[window_time].milliseconds);
+        if (reference == REFERENCE.END)
+            start = new Date(end.getTime() - chartUtils.timeAxisPreferences[window_time].milliseconds);
+
+        else if (reference == REFERENCE.START) {
+
+            var now = new Date ();
+
+            if (start.getTime() + chartUtils.timeAxisPreferences[window_time].milliseconds <= now.getTime()) 
+                end = new Date(start.getTime() + chartUtils.timeAxisPreferences[window_time].milliseconds);
+            else end = now;
+        }
 
         optimizeAllGraphs ();
 
         updateAllPlots(true);
+
         updateURL();
 
         chartUtils.updateTimeAxis (chart, chartUtils.timeAxisPreferences[window_time].unit, chartUtils.timeAxisPreferences[window_time].unitStepSize, start, end);
@@ -59213,19 +59231,37 @@ module.exports = (function () {
         if (updateHtml == undefined || updateHtml == null)
             updateHtml = false;
 
-        if (!undo || undo == undefined)
-            undo_stack.push ({action: STACK_ACTIONS.CHANGE_END_TIME, end_time: end});
-
         var now = new Date();
 
-        if (date.getTime() <= now.getTime())
-            end = date;
-        else end = now;
+        if (reference == REFERENCE.END) {
 
-        start = new Date(end.getTime() - chartUtils.timeAxisPreferences[window_time].milliseconds);
+            if (!undo || undo == undefined)
+                undo_stack.push ({action: STACK_ACTIONS.CHANGE_END_TIME, end_time: end});
 
-        if (updateHtml) 
-            ui.updateDateComponents (end);
+            if (date.getTime() <= now.getTime())
+                end = date;
+            else end = now;
+
+            start = new Date(end.getTime() - chartUtils.timeAxisPreferences[window_time].milliseconds);
+
+            if (updateHtml) ui.updateDateComponents (end);
+        }
+        else {
+
+            if (!undo || undo == undefined)
+                undo_stack.push ({action: STACK_ACTIONS.CHANGE_START_TIME, start_time: start});
+
+            if (date.getTime() + chartUtils.timeAxisPreferences[window_time].milliseconds <= now.getTime()) {
+                start = date;
+                end = new Date (date.getTime() + chartUtils.timeAxisPreferences[window_time].milliseconds);
+            }
+            else {
+                start = new Date(now.getTime() - chartUtils.timeAxisPreferences[window_time].milliseconds);
+                end = now;
+            }
+
+            if (updateHtml) ui.updateDateComponents (start);
+        }
     };
 
     var updateOptimizedWarning = function () {
@@ -59544,11 +59580,13 @@ module.exports = (function () {
 
         /* const references */
         stackActions: STACK_ACTIONS,
+        references: REFERENCE,
 
         /* Getters */
         chart: function () { return chart; },
         start: function () { return start; },
         end: function () { return end; },
+        reference : function () { return reference; },
         window_time: function () { return window_time; },
         timer: function () { return timer; },
         auto_enabled: function () { return auto_enabled; },
@@ -59565,6 +59603,7 @@ module.exports = (function () {
         updateTimeWindowOnly : function (t) { window_time = t; },
         updateStartTime : function (s) { start = s; },
         updateEndTime : function (e) { end = e; },
+        updateTimeReference : function (r) { reference = r; },
         updateStartAndEnd: updateStartAndEnd,
 
         toggleAuto : function () { auto_enabled = !auto_enabled; },
@@ -59651,7 +59690,7 @@ module.exports = (function () {
 
             control.undo_stack().push ({action : control.stackActions.CHANGE_WINDOW_TIME, window : control.window_time ()});
 
-            control.updateTimeWindow (button.target.cellIndex);            
+            control.updateTimeWindow (button.target.cellIndex);
         }
     };
 
@@ -59663,6 +59702,12 @@ module.exports = (function () {
         if (!control.auto_enabled ()) {
 
             ui.enableLoading();
+
+            if (control.reference () == control.references.START) {
+
+                control.updateTimeReference (control.references.END);
+                ui.enableReference(control.references.END);
+            }
 
             control.updateStartAndEnd(new Date(), true);
 
@@ -59687,7 +59732,11 @@ module.exports = (function () {
 
             ui.enableLoading();
 
-            control.updateStartAndEnd(new Date(control.end ().getTime() - chartUtils.timeAxisPreferences[control.window_time ()].milliseconds), true);
+            var date = control.start ();
+            if (control.reference () == control.references.END)
+                date = control.end ();
+
+            control.updateStartAndEnd(new Date(date.getTime() - chartUtils.timeAxisPreferences[control.window_time ()].milliseconds), true);
 
             chartUtils.updateTimeAxis (control.chart (), chartUtils.timeAxisPreferences[control.window_time ()].unit, chartUtils.timeAxisPreferences[control.window_time ()].unitStepSize, control.start (), control.end ());
 
@@ -59709,7 +59758,11 @@ module.exports = (function () {
 
             ui.enableLoading();
 
-            control.updateStartAndEnd(new Date(control.end ().getTime() + chartUtils.timeAxisPreferences[control.window_time ()].milliseconds), true);
+            var date = control.start ();
+            if (control.reference () == control.references.END)
+                date = control.end ();
+
+            control.updateStartAndEnd(new Date(date.getTime() + chartUtils.timeAxisPreferences[control.window_time ()].milliseconds), true);
 
             chartUtils.updateTimeAxis (control.chart (), chartUtils.timeAxisPreferences[control.window_time ()].unit, chartUtils.timeAxisPreferences[control.window_time ()].unitStepSize, control.start (), control.end ());
 
@@ -59806,6 +59859,11 @@ module.exports = (function () {
             control.startTimer (setInterval(function () {
 
                 ui.enableLoading();
+
+                if (control.reference () == control.references.START) {
+                    control.updateTimeReference (control.references.END);
+                    ui.enableReference(control.references.END);
+                }
 
                 control.updateStartAndEnd(new Date(), true, true);
 
@@ -59906,6 +59964,9 @@ module.exports = (function () {
             var offset_x = control.drag_flags ().x - evt.offsetX,
                 new_date = new Date(control.end ().getTime() + offset_x * chartUtils.timeAxisPreferences[control.window_time ()].milliseconds / control.chart ().chart.width );
 
+            if (control.reference () == control.references.START)
+                new_date = new Date(control.start ().getTime() + offset_x * chartUtils.timeAxisPreferences[control.window_time ()].milliseconds / control.chart ().chart.width );
+
             control.updateDragOffsetX (evt.offsetX);
 
             control.updateStartAndEnd (new_date, true, true);
@@ -59990,7 +60051,7 @@ module.exports = (function () {
                 control.updateAllPlots(true);
                 control.updateURL();
 
-                ui.updateDateComponents (control.end ());
+                ui.updateDateComponents (control.reference () == control.references.END ? control.end () : control.start ());
 
                 // Redraws the chart
                 control.chart ().update(0, false);
@@ -60141,7 +60202,22 @@ module.exports = (function () {
 
                     control.redo_stack().push ({action : control.stackActions.CHANGE_END_TIME, end_time : control.end ()});
 
+                    control.updateTimeReference (control.references.END);
+
                     control.updateStartAndEnd(undo.end_time, true, true);
+
+                    // does not change the time window, only updates all plots
+                    control.updateTimeWindow (control.window_time ());
+
+                    break;
+
+                case control.stackActions.CHANGE_START_TIME:
+
+                    control.redo_stack().push ({action : control.stackActions.CHANGE_START_TIME, start_time : control.start ()});
+
+                    control.updateTimeReference (control.references.START);
+
+                    control.updateStartAndEnd(undo.start_time, true, true);
 
                     // does not change the time window, only updates all plots
                     control.updateTimeWindow (control.window_time ());
@@ -60188,9 +60264,29 @@ module.exports = (function () {
                     control.updateTimeWindow (redo.window);
                     break;
 
+                case control.stackActions.CHANGE_START_TIME:
+
+                    ui.enableLoading();
+
+                    control.updateTimeReference (control.references.START);
+
+                    control.updateStartAndEnd(redo.start_time, true);
+                    control.updateAllPlots(true);
+                    control.updateURL();
+
+                    chartUtils.updateTimeAxis (control.chart (), chartUtils.timeAxisPreferences[control.window_time ()].unit, chartUtils.timeAxisPreferences[control.window_time ()].unitStepSize, control.start (), control.end ());
+
+                    control.chart ().update(0, false);
+
+                    ui.disableLoading();
+
+                    break;
+
                 case control.stackActions.CHANGE_END_TIME:
 
                     ui.enableLoading();
+
+                    control.updateTimeReference (control.references.END);
 
                     control.updateStartAndEnd(redo.end_time, true);
                     control.updateAllPlots(true);
@@ -60231,7 +60327,19 @@ module.exports = (function () {
             control.chart ().update (0, false);
 
         }
-    }
+    };
+
+    var updateReferenceTime = function () {
+
+        if (ui.isEndSelected ()) {
+            ui.updateDateComponents (control.end ());
+            control.updateTimeReference (control.references.END);
+        }
+        else {
+            ui.updateDateComponents (control.start ());
+            control.updateTimeReference (control.references.START);
+        }
+    };
 
     return {
 
@@ -60257,6 +60365,7 @@ module.exports = (function () {
         printCanvas: printCanvas,
         undoHandler: undoHandler,
         redoHandler: redoHandler,
+        updateReferenceTime: updateReferenceTime,
     };
 
 })();
@@ -60290,9 +60399,9 @@ module.exports = (function () {
             month = ("0" + (date.getMonth() + 1)).slice(-2);
 
         $("#day").val(date.getFullYear() + "-" + month + "-" + day);
-        $("#hour").val(pad_with_zeroes(date.getHours(), 2))
-        $("#minute").val(pad_with_zeroes(date.getMinutes(), 2))
-        $("#second").val(pad_with_zeroes(date.getSeconds(), 2))
+        $("#hour").val(pad_with_zeroes(date.getHours(), 2));
+        $("#minute").val(pad_with_zeroes(date.getMinutes(), 2));
+        $("#second").val(pad_with_zeroes(date.getSeconds(), 2));
     };
 
     var toogleWindowButton = function (toPush, toUnpush) {
@@ -60588,14 +60697,24 @@ module.exports = (function () {
 
         button.addClass("disabled");
         button.css({"background-color" : "lightblue", "cursor" : "default", "pointerEvents" : "none"});
-    }
+    };
 
     var enable = function (button) {
 
         button.removeClass("disabled");
         button.css({"background-color" : "white", "cursor" : "pointer", "pointerEvents" : "auto"});
-    }
+    };
+
+    var isEndSelected = function () {
+
+        return ($('#date .type').find(":selected").text() == "END");
+    };
     
+    var enableReference = function (i) {
+        $('#date .type>option:eq(' + (1 - i) + ')').prop('selected', false);
+        $('#date .type>option:eq(' + i + ')').prop('selected', true);
+    };
+
     return {
 
         updateDateComponents : updateDateComponents,
@@ -60624,6 +60743,8 @@ module.exports = (function () {
         toogleSearchWarning: toogleSearchWarning,
         disable: disable,
         enable: enable,
+        isEndSelected: isEndSelected,
+        enableReference: enableReference,
     };
 
 })();

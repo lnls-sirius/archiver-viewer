@@ -26,9 +26,9 @@ module.exports = (function () {
             month = ("0" + (date.getMonth() + 1)).slice(-2);
 
         $("#day").val(date.getFullYear() + "-" + month + "-" + day);
-        $("#hour").val(pad_with_zeroes(date.getHours(), 2))
-        $("#minute").val(pad_with_zeroes(date.getMinutes(), 2))
-        $("#second").val(pad_with_zeroes(date.getSeconds(), 2))
+        $("#hour").val(pad_with_zeroes(date.getHours(), 2));
+        $("#minute").val(pad_with_zeroes(date.getMinutes(), 2));
+        $("#second").val(pad_with_zeroes(date.getSeconds(), 2));
     };
 
     var toogleWindowButton = function (toPush, toUnpush) {
@@ -324,14 +324,24 @@ module.exports = (function () {
 
         button.addClass("disabled");
         button.css({"background-color" : "lightblue", "cursor" : "default", "pointerEvents" : "none"});
-    }
+    };
 
     var enable = function (button) {
 
         button.removeClass("disabled");
         button.css({"background-color" : "white", "cursor" : "pointer", "pointerEvents" : "auto"});
-    }
+    };
+
+    var isEndSelected = function () {
+
+        return ($('#date .type').find(":selected").text() == "END");
+    };
     
+    var enableReference = function (i) {
+        $('#date .type>option:eq(' + (1 - i) + ')').prop('selected', false);
+        $('#date .type>option:eq(' + i + ')').prop('selected', true);
+    };
+
     return {
 
         updateDateComponents : updateDateComponents,
@@ -360,6 +370,8 @@ module.exports = (function () {
         toogleSearchWarning: toogleSearchWarning,
         disable: disable,
         enable: enable,
+        isEndSelected: isEndSelected,
+        enableReference: enableReference,
     };
 
 })();

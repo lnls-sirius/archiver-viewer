@@ -53,7 +53,11 @@
     <!-- WINDOW TIME section end -->
 
     <div id="date">
-        END: <input type="date" class="date" id="day" required="required"> | <input type="text" class="hh" id="hour"> : <input type="text" class="hh" id="minute"> : <input type="text" class="hh" id="second"> |
+        <select class="type">
+          <option value="start">START</option>
+          <option value="end" selected="selected">END</option>
+        </select>
+        : <input type="date" class="date" id="day" required="required"> | <input type="text" class="hh" id="hour"> : <input type="text" class="hh" id="minute"> : <input type="text" class="hh" id="second"> |
         <span class="now">NOW</span> | <span class="backward"><</span> <span class="forward">></span> | <span class="zoom">ZOOM</span> | <span class="auto">AUTO</span>
         <img src="img/loading.gif" class="loading">
         <img src="img/redo.png" id = "redo" class="export">
@@ -91,6 +95,6 @@
     <div id="data_pv_info">
     </div>
 
-    <script type="text/javascript" src="js/archiver-viewer.min.js"></script>
+    <script type="text/javascript" src="js/archiver-viewer.js"></script>
 </body>
 </html>
