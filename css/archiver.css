@@ -1,22 +1,22 @@
 #header {
-    
+
     position: relative;
-    
+
     height: 100px;
     width: 90%;
     margin-top: 25px;
     margin-left: 5%;
-    
+
 }
 
 #header_title {
-    
+
     position: relative;
-    
+
     margin-left: 11%;
 
     top: 25px;
-    
+
     font-family: "Helvetica Neue", "Helvetica", "Arial", "sans-serif";
 
     float: left;
@@ -26,7 +26,7 @@
 }
 
 #header_title input {
-    
+
     font-family: "Helvetica Neue", "Helvetica", "Arial", "sans-serif";
     width: 90%;
 }
@@ -49,7 +49,7 @@
 
     font-family: "Helvetica Neue", "Helvetica", "Arial", "sans-serif";
     font-size: 14px;
-    
+
     border-width: 0px;
     border-style: solid;
     border-color: rgba(255, 0, 0, 0.3);
@@ -76,28 +76,28 @@
 #canvas_area {
 
     position: relative;
-    
+
     top: 10px;
     width: 95%;
     height: 65%;
-    
+
     padding-left: 2.5%;
 }
 
 #date {
 
     position: relative;
-    
+
     font-family: "Helvetica Neue", "Helvetica", "Arial", "sans-serif";
     font-size: 14px;
     font-weight: bold;
     color: #666;
-    
+
     margin: 0 0 0 5px;
 
     left: 15%;
     top: 5px;
-    
+
     height: 35px;
     width: 70%;
 }
@@ -115,24 +115,24 @@
 }
 
 #date input.hh {
-    
+
     width: 35px;
 }
 
 #date span {
-    
+
     margin: 0 2px 0 2px;
     padding: 9px;
-    
+
     border-width: 1px;
     border-style: solid;
     border-color: lightgrey;
-    
+
     cursor: pointer;
 }
 
 #date span:not(.disabled):hover {
-    
+
     background-color: lightgray!important;
 }
 
@@ -150,7 +150,7 @@
 }
 
 #date img.loading {
-    
+
     top: 5px;
 
     height: 20px;
@@ -163,12 +163,12 @@
 }
 
 #date img.export {
-    
+
     float: right;
 }
 
 #window_size {
-        
+
     position: relative;
     left: 15%;
     width: 70%;
@@ -183,20 +183,20 @@
 #window_size table tr td {
 
     padding: 5px 5px 5px 5px;
-    
+
     font-family: "Helvetica Neue", "Helvetica", "Arial", "sans-serif";
     font-size: 12px;
-    
+
     text-align: center;
-    
-    width: auto;   
-    
+
+    width: auto;
+
     border-width: 1px;
     border-style: solid;
     border-color: lightgrey;
-    
+
     color: #666;
-    
+
     cursor: pointer;
 }
 
@@ -263,15 +263,25 @@
     cursor: pointer;
 }
 
+#archived_PVs_header button.selectAll {
+
+    background-color: #4CAF50;
+}
+
+#archived_PVs_header button.deselectAll {
+
+    background-color: #f44336;
+}
+
 #archived_PVs table {
 
     width: 100%;
 }
 
 #archived_PVs table tr td {
-    
+
     padding: 15px 5px 15px 5px;
-    
+
     height: 50px;
 
     font-family: Arial,Helvetica,sans-serif;
@@ -279,7 +289,7 @@
 }
 
 #archived_PVs table tr td label {
-    
+
     position: relative;
     top: -2px;
 }
@@ -287,18 +297,18 @@
 #archived_PVs span.change {
 
     position: relative;
-    
+
     height: 20px;
     width: 20px;
 
     margin: 0 2px 5px 2px;
     padding: 2px;
-    
+
     border-width: 1px;
     border-style: solid;
     border-color: lightgrey;
     border-radius: 5px;
-    
+
     text-align: center;
 
     cursor: pointer;
@@ -311,17 +321,17 @@
 }
 
 #archived_PVs span.change:hover {
-    
+
     background-color: lightgray;
 }
 
 
 #data_table_area {
-    
+
     position: relative;
-    
+
     width: 95%;
-    
+
     margin-top: 45px;
     padding-left: 2.5%;
 
@@ -332,7 +342,7 @@
 }
 
 #data_table_area .data_table {
-    
+
     font-size: 14px;
 
     display: none;
@@ -343,7 +353,7 @@
 }
 
 #data_table_area .data_table tr td {
-    
+
     padding: 5px;
     border-width: 1px;
     border-style: solid;
@@ -351,7 +361,7 @@
 }
 
 #data_table_area .data_table tr td.pv_time {
-    
+
     background-color: lightgrey;
     font-weight: bold;
 }
@@ -379,7 +389,7 @@
 
     font-family: Arial,Helvetica,sans-serif;
     font-size: 14px;
-    
+
     border-width: 1px;
     border-style: solid;
     border-color: lightgrey;
@@ -387,7 +397,7 @@
 
     left: 15%;
     width: 70%;
-    
+
     top: 20px;
 
     background-color: lightblue;
@@ -412,17 +422,17 @@
 }
 
 #data_pv_info {
-    
+
     position: relative;
-    
+
     width: 95%;
-    
+
     margin-top: 15px;
     padding-left: 2.5%;
 }
 
 #data_pv_info tr td {
-    
+
     padding: 5px;
     border-width: 1px;
     border-style: solid;
@@ -485,4 +495,4 @@
 .tooltip:hover .tooltiptext {
     visibility: visible;
     opacity: 1;
-} 
+}
