@@ -58424,6 +58424,8 @@ $('#PV').keypress(handlers.queryPVs);
 $("#archiver_viewer").on('click', handlers.dataClickHandler);
 $("#archiver_viewer").mousewheel(handlers.scrollChart);
 
+$("#plotSelected").on('click', handlers.plotSelectedPVs);
+
 // Binds handlers to the dragging events
 $("#archiver_viewer").mousedown(handlers.startDragging);
 $("#archiver_viewer").mousemove(handlers.doDragging);
@@ -59810,6 +59812,21 @@ module.exports = (function () {
         ui.hideSearchedPVs();
     }
 
+    var plotSelectedPVs = function (e) {
+        var pvs = ui.selectedPVs ();
+        for (var i = 0; i < pvs.length; i++) {
+
+            pv_index = control.getPlotIndex(pvs [i]);
+            if (pv_index == null)
+                control.appendPV(pvs [i]);
+            else
+                control.updatePlot(pv_index);
+        }
+
+        ui.hideSearchedPVs();
+          control.chart ().update(0, false);
+    }
+
     /******* Scrolling function *******/
     /**
     * The following function manages mouse wheel events in the canvas area
@@ -60077,7 +60094,7 @@ module.exports = (function () {
 
             if (control.zoom_flags().isZooming)
                 control.disableZoom ();
-            else 
+            else
                 control.enableZoom ();
 
             ui.toggleZoomButton (control.zoom_flags().isZooming);
@@ -60093,7 +60110,7 @@ module.exports = (function () {
             ui.updateDataTable (control.chart ().data.datasets, control.start (), control.end ());
             ui.showTable ();
         }
-        else 
+        else
             ui.resetTable ();
     };
 
@@ -60119,7 +60136,7 @@ module.exports = (function () {
 
         for (var i = 0; i < control.chart ().data.datasets.length; i++) {
 
-            var data_array = control.chart ().data.datasets[i].data.map (function(data) { 
+            var data_array = control.chart ().data.datasets[i].data.map (function(data) {
 
                   return {
                     x: data.x.toLocaleString("br-BR"),
@@ -60136,12 +60153,12 @@ module.exports = (function () {
 	        FileSaver.saveAs(new Blob([s2ab(wbout)],{type:"application/octet-stream"}), 'export.' + t);
         } catch(e) { if(typeof console != 'undefined') console.log(e, wbout); }
 
-        return wbout;      
+        return wbout;
     };
 
     var printCanvas = function (canvas) {
 
-       var dataUrl = canvas.toDataURL(); //attempt to save base64 string to server using this var  
+       var dataUrl = canvas.toDataURL(); //attempt to save base64 string to server using this var
 
        var windowContent = '<!DOCTYPE html>';
        windowContent += '<html>'
@@ -60351,6 +60368,7 @@ module.exports = (function () {
         queryPVs: queryPVs,
         refreshScreen: refreshScreen,
         appendPVHandler: appendPVHandler,
+        plotSelectedPVs: plotSelectedPVs,
         scrollChart: scrollChart,
         autoRefreshingHandler: autoRefreshingHandler,
         dataClickHandler: dataClickHandler,
@@ -60381,6 +60399,7 @@ module.exports = (function () {
     const PV_PER_ROW_INFO = 4;
 
     var current_page = 0;
+    var selectedPVs = [];
 
     /* Miscellaneous functions  */
     function pad_with_zeroes(number, length) {
@@ -60478,7 +60497,7 @@ module.exports = (function () {
 
     };
 
-    var showSearchResultsAtPage = function (index, data, eventHandler) {
+    var showSearchResultsAtPage = function (index, data) {
 
         $("#table_PVs tr").remove();
 
@@ -60492,27 +60511,38 @@ module.exports = (function () {
                 row.appendTo($("#table_PVs"));
             }
 
-            $('<td></td>').attr('id', 'pv' + i).text(data[i]).appendTo(row);
-            $('#pv' + i).unbind().click(eventHandler);
+            var tdCheckbox = $('<td></td>');
+
+            $('<input />').attr({"type" : "checkbox", "checked" : selectedPVs.indexOf (data[i]) > -1}).click({"name" : data[i]}, function (event) {
+                if (this.checked)
+                  selectedPVs.push (event.data.name)
+                else
+                  selectedPVs.splice (selectedPVs.indexOf (event.data.name), 1);
+            }).appendTo (tdCheckbox);
+
+            $('<label></label>').text(data[i]).appendTo (tdCheckbox);
+
+            tdCheckbox.appendTo (row);
         }
     };
 
-    var showSearchResults = function (data, eventHandler) {
+    var showSearchResults = function (data) {
 
         if (data != null && data.length > 0) {
 
             if (data.length > 1)
                 $("#archived_PVs h2").text(data.length + " PVs have been found.");
-            else 
+            else
                 $("#archived_PVs h2").text("1 PV has been found.");
-            
+
             current_page = 0;
+            selectedPVs = [];
 
-            showSearchResultsAtPage (0, data, eventHandler);
+            showSearchResultsAtPage (0, data);
 
-            $(document.body).children().css('opacity', '0.3');
-            $("#archived_PVs").show();
-            $("#archived_PVs").css('opacity', '1.0');
+            $(document.body).children().css ('opacity', '0.3');
+            $("#archived_PVs").show ();
+            $("#archived_PVs").css ('opacity', '1.0');
 
             $("#previous").hide();
 
@@ -60564,7 +60594,7 @@ module.exports = (function () {
         if (enable)
             $("#date .zoom").css('background-color',"lightgrey");
         else
-            $("#date .zoom").css('background-color',"white"); 
+            $("#date .zoom").css('background-color',"white");
     }
 
     var hideZoomBox = function () {
@@ -60585,7 +60615,7 @@ module.exports = (function () {
     var updateAddress = function (searchString) {
 
         var newurl = window.location.pathname + searchString;
-        
+
         if (history.pushState)
             window.history.pushState({path:newurl}, '', newurl);
     };
@@ -60706,16 +60736,17 @@ module.exports = (function () {
     };
 
     var isEndSelected = function () {
-
         return ($('#date .type').find(":selected").text() == "END");
     };
-    
+
     var enableReference = function (i) {
         $('#date .type>option:eq(' + (1 - i) + ')').prop('selected', false);
         $('#date .type>option:eq(' + i + ')').prop('selected', true);
     };
 
     return {
+
+        selectedPVs: function () { return selectedPVs; },
 
         updateDateComponents : updateDateComponents,
         toogleWindowButton: toogleWindowButton,
@@ -60766,6 +60797,8 @@ for (var i = 0, len = code.length; i < len; ++i) {
   revLookup[code.charCodeAt(i)] = i
 }
 
+// Support decoding URL-safe base64 strings, as Node.js does.
+// See: https://en.wikipedia.org/wiki/Base64#URL_applications
 revLookup['-'.charCodeAt(0)] = 62
 revLookup['_'.charCodeAt(0)] = 63
 
@@ -60827,7 +60860,7 @@ function encodeChunk (uint8, start, end) {
   var tmp
   var output = []
   for (var i = start; i < end; i += 3) {
-    tmp = (uint8[i] << 16) + (uint8[i + 1] << 8) + (uint8[i + 2])
+    tmp = ((uint8[i] << 16) & 0xFF0000) + ((uint8[i + 1] << 8) & 0xFF00) + (uint8[i + 2] & 0xFF)
     output.push(tripletToBase64(tmp))
   }
   return output.join('')
@@ -60923,6 +60956,24 @@ function typedArraySupport () {
   }
 }
 
+Object.defineProperty(Buffer.prototype, 'parent', {
+  get: function () {
+    if (!(this instanceof Buffer)) {
+      return undefined
+    }
+    return this.buffer
+  }
+})
+
+Object.defineProperty(Buffer.prototype, 'offset', {
+  get: function () {
+    if (!(this instanceof Buffer)) {
+      return undefined
+    }
+    return this.byteOffset
+  }
+})
+
 function createBuffer (length) {
   if (length > K_MAX_LENGTH) {
     throw new RangeError('Invalid typed array length')
@@ -60974,7 +61025,7 @@ function from (value, encodingOrOffset, length) {
     throw new TypeError('"value" argument must not be a number')
   }
 
-  if (isArrayBuffer(value)) {
+  if (isArrayBuffer(value) || (value && isArrayBuffer(value.buffer))) {
     return fromArrayBuffer(value, encodingOrOffset, length)
   }
 
@@ -61004,7 +61055,7 @@ Buffer.__proto__ = Uint8Array
 
 function assertSize (size) {
   if (typeof size !== 'number') {
-    throw new TypeError('"size" argument must be a number')
+    throw new TypeError('"size" argument must be of type number')
   } else if (size < 0) {
     throw new RangeError('"size" argument must not be negative')
   }
@@ -61058,7 +61109,7 @@ function fromString (string, encoding) {
   }
 
   if (!Buffer.isEncoding(encoding)) {
-    throw new TypeError('"encoding" must be a valid string encoding')
+    throw new TypeError('Unknown encoding: ' + encoding)
   }
 
   var length = byteLength(string, encoding) | 0
@@ -61087,11 +61138,11 @@ function fromArrayLike (array) {
 
 function fromArrayBuffer (array, byteOffset, length) {
   if (byteOffset < 0 || array.byteLength < byteOffset) {
-    throw new RangeError('\'offset\' is out of bounds')
+    throw new RangeError('"offset" is outside of buffer bounds')
   }
 
   if (array.byteLength < byteOffset + (length || 0)) {
-    throw new RangeError('\'length\' is out of bounds')
+    throw new RangeError('"length" is outside of buffer bounds')
   }
 
   var buf
@@ -61122,7 +61173,7 @@ function fromObject (obj) {
   }
 
   if (obj) {
-    if (isArrayBufferView(obj) || 'length' in obj) {
+    if (ArrayBuffer.isView(obj) || 'length' in obj) {
       if (typeof obj.length !== 'number' || numberIsNaN(obj.length)) {
         return createBuffer(0)
       }
@@ -61134,7 +61185,7 @@ function fromObject (obj) {
     }
   }
 
-  throw new TypeError('First argument must be a string, Buffer, ArrayBuffer, Array, or array-like object.')
+  throw new TypeError('The first argument must be one of type string, Buffer, ArrayBuffer, Array, or Array-like Object.')
 }
 
 function checked (length) {
@@ -61221,6 +61272,9 @@ Buffer.concat = function concat (list, length) {
   var pos = 0
   for (i = 0; i < list.length; ++i) {
     var buf = list[i]
+    if (ArrayBuffer.isView(buf)) {
+      buf = Buffer.from(buf)
+    }
     if (!Buffer.isBuffer(buf)) {
       throw new TypeError('"list" argument must be an Array of Buffers')
     }
@@ -61234,7 +61288,7 @@ function byteLength (string, encoding) {
   if (Buffer.isBuffer(string)) {
     return string.length
   }
-  if (isArrayBufferView(string) || isArrayBuffer(string)) {
+  if (ArrayBuffer.isView(string) || isArrayBuffer(string)) {
     return string.byteLength
   }
   if (typeof string !== 'string') {
@@ -61401,6 +61455,8 @@ Buffer.prototype.toString = function toString () {
   if (arguments.length === 0) return utf8Slice(this, 0, length)
   return slowToString.apply(this, arguments)
 }
+
+Buffer.prototype.toLocaleString = Buffer.prototype.toString
 
 Buffer.prototype.equals = function equals (b) {
   if (!Buffer.isBuffer(b)) throw new TypeError('Argument must be a Buffer')
@@ -61622,9 +61678,7 @@ function hexWrite (buf, string, offset, length) {
     }
   }
 
-  // must be an even number of digits
   var strLen = string.length
-  if (strLen % 2 !== 0) throw new TypeError('Invalid hex string')
 
   if (length > strLen / 2) {
     length = strLen / 2
@@ -62317,6 +62371,7 @@ Buffer.prototype.writeDoubleBE = function writeDoubleBE (value, offset, noAssert
 
 // copy(targetBuffer, targetStart=0, sourceStart=0, sourceEnd=buffer.length)
 Buffer.prototype.copy = function copy (target, targetStart, start, end) {
+  if (!Buffer.isBuffer(target)) throw new TypeError('argument should be a Buffer')
   if (!start) start = 0
   if (!end && end !== 0) end = this.length
   if (targetStart >= target.length) targetStart = target.length
@@ -62331,7 +62386,7 @@ Buffer.prototype.copy = function copy (target, targetStart, start, end) {
   if (targetStart < 0) {
     throw new RangeError('targetStart out of bounds')
   }
-  if (start < 0 || start >= this.length) throw new RangeError('sourceStart out of bounds')
+  if (start < 0 || start >= this.length) throw new RangeError('Index out of range')
   if (end < 0) throw new RangeError('sourceEnd out of bounds')
 
   // Are we oob?
@@ -62341,22 +62396,19 @@ Buffer.prototype.copy = function copy (target, targetStart, start, end) {
   }
 
   var len = end - start
-  var i
 
-  if (this === target && start < targetStart && targetStart < end) {
+  if (this === target && typeof Uint8Array.prototype.copyWithin === 'function') {
+    // Use built-in when available, missing from IE11
+    this.copyWithin(targetStart, start, end)
+  } else if (this === target && start < targetStart && targetStart < end) {
     // descending copy from end
-    for (i = len - 1; i >= 0; --i) {
-      target[i + targetStart] = this[i + start]
-    }
-  } else if (len < 1000) {
-    // ascending copy from start
-    for (i = 0; i < len; ++i) {
+    for (var i = len - 1; i >= 0; --i) {
       target[i + targetStart] = this[i + start]
     }
   } else {
     Uint8Array.prototype.set.call(
       target,
-      this.subarray(start, start + len),
+      this.subarray(start, end),
       targetStart
     )
   }
@@ -62379,17 +62431,19 @@ Buffer.prototype.fill = function fill (val, start, end, encoding) {
       encoding = end
       end = this.length
     }
-    if (val.length === 1) {
-      var code = val.charCodeAt(0)
-      if (code < 256) {
-        val = code
-      }
-    }
     if (encoding !== undefined && typeof encoding !== 'string') {
       throw new TypeError('encoding must be a string')
     }
     if (typeof encoding === 'string' && !Buffer.isEncoding(encoding)) {
       throw new TypeError('Unknown encoding: ' + encoding)
+    }
+    if (val.length === 1) {
+      var code = val.charCodeAt(0)
+      if ((encoding === 'utf8' && code < 128) ||
+          encoding === 'latin1') {
+        // Fast path: If `val` fits into a single byte, use that numeric value.
+        val = code
+      }
     }
   } else if (typeof val === 'number') {
     val = val & 255
@@ -62419,6 +62473,10 @@ Buffer.prototype.fill = function fill (val, start, end, encoding) {
       ? val
       : new Buffer(val, encoding)
     var len = bytes.length
+    if (len === 0) {
+      throw new TypeError('The value "' + val +
+        '" is invalid for argument "value"')
+    }
     for (i = 0; i < end - start; ++i) {
       this[i + start] = bytes[i % len]
     }
@@ -62433,6 +62491,8 @@ Buffer.prototype.fill = function fill (val, start, end, encoding) {
 var INVALID_BASE64_RE = /[^+/0-9A-Za-z-_]/g
 
 function base64clean (str) {
+  // Node takes equal signs as end of the Base64 encoding
+  str = str.split('=')[0]
   // Node strips out invalid characters like \n and \t from the string, base64-js does not
   str = str.trim().replace(INVALID_BASE64_RE, '')
   // Node converts strings with length < 2 to ''
@@ -62572,11 +62632,6 @@ function isArrayBuffer (obj) {
   return obj instanceof ArrayBuffer ||
     (obj != null && obj.constructor != null && obj.constructor.name === 'ArrayBuffer' &&
       typeof obj.byteLength === 'number')
-}
-
-// Node 0.10 supports `ArrayBuffer` but lacks `ArrayBuffer.isView`
-function isArrayBufferView (obj) {
-  return (typeof ArrayBuffer.isView === 'function') && ArrayBuffer.isView(obj)
 }
 
 function numberIsNaN (obj) {
