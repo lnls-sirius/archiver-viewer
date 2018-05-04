@@ -106,9 +106,13 @@ module.exports = (function () {
 
     };
 
+    var checkboxes = [];
+
     var showSearchResultsAtPage = function (index, data) {
 
         $("#table_PVs tr").remove();
+
+        checkboxes = []
 
         var i;
         for (i = index * PV_MAX_ROW_PER_PAGE * PV_PER_ROW; i < data.length && i < ((index + 1) * PV_MAX_ROW_PER_PAGE * PV_PER_ROW); i++) {
@@ -122,18 +126,33 @@ module.exports = (function () {
 
             var tdCheckbox = $('<td></td>');
 
-            $('<input />').attr({"type" : "checkbox", "checked" : selectedPVs.indexOf (data[i]) > -1}).click({"name" : data[i]}, function (event) {
+            checkboxes.push ($('<input />').attr({"type" : "checkbox", "checked" : selectedPVs.indexOf (data[i]) > -1}).click({"name" : data[i]}, function (event) {
                 if (this.checked)
                   selectedPVs.push (event.data.name)
                 else
                   selectedPVs.splice (selectedPVs.indexOf (event.data.name), 1);
-            }).appendTo (tdCheckbox);
+
+                console.log (selectedPVs)
+            }).appendTo (tdCheckbox));
 
             $('<label></label>').text(data[i]).appendTo (tdCheckbox);
 
             tdCheckbox.appendTo (row);
         }
     };
+
+    var selectedAllPVs = function (e) {
+
+        for (var i = 0; i < checkboxes.length; i++) {
+            checkboxes [i].prop('checked', true).triggerHandler("click");
+        }
+    }
+
+    var deselectedAllPVs = function (e) {
+
+        for (var i = 0; i < checkboxes.length; i++)
+          checkboxes [i].prop('checked', false).triggerHandler("click");
+    }
 
     var showSearchResults = function (data) {
 
@@ -385,6 +404,8 @@ module.exports = (function () {
         enable: enable,
         isEndSelected: isEndSelected,
         enableReference: enableReference,
+        selectedAllPVs: selectedAllPVs,
+        deselectedAllPVs: deselectedAllPVs,
     };
 
 })();
