@@ -41,6 +41,8 @@ $("#archiver_viewer").on('click', handlers.dataClickHandler);
 $("#archiver_viewer").mousewheel(handlers.scrollChart);
 
 $("#plotSelected").on('click', handlers.plotSelectedPVs);
+$("#selectAll").on('click', ui.selectedAllPVs);
+$("#deselectAll").on('click', ui.deselectedAllPVs);
 
 // Binds handlers to the dragging events
 $("#archiver_viewer").mousedown(handlers.startDragging);

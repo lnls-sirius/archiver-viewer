@@ -58425,6 +58425,8 @@ $("#archiver_viewer").on('click', handlers.dataClickHandler);
 $("#archiver_viewer").mousewheel(handlers.scrollChart);
 
 $("#plotSelected").on('click', handlers.plotSelectedPVs);
+$("#selectAll").on('click', ui.selectedAllPVs);
+$("#deselectAll").on('click', ui.deselectedAllPVs);
 
 // Binds handlers to the dragging events
 $("#archiver_viewer").mousedown(handlers.startDragging);
@@ -58834,16 +58836,24 @@ module.exports = (function () {
     var yAxisUseCounter = [];
 
     var colorStack = [
-        "rgba(230,190,255,1.0)",
-        "rgba(128,  0,  0,1.0)",
-        "rgba(170,110, 40,1.0)",
-        "rgba(240,50 ,230,1.0)",
-        "rgba(145,30 ,180,1.0)",
-        "rgba(245,130, 48,1.0)",
-        "rgba(0  ,0  ,0  ,1.0)",
-        "rgba(255,0  ,0  ,1.0)",
-        "rgba(0  ,255,0  ,1.0)",
-        "rgba(0  ,0  ,255,1.0)",
+        "rgba(245, 130, 48, 1.0)",
+        "rgba(145, 30, 180, 1.0)",
+        "rgba(70, 240, 240, 1.0)",
+        "rgba(240, 50, 230 ,1.0)",
+        "rgba(210, 245, 60, 1.0)",
+        "rgba(250, 190, 190, 1.0)",
+        "rgba(0, 128, 128, 1.0)",
+        "rgba(230, 190, 255, 1.0)",
+        "rgba(170, 110, 40, 1.0)",
+        "rgba(128, 0, 0, 1.0)",
+        "rgba(170, 255, 195, 1.0)",
+        "rgba(255, 225, 25, 1.0)",
+        "rgba(0, 130, 200, 1.0)",
+        "rgba(128, 128, 128, 1.0)",
+        "rgba(0, 0, 0, 1.0)",
+        "rgba(230, 25, 75, 1.0)",
+        "rgba(60, 180, 75, 1.0)",
+        "rgba(0, 0, 128, 1.0)",
     ];
 
     var axisPositionLeft = true;
@@ -58951,7 +58961,7 @@ module.exports = (function () {
             pointRadius : 0,
             backgroundColor : color,
             borderColor: color,
-            
+
             pv: {
                 precision: precision,
                 type: type,
@@ -59818,13 +59828,14 @@ module.exports = (function () {
 
             pv_index = control.getPlotIndex(pvs [i]);
             if (pv_index == null)
-                control.appendPV(pvs [i]);
+                control.appendPV (pvs [i]);
             else
-                control.updatePlot(pv_index);
+                control.updatePlot (pv_index);
         }
 
         ui.hideSearchedPVs();
-          control.chart ().update(0, false);
+        control.chart ().update(0, false);
+        control.updateOptimizedWarning ();
     }
 
     /******* Scrolling function *******/
@@ -60497,9 +60508,13 @@ module.exports = (function () {
 
     };
 
+    var checkboxes = [];
+
     var showSearchResultsAtPage = function (index, data) {
 
         $("#table_PVs tr").remove();
+
+        checkboxes = []
 
         var i;
         for (i = index * PV_MAX_ROW_PER_PAGE * PV_PER_ROW; i < data.length && i < ((index + 1) * PV_MAX_ROW_PER_PAGE * PV_PER_ROW); i++) {
@@ -60513,18 +60528,33 @@ module.exports = (function () {
 
             var tdCheckbox = $('<td></td>');
 
-            $('<input />').attr({"type" : "checkbox", "checked" : selectedPVs.indexOf (data[i]) > -1}).click({"name" : data[i]}, function (event) {
+            checkboxes.push ($('<input />').attr({"type" : "checkbox", "checked" : selectedPVs.indexOf (data[i]) > -1}).click({"name" : data[i]}, function (event) {
                 if (this.checked)
                   selectedPVs.push (event.data.name)
                 else
                   selectedPVs.splice (selectedPVs.indexOf (event.data.name), 1);
-            }).appendTo (tdCheckbox);
+
+                console.log (selectedPVs)
+            }).appendTo (tdCheckbox));
 
             $('<label></label>').text(data[i]).appendTo (tdCheckbox);
 
             tdCheckbox.appendTo (row);
         }
     };
+
+    var selectedAllPVs = function (e) {
+
+        for (var i = 0; i < checkboxes.length; i++) {
+            checkboxes [i].prop('checked', true).triggerHandler("click");
+        }
+    }
+
+    var deselectedAllPVs = function (e) {
+
+        for (var i = 0; i < checkboxes.length; i++)
+          checkboxes [i].prop('checked', false).triggerHandler("click");
+    }
 
     var showSearchResults = function (data) {
 
@@ -60776,6 +60806,8 @@ module.exports = (function () {
         enable: enable,
         isEndSelected: isEndSelected,
         enableReference: enableReference,
+        selectedAllPVs: selectedAllPVs,
+        deselectedAllPVs: deselectedAllPVs,
     };
 
 })();
