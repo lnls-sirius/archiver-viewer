@@ -171,13 +171,14 @@ module.exports = (function () {
 
             pv_index = control.getPlotIndex(pvs [i]);
             if (pv_index == null)
-                control.appendPV(pvs [i]);
+                control.appendPV (pvs [i]);
             else
-                control.updatePlot(pv_index);
+                control.updatePlot (pv_index);
         }
 
         ui.hideSearchedPVs();
-          control.chart ().update(0, false);
+        control.chart ().update(0, false);
+        control.updateOptimizedWarning ();
     }
 
     /******* Scrolling function *******/
