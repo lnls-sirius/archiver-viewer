@@ -221,26 +221,46 @@
     border-radius: 5px;
     border-color: lightgrey;
 
+    font-family: Arial,Helvetica,sans-serif;
+
     top: 50px;
     left: 7.5%;
 
     width: 85%;
 }
 
-#archived_PVs h2 {
-
-    margin: 0;
-
-    padding: 15px 0 15px 15px;
+#archived_PVs_header {
 
     background-color: lightgrey;
 
-    font-family: Arial,Helvetica,sans-serif;
-    font-size: 14px;
+    height: 50px;
+}
 
+#archived_PVs_header h2 {
+
+    margin: 0;
+    padding: 15px 0 15px 15px;
+
+    font-size: 14px;
     font-weight: bold;
 
-    height: 20px;
+    width: 75%;
+
+    display: inline;
+}
+
+#archived_PVs_header button {
+
+    position: relative;
+    display: inline;
+    margin : 10px;
+    background-color: #008CBA;
+    border: none;
+    color: white;
+    padding: 5px 15px;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
 }
 
 #archived_PVs table {
@@ -256,13 +276,12 @@
 
     font-family: Arial,Helvetica,sans-serif;
     font-size: 14px;
-
-    cursor: pointer;
 }
 
-#archived_PVs table tr td:hover {
-        
-    font-weight: bold;
+#archived_PVs table tr td label {
+    
+    position: relative;
+    top: -2px;
 }
 
 #archived_PVs span.change {
