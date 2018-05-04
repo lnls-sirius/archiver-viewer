@@ -8,6 +8,7 @@ module.exports = (function () {
     const PV_PER_ROW_INFO = 4;
 
     var current_page = 0;
+    var selectedPVs = [];
 
     /* Miscellaneous functions  */
     function pad_with_zeroes(number, length) {
@@ -105,7 +106,7 @@ module.exports = (function () {
 
     };
 
-    var showSearchResultsAtPage = function (index, data, eventHandler) {
+    var showSearchResultsAtPage = function (index, data) {
 
         $("#table_PVs tr").remove();
 
@@ -119,27 +120,38 @@ module.exports = (function () {
                 row.appendTo($("#table_PVs"));
             }
 
-            $('<td></td>').attr('id', 'pv' + i).text(data[i]).appendTo(row);
-            $('#pv' + i).unbind().click(eventHandler);
+            var tdCheckbox = $('<td></td>');
+
+            $('<input />').attr({"type" : "checkbox", "checked" : selectedPVs.indexOf (data[i]) > -1}).click({"name" : data[i]}, function (event) {
+                if (this.checked)
+                  selectedPVs.push (event.data.name)
+                else
+                  selectedPVs.splice (selectedPVs.indexOf (event.data.name), 1);
+            }).appendTo (tdCheckbox);
+
+            $('<label></label>').text(data[i]).appendTo (tdCheckbox);
+
+            tdCheckbox.appendTo (row);
         }
     };
 
-    var showSearchResults = function (data, eventHandler) {
+    var showSearchResults = function (data) {
 
         if (data != null && data.length > 0) {
 
             if (data.length > 1)
                 $("#archived_PVs h2").text(data.length + " PVs have been found.");
-            else 
+            else
                 $("#archived_PVs h2").text("1 PV has been found.");
-            
+
             current_page = 0;
+            selectedPVs = [];
 
-            showSearchResultsAtPage (0, data, eventHandler);
+            showSearchResultsAtPage (0, data);
 
-            $(document.body).children().css('opacity', '0.3');
-            $("#archived_PVs").show();
-            $("#archived_PVs").css('opacity', '1.0');
+            $(document.body).children().css ('opacity', '0.3');
+            $("#archived_PVs").show ();
+            $("#archived_PVs").css ('opacity', '1.0');
 
             $("#previous").hide();
 
@@ -191,7 +203,7 @@ module.exports = (function () {
         if (enable)
             $("#date .zoom").css('background-color',"lightgrey");
         else
-            $("#date .zoom").css('background-color',"white"); 
+            $("#date .zoom").css('background-color',"white");
     }
 
     var hideZoomBox = function () {
@@ -212,7 +224,7 @@ module.exports = (function () {
     var updateAddress = function (searchString) {
 
         var newurl = window.location.pathname + searchString;
-        
+
         if (history.pushState)
             window.history.pushState({path:newurl}, '', newurl);
     };
@@ -333,16 +345,17 @@ module.exports = (function () {
     };
 
     var isEndSelected = function () {
-
         return ($('#date .type').find(":selected").text() == "END");
     };
-    
+
     var enableReference = function (i) {
         $('#date .type>option:eq(' + (1 - i) + ')').prop('selected', false);
         $('#date .type>option:eq(' + i + ')').prop('selected', true);
     };
 
     return {
+
+        selectedPVs: function () { return selectedPVs; },
 
         updateDateComponents : updateDateComponents,
         toogleWindowButton: toogleWindowButton,

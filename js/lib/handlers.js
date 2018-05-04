@@ -165,6 +165,21 @@ module.exports = (function () {
         ui.hideSearchedPVs();
     }
 
+    var plotSelectedPVs = function (e) {
+        var pvs = ui.selectedPVs ();
+        for (var i = 0; i < pvs.length; i++) {
+
+            pv_index = control.getPlotIndex(pvs [i]);
+            if (pv_index == null)
+                control.appendPV(pvs [i]);
+            else
+                control.updatePlot(pv_index);
+        }
+
+        ui.hideSearchedPVs();
+          control.chart ().update(0, false);
+    }
+
     /******* Scrolling function *******/
     /**
     * The following function manages mouse wheel events in the canvas area
@@ -432,7 +447,7 @@ module.exports = (function () {
 
             if (control.zoom_flags().isZooming)
                 control.disableZoom ();
-            else 
+            else
                 control.enableZoom ();
 
             ui.toggleZoomButton (control.zoom_flags().isZooming);
@@ -448,7 +463,7 @@ module.exports = (function () {
             ui.updateDataTable (control.chart ().data.datasets, control.start (), control.end ());
             ui.showTable ();
         }
-        else 
+        else
             ui.resetTable ();
     };
 
@@ -474,7 +489,7 @@ module.exports = (function () {
 
         for (var i = 0; i < control.chart ().data.datasets.length; i++) {
 
-            var data_array = control.chart ().data.datasets[i].data.map (function(data) { 
+            var data_array = control.chart ().data.datasets[i].data.map (function(data) {
 
                   return {
                     x: data.x.toLocaleString("br-BR"),
@@ -491,12 +506,12 @@ module.exports = (function () {
 	        FileSaver.saveAs(new Blob([s2ab(wbout)],{type:"application/octet-stream"}), 'export.' + t);
         } catch(e) { if(typeof console != 'undefined') console.log(e, wbout); }
 
-        return wbout;      
+        return wbout;
     };
 
     var printCanvas = function (canvas) {
 
-       var dataUrl = canvas.toDataURL(); //attempt to save base64 string to server using this var  
+       var dataUrl = canvas.toDataURL(); //attempt to save base64 string to server using this var
 
        var windowContent = '<!DOCTYPE html>';
        windowContent += '<html>'
@@ -706,6 +721,7 @@ module.exports = (function () {
         queryPVs: queryPVs,
         refreshScreen: refreshScreen,
         appendPVHandler: appendPVHandler,
+        plotSelectedPVs: plotSelectedPVs,
         scrollChart: scrollChart,
         autoRefreshingHandler: autoRefreshingHandler,
         dataClickHandler: dataClickHandler,
