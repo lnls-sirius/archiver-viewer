@@ -223,6 +223,9 @@ module.exports = (function () {
         // Function which is called when the scale is being drawn.
         scaleOptions.ticks.callback = function (value) {
 
+            if (value != 0 && Math.abs(value) < Math.pow(10, -ticks_precision))
+                return value.toExponential (ticks_precision)
+
             /* ticks_precision stands for the number of decimal cases shown by the plot in the vertical axis */
             if (ticks_precision > 4)
                 return value.toExponential(3)
@@ -323,6 +326,9 @@ module.exports = (function () {
     * Edits tooltip's label before printing them in the screen.
     **/
     var labelCallback = function (label, chart) {
+
+        if (label.yLabel != 0 && Math.abs(label.yLabel) < Math.pow(10, -chart.datasets[label.datasetIndex].pv.precision))
+            return chart.datasets[label.datasetIndex].label + ": " + label.yLabel.toExponential (Math.min(3, chart.datasets[label.datasetIndex].pv.precision))
 
         if (chart.datasets[label.datasetIndex].pv.precision > 4)
             return chart.datasets[label.datasetIndex].label + ": " + label.yLabel.toExponential(3) ;
