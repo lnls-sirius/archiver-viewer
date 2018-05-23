@@ -111,7 +111,8 @@ $(document).ready(function () {
                         unitStepSize: 10,
                         displayFormats: {
                             minute: 'HH:mm'
-                        }
+                        },
+                        tooltipFormat: 'ddd MMM DD YYYY HH:mm:ss.SSS ZZ',
                     },
                     ticks: {
                         autoSkip : true,
