@@ -60157,7 +60157,7 @@ module.exports = (function () {
             var data_array = control.chart ().data.datasets[i].data.map (function(data) {
 
                   return {
-                    x: data.x.toLocaleString("br-BR"),
+                    x: data.x.toLocaleString("br-BR") + '.' + data.x.getMilliseconds(),
                     y: data.y,
                   };
             });
