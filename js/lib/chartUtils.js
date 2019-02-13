@@ -190,7 +190,6 @@ module.exports = (function () {
     var appendDataAxis = function (chart, n_id, ticks_precision) {
 
         if (n_id in yAxisUseCounter) {
-
             /* Increments the number of times this axis is used by a PV. */
             yAxisUseCounter[n_id]++;
             return ;
@@ -199,60 +198,54 @@ module.exports = (function () {
         /* yAxisUseCounter[n_id] stands for the times this axis is used */
         yAxisUseCounter[n_id] = 1;
 
-        /* Extends the default scale options for the axis */
-        var scaleOptions = jQuery.extend(true, {}, Chart.defaults.scale);
-
         if (ticks_precision == undefined)
             ticks_precision = 3;
 
-        scaleOptions.type = "linear";
-        scaleOptions.position = axisPositionLeft ? "left" : "right",
-        scaleOptions.id = n_id;
-
-        scaleOptions.scaleLabel.display = true;
-        scaleOptions.scaleLabel.labelString = n_id;
-
-        if (Object.keys(yAxisUseCounter).length > 1)
-            scaleOptions.gridLines.borderDash = [5, 5 * Object.keys(yAxisUseCounter).length];
-
-        //scaleOptions.ticks.maxTicksLimit = 5;
-        scaleOptions.ticks.minor.display = true;
-        scaleOptions.ticks.minor.padding = 0;
-        scaleOptions.ticks.minor.labelOffset = 0;
-
         // Function which is called when the scale is being drawn.
-        scaleOptions.ticks.callback = function (value) {
+        ticks_cb = function (value) {
 
             if (value != 0 && Math.abs(value) < Math.pow(10, -ticks_precision))
                 return value.toExponential (ticks_precision)
 
             /* ticks_precision stands for the number of decimal cases shown by the plot in the vertical axis */
             if (ticks_precision > 4)
-                return value.toExponential(3)
+                return value.toExponential(3);
 
             return value.toFixed(ticks_precision);
         };
 
-        var scaleClass = Chart.scaleService.getScaleConstructor("linear");
+        // @todo: Add back vertical border dash
+        // borderDash = [5, 5 * Object.keys(yAxisUseCounter).length];
 
-        var n_scale = new scaleClass({
-            id: n_id,
-            options: scaleOptions,
-            ctx: chart.ctx,
-            chart: chart,
-            position: axisPositionLeft ? "left" : "right",
-        });
-
-        axisPositionLeft = !axisPositionLeft;
-
-        /* Stores a reference of the axis */
-        chart.scales[n_id] = n_scale;
-
-        /* Appends it into the chart */
-        Chart.layoutService.addBox(chart, n_scale);
+        chart.options.scales.yAxes.push(
+            {
+                id: n_id,
+                type: 'linear',
+                display: true,
+                position: axisPositionLeft ? "left" : "right",
+                ticks: {
+                    callback: ticks_cb,
+                    minor:{
+                        display : true,
+                        padding: 0,
+                        labelOffset: 0
+                    }
+                },
+                scaleLabel:{
+                    display: true,
+                    labelString: n_id
+                }
+            }
+        );
+        chart.update();
     };
 
-    var appendDataset = function (chart, pv_name, data, samplingPeriod, type, unit, bins, precision, desc) {
+    var appendDataset = function(chart, data, bins, precision, metadata) {
+        let samplingPeriod = parseFloat(metadata['samplingPeriod']);
+        let pv_name = metadata['pvName'];
+        let desc = metadata['DESC'];
+        let type = metadata["DBRType"];
+        let unit = (metadata["EGU"] != "" || metadata["EGU"] == undefined) ? metadata["EGU"] : metadata['pvName'];
 
         // Parses the data fetched from the archiver the way that the chart's internal classes can plot
         var color = colorStack.pop ();
@@ -263,11 +256,10 @@ module.exports = (function () {
         unit = unit.replace ("?", "o");
 
         // Adds a new vertical axis if no other with the same unit exists
-        appendDataAxis(chart, unit, precision)
+        appendDataAxis(chart, unit, precision);
 
         // Pushes it into the chart
         chart.data.datasets.push({
-
             label : pv_name,
             xAxisID: TIME_AXIS_ID,
             yAxisID: unit,
@@ -286,8 +278,11 @@ module.exports = (function () {
                 samplingPeriod: samplingPeriod,
                 optimized : bins < 0 ? false : true,
                 desc: desc,
+                egu: unit,
+                metadata: metadata
             },
         });
+        chart.update();
     };
 
     var hidesAxis = function (metadata, chart) {
@@ -298,8 +293,7 @@ module.exports = (function () {
             chart.scales [metadata.yAxisID].options.display = true;
 
             metadata.hidden = null;
-        }
-        else {
+        } else {
 
             metadata.hidden = true;
             yAxisUseCounter[metadata.yAxisID]--;
@@ -326,7 +320,6 @@ module.exports = (function () {
     * Edits tooltip's label before printing them in the screen.
     **/
     var labelCallback = function (label, chart) {
-
         if (label.yLabel != 0 && Math.abs(label.yLabel) < Math.pow(10, -chart.datasets[label.datasetIndex].pv.precision))
             return chart.datasets[label.datasetIndex].label + ": " + label.yLabel.toExponential (Math.min(3, chart.datasets[label.datasetIndex].pv.precision))
 

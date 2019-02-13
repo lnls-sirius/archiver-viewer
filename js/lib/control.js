@@ -100,7 +100,7 @@ module.exports = (function () {
 
             var now = new Date ();
 
-            if (start.getTime() + chartUtils.timeAxisPreferences[window_time].milliseconds <= now.getTime()) 
+            if (start.getTime() + chartUtils.timeAxisPreferences[window_time].milliseconds <= now.getTime())
                 end = new Date(start.getTime() + chartUtils.timeAxisPreferences[window_time].milliseconds);
             else end = now;
         }
@@ -136,26 +136,23 @@ module.exports = (function () {
             return;
         }
 
-        // Asks for the PV's metadata in order to retrieve its unit, type and samping period
-        var metadata = archInterface.fetchMetadata(pv),
-            unit = metadata["EGU"] != "" || metadata["EGU"] == undefined ? metadata["EGU"] : pv;
-
+        // Asks for the PV's metadata
+        var metadata = archInterface.fetchMetadata(pv);
         var bins = shouldOptimizeRequest(parseFloat(metadata["samplingPeriod"]), metadata["DBRType"]);
 
         if (optimized == false)
             bins = -1;
-        else if (optimized && bins == -1)        
+        else if (optimized && bins == -1)
             bins = chartUtils.timeAxisPreferences[window_time].bins;
 
         var data = archInterface.fetchData(pv, start, end, bins < 0 ? false : true, bins);
-
         if (data == undefined || data == null || data[0].data.length == 0)
             ui.toogleSearchWarning ("No data was received from server.");
-        else
-            chartUtils.appendDataset (chart, data[0].meta.name, improveData (archInterface.parseData(data[0].data)), parseFloat(metadata["samplingPeriod"]), metadata["DBRType"], unit, bins, parseInt(data[0].meta.PREC) + 1, metadata["DESC"]);
+        else{
+            chartUtils.appendDataset(chart, improveData(archInterface.parseData(data[0].data)), bins, parseInt(data[0].meta.PREC) + 1, metadata);
+        }
 
         updateOptimizedWarning();
-
         updateURL();
 
         ui.updatePVInfoTable(chart.data.datasets, hideAxis, optimizeHandler, removeHandler);
@@ -417,7 +414,7 @@ module.exports = (function () {
         for (var i = 0; i < chart.data.datasets.length; i++) {
             if (chart.data.datasets[i].pv.optimized)
                 searchString += "pv=optimized_" + chartUtils.timeAxisPreferences[window_time].bins + "(" + encodeURIComponent (chart.data.datasets[i].label) + ")&";
-            else 
+            else
                 searchString += "pv=" + encodeURIComponent (chart.data.datasets[i].label) + "&";
         }
 
@@ -466,7 +463,7 @@ module.exports = (function () {
         chartUtils.updateTimeAxis (chart, chartUtils.timeAxisPreferences[window_time].unit, chartUtils.timeAxisPreferences[window_time].unitStepSize, start, end);
 
         for (var i = 0; i < pvs.length; i++) {
- 
+
             var optimized = false;
 
             if (pvs[i].indexOf ("optimized_") != -1) {
@@ -517,7 +514,7 @@ module.exports = (function () {
 
             delete chart.scales[chart.data.datasets[datasetIndex].yAxisID];
         }
-        
+
         chart.data.datasets.splice (datasetIndex, 1);
 
         chart.update (0, false);
@@ -566,7 +563,7 @@ module.exports = (function () {
         redo_stack: function () { return redo_stack; },
 
         /* Setters */
-        startTimer : function (t) { timer = t; }, 
+        startTimer : function (t) { timer = t; },
 
         updateTimeWindow : updateTimeWindow,
         updateTimeWindowOnly : function (t) { window_time = t; },
@@ -582,7 +579,7 @@ module.exports = (function () {
         disableScrolling : function () { scrolling_enabled = false; },
         enableScrolling : function () { scrolling_enabled = true; },
 
-        startDrag: function () { drag_flags.drag_started = true; }, 
+        startDrag: function () { drag_flags.drag_started = true; },
         stopDrag: function () { drag_flags.drag_started = false; },
         updateDragEndTime : function (t) { drag_flags.end_time = t; },
         updateDragOffsetX : function (x) { drag_flags.x = x; },
@@ -606,7 +603,7 @@ module.exports = (function () {
         removeDataset: removeDataset,
         hideAxis: hideAxis,
         optimizeHandler: optimizeHandler,
-        removeHandler: removeHandler, 
+        removeHandler: removeHandler,
     };
 
 })();
