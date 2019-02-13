@@ -170,10 +170,12 @@ module.exports = (function () {
         for (var i = 0; i < pvs.length; i++) {
 
             pv_index = control.getPlotIndex(pvs [i]);
-            if (pv_index == null)
+            if (pv_index == null){
                 control.appendPV (pvs [i]);
-            else
+            }
+            else{
                 control.updatePlot (pv_index);
+            }
         }
 
         ui.hideSearchedPVs();
@@ -482,27 +484,41 @@ module.exports = (function () {
     }
 
     var exportAs = function (t) {
-
         if (control.auto_enabled ())
             return undefined;
 
-        var book = XLSX.utils.book_new(), sheets = [];
+        let book = XLSX.utils.book_new(), sheets = [];
 
+        let sheetInfo = [];
         for (var i = 0; i < control.chart ().data.datasets.length; i++) {
+            let dataset = control.chart ().data.datasets[i];
+            let pvName = dataset.label;
+            let metadata = dataset.pv.metadata;
 
             var data_array = control.chart ().data.datasets[i].data.map (function(data) {
-
                   return {
                     x: data.x.toLocaleString("br-BR") + '.' + data.x.getMilliseconds(),
                     y: data.y,
                   };
             });
 
-            XLSX.utils.book_append_sheet(book, XLSX.utils.json_to_sheet (data_array), control.chart ().data.datasets[i].label.replace(new RegExp(':', 'g'), '_'));
+            let sheetName = pvName.replace(new RegExp(':', 'g'), '_');
+            if(sheetName.length > 31){
+                sheetName = (i + 1).toString();
+            }
+            sheetInfo.push({
+                'Sheet Name': sheetName,
+                'PV Name': pvName,
+                ...metadata
+            });
+            XLSX.utils.book_append_sheet(book, XLSX.utils.json_to_sheet(data_array), sheetName);
         }
 
-        var wbout = XLSX.write(book, {bookType:t, type: 'binary'});
+        // Sheet containing PV information.
+        XLSX.utils.book_append_sheet(book, XLSX.utils.json_to_sheet(sheetInfo), 'Sheet Info');
 
+        // Write the stuff
+        var wbout = XLSX.write(book, {bookType:t, type: 'binary'});
         try {
 	        FileSaver.saveAs(new Blob([s2ab(wbout)],{type:"application/octet-stream"}), 'export.' + t);
         } catch(e) { if(typeof console != 'undefined') console.log(e, wbout); }
