@@ -10,7 +10,7 @@ var ui = require ("./ui.js");
 
 module.exports = (function () {
 
-    var url = "http://10.0.4.57:11998";
+    var url = "http://10.0.6.57:11998";
 
     /**
     * Parses the data retrieved from the archiver in a way that it can be understood by the chart controller

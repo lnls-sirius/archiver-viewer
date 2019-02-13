@@ -100,7 +100,6 @@ $(document).ready(function () {
             title: {
                 display: true,
             },
-
             scales: {
                 xAxes: [{
                     // Common x axis
@@ -129,7 +128,6 @@ $(document).ready(function () {
             },
 
             legend : {
-
                 display: false,
                 onClick : chartUtils.legendCallback,
             },
@@ -138,15 +136,11 @@ $(document).ready(function () {
         }
     }));
 
-    archInterface.updateURL(window.location.origin + window.location.pathname.substring(0, window.location.pathname.indexOf("/retrieval")));
-
-    //document.getElementsByClassName('enable_table')[0].checked = false;
-
     $("#home").attr("href", archInterface.url().split(':')[0] + ":" + archInterface.url().split(':')[1]);
 
-    ui.hideWarning ();
+    ui.hideWarning();
 
-    ui.hideSearchWarning ();
+    ui.hideSearchWarning();
 
-    control.loadFromURL (window.location.search);
+    control.loadFromURL(window.location.search);
 });
