@@ -1,0 +1,10 @@
+version: "2"
+
+services:
+  archiver-viewer:
+    image: httpd:2.4.35
+    ports:
+      - "20090:80"
+    volumes:
+      - "/home/con-srv/repository/archiver-viewer:/usr/local/apache2/htdocs/"
+
