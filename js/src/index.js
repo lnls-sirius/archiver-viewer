@@ -5,9 +5,17 @@
 * LNLS - Brazilian Synchrotron Laboratory
 ***/
 
+import "./css/archiver.css";
+
+// Future react migration ...
+// import React from "react";
+// import ReactDOM from "react-dom";
+//
+//
+//
 /* Module dependencies */
 var $ = require('jquery-browserify');
-require('jquery-mousewheel')($);
+// var wheel = require('jquery-mousewheel');
 
 var Chart = require ('chart.js');
 
@@ -38,7 +46,7 @@ $("#redo").on("click", handlers.redoHandler);
 $('#PV').keypress(handlers.queryPVs);
 
 $("#archiver_viewer").on('click', handlers.dataClickHandler);
-$("#archiver_viewer").mousewheel(handlers.scrollChart);
+// $("#archiver_viewer").mousewheel(handlers.scrollChart);
 
 $("#plotSelected").on('click', handlers.plotSelectedPVs);
 $("#selectAll").on('click', ui.selectedAllPVs);

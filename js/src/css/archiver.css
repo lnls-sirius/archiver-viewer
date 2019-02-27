@@ -1,7 +1,5 @@
 #header {
-
     position: relative;
-
     height: 100px;
     width: 90%;
     margin-top: 25px;
@@ -26,13 +24,11 @@
 }
 
 #header_title input {
-
     font-family: "Helvetica Neue", "Helvetica", "Arial", "sans-serif";
     width: 90%;
 }
 
 #header_title img {
-
     position: relative;
     top: 3px;
     width: 18px;

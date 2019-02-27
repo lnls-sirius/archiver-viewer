@@ -152,8 +152,8 @@ module.exports = (function () {
     **/
     var appendPVHandler = function (e) {
 
-        var pv = e.target.innerText,
-            pv_index = control.getPlotIndex(pv);
+        var pv = e.target.innerText;
+        var pv_index = control.getPlotIndex(pv);
 
         if (pv_index == null)
             control.appendPV(pv);
@@ -169,7 +169,7 @@ module.exports = (function () {
         var pvs = ui.selectedPVs ();
         for (var i = 0; i < pvs.length; i++) {
 
-            pv_index = control.getPlotIndex(pvs [i]);
+            var pv_index = control.getPlotIndex(pvs [i]);
             if (pv_index == null){
                 control.appendPV (pvs [i]);
             }
@@ -277,8 +277,8 @@ module.exports = (function () {
 
             if (event != undefined && event.length > 0) {
 
-                var event_data = control.chart ().data.datasets[event[0]._datasetIndex].data[event[0]._index].x,
-                    middle_data = new Date(event_data.getTime() + chartUtils.timeAxisPreferences[control.window_time ()].milliseconds / 2);
+                var event_data = control.chart ().data.datasets[event[0]._datasetIndex].data[event[0]._index].x;
+                var middle_data = new Date(event_data.getTime() + chartUtils.timeAxisPreferences[control.window_time ()].milliseconds / 2);
 
                 ui.enableLoading();
 
@@ -334,8 +334,8 @@ module.exports = (function () {
 
         if (!control.zoom_flags().isZooming && !control.auto_enabled () && control.drag_flags ().drag_started) {
 
-            var offset_x = control.drag_flags ().x - evt.offsetX,
-                new_date = new Date(control.end ().getTime() + offset_x * chartUtils.timeAxisPreferences[control.window_time ()].milliseconds / control.chart ().chart.width );
+            var offset_x = control.drag_flags ().x - evt.offsetX;
+            var new_date = new Date(control.end ().getTime() + offset_x * chartUtils.timeAxisPreferences[control.window_time ()].milliseconds / control.chart ().chart.width );
 
             if (control.reference () == control.references.START)
                 new_date = new Date(control.start ().getTime() + offset_x * chartUtils.timeAxisPreferences[control.window_time ()].milliseconds / control.chart ().chart.width );

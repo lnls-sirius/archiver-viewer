@@ -202,7 +202,7 @@ module.exports = (function () {
             ticks_precision = 3;
 
         // Function which is called when the scale is being drawn.
-        ticks_cb = function (value) {
+        var ticks_cb = function (value) {
 
             if (value != 0 && Math.abs(value) < Math.pow(10, -ticks_precision))
                 return value.toExponential (ticks_precision)

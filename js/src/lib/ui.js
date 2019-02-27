@@ -119,8 +119,7 @@ module.exports = (function () {
 
             var row;
             if (!( (i - index * PV_MAX_ROW_PER_PAGE * PV_PER_ROW) % PV_PER_ROW )) {
-
-                row = $("<tr></tr>")
+                row = $("<tr></tr>");
                 row.appendTo($("#table_PVs"));
             }
 
@@ -268,9 +267,7 @@ module.exports = (function () {
             $('#data_table_area').append($('<h2></h2>').text(datasets[i].label));
 
             for (var j = 0; j < pv_data.length; j++) {
-
                 var row;
-
                 if ((pv_data[j].x.getTime() >= start.getTime()) &&
                     (pv_data[j].x.getTime() <= end.getTime())) {
 
@@ -301,17 +298,15 @@ module.exports = (function () {
     };
 
     var updatePVInfoTable = function (datasets, legendHandler, optimizeHandler, removeHandler) {
-
+        var row;
         // Remove all data before rewriting
         $("#data_pv_info .pv_info_table").remove();
-
         var table = $('<table></table>').addClass('pv_info_table');
-
         // Draws a table for each variable chosen by the user
         for (var i = 0; i < datasets.length; i++){
 
             if (!(i % PV_PER_ROW_INFO)) {
-                row = $("<tr></tr>")
+                row = $("<tr></tr>");
                 row.appendTo(table);
             }
 
@@ -352,13 +347,11 @@ module.exports = (function () {
     };
 
     var disable = function (button) {
-
         button.addClass("disabled");
         button.css({"background-color" : "lightblue", "cursor" : "default", "pointerEvents" : "none"});
     };
 
     var enable = function (button) {
-
         button.removeClass("disabled");
         button.css({"background-color" : "white", "cursor" : "pointer", "pointerEvents" : "auto"});
     };
