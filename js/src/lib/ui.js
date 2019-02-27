@@ -1,5 +1,3 @@
-var $ = require('jquery-browserify');
-
 module.exports = (function () {
 
     const PV_PER_ROW = 4;
@@ -43,7 +41,6 @@ module.exports = (function () {
     };
 
     var enableLoading = function (){
-
         $("#date .loading").show();
     };
 
@@ -217,7 +214,6 @@ module.exports = (function () {
     }
 
     var toggleZoomButton = function (enable) {
-
         if (enable)
             $("#date .zoom").css('background-color',"lightgrey");
         else
@@ -225,7 +221,6 @@ module.exports = (function () {
     }
 
     var hideZoomBox = function () {
-
         $("#canvas_area span.selection_box").hide();
         $("#canvas_area span.selection_box").css("width", 0);
         $("#canvas_area span.selection_box").css("height", 0);
@@ -240,9 +235,7 @@ module.exports = (function () {
     };
 
     var updateAddress = function (searchString) {
-
         var newurl = window.location.pathname + searchString;
-
         if (history.pushState)
             window.history.pushState({path:newurl}, '', newurl);
     };
@@ -311,38 +304,48 @@ module.exports = (function () {
             }
 
             $('<td></td>').css({"background-color": datasets[i].backgroundColor, "width": "30px", "cursor" : "pointer"}).click({"datasetIndex" : i}, legendHandler).appendTo(row);
-
             $('<td></td>').text(datasets[i].label).appendTo(row);
 
             var tdOptimized = $('<td></td>');
+                $('<input />')
+                    .attr({"type" : "checkbox", "checked" : datasets[i].pv.optimized, "disabled" : datasets[i].pv.type == "DBR_SCALAR_ENUM"}).click({"datasetIndex" : i}, optimizeHandler).appendTo (tdOptimized);
 
-            $('<input />').attr({"type" : "checkbox", "checked" : datasets[i].pv.optimized, "disabled" : datasets[i].pv.type == "DBR_SCALAR_ENUM"}).click({"datasetIndex" : i}, optimizeHandler).appendTo (tdOptimized);
-
-            var div = $('<label></label>').attr('class', 'tooltip').text('Optimize?');
-
-            $('<span></span>').attr('class', 'tooltiptext').text('Uncheck it if you want raw data sent from the server.').appendTo(div);
-
+            var div = $('<label></label>')
+                .attr('class', 'tooltip')
+                .text('Optimize?');
+            $('<span></span>')
+                .attr('class', 'tooltiptext')
+                .text('Uncheck it if you want raw data sent from the server.')
+                .appendTo(div);
             div.appendTo (tdOptimized);
-
             tdOptimized.appendTo(row);
 
+            // var div = $('<label></label>')
+            //     .attr('class', 'tooltip')
+            //     .text('Logarithmic?');
+            // $('<span></span>')
+            //     .attr('class', 'tooltiptext')
+            //     .text('Check it if you want logarithimc scale.')
+            //     .appendTo(div);
+            // div.appendTo(tdOptimized);w
+            // tdOptimized.appendTo(row);
+
             var tdRemove = $('<td></td>');
-
-            tdRemove.css({"cursor" : "pointer"}).text("Remove").click ({"datasetIndex" : i}, removeHandler);
-
-            tdRemove.appendTo (row);
+            tdRemove
+                .css({"cursor" : "pointer"})
+                .text("Remove")
+                .click ({"datasetIndex" : i}, removeHandler);
+            tdRemove.appendTo(row);
         }
 
         $('#data_pv_info').append(table);
     };
 
     var showSearchWarning = function (){
-
         $("#warning").fadeIn();
     };
 
     var hideSearchWarning = function (){
-
         $("#warning").fadeOut();
     };
 

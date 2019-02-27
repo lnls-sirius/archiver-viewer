@@ -5,7 +5,16 @@
 * LNLS - Brazilian Synchrotron Laboratory
 ***/
 
-import "./css/archiver.css";
+import 'jquery-browserify';
+import 'chart.js';
+
+import * as chartUtils from './lib/chartUtils';
+import * as handlers from './lib/handlers';
+import * as control from './lib/control';
+import * as archInterface from './lib/archInterface';
+import * as ui from './lib/ui';
+
+import './css/archiver.css';
 
 // Future react migration ...
 // import React from "react";
@@ -14,16 +23,7 @@ import "./css/archiver.css";
 //
 //
 /* Module dependencies */
-var $ = require('jquery-browserify');
-// var wheel = require('jquery-mousewheel');
 
-var Chart = require ('chart.js');
-
-var ui = require ("./lib/ui.js");
-var chartUtils = require ("./lib/chartUtils.js");
-var archInterface = require ("./lib/archInterface.js");
-var control = require ("./lib/control.js");
-var handlers = require ("./lib/handlers.js");
 
 /* Registers event handler functions */
 
@@ -46,7 +46,7 @@ $("#redo").on("click", handlers.redoHandler);
 $('#PV').keypress(handlers.queryPVs);
 
 $("#archiver_viewer").on('click', handlers.dataClickHandler);
-// $("#archiver_viewer").mousewheel(handlers.scrollChart);
+window.addEventListener("wheel", handlers.scrollChart);
 
 $("#plotSelected").on('click', handlers.plotSelectedPVs);
 $("#selectAll").on('click', ui.selectedAllPVs);
@@ -69,9 +69,7 @@ $("#csv").click ({"type" : "csv"}, function (event) {
     handlers.exportAs(event.data.type);
 });
 
-$("#print").click (function (event) {
-    handlers.printCanvas(document.getElementById("archiver_viewer"));
-});
+
 
 /******* Initialization function *******/
 /**
@@ -80,31 +78,23 @@ $("#print").click (function (event) {
 $(document).ready(function () {
 
     control.init (new Chart($("#archiver_viewer"), {
-
         type: 'line',
         data: [],
         options: {
-
-            animation: {
-                duration: 0,
-            },
-
+            animation: { duration: 0 },
             tooltips: {
                 mode: 'nearest',
                 intersect: false,
                 cornerRadius: 15,
-
                 callbacks: {
                     label: chartUtils.labelCallback,
                 },
             },
-
             hover: {
                 mode: 'nearest',
                 intersect: false,
                 animationDuration: 0,
             },
-
             title: {
                 display: true,
             },
@@ -134,20 +124,16 @@ $(document).ready(function () {
                     id: "y-axis-0"
                 }],
             },
-
             legend : {
                 display: false,
                 onClick : chartUtils.legendCallback,
             },
-
             maintainAspectRatio: false,
         }
     }));
 
     $("#home").attr("href", archInterface.url().split(':')[0] + ":" + archInterface.url().split(':')[1]);
-
     ui.hideWarning();
-
     ui.hideSearchWarning();
 
     control.loadFromURL(window.location.search);

@@ -1,6 +1,6 @@
-var $ = require('jquery-browserify');
-var XLSX = require('xlsx');
-var FileSaver = require('file-saver');
+
+import {utils as XLSXutils, write as XLSXwrite} from 'xlsx';
+import { saveAs as FileSaverSaveAs} from 'file-saver';
 
 var ui = require ("./ui.js");
 var chartUtils = require ("./chartUtils.js");
@@ -487,7 +487,7 @@ module.exports = (function () {
         if (control.auto_enabled ())
             return undefined;
 
-        let book = XLSX.utils.book_new(), sheets = [];
+        let book = XLSXutils.book_new(), sheets = [];
 
         let sheetInfo = [];
         for (var i = 0; i < control.chart ().data.datasets.length; i++) {
@@ -511,54 +511,22 @@ module.exports = (function () {
                 'PV Name': pvName,
                 ...metadata
             });
-            XLSX.utils.book_append_sheet(book, XLSX.utils.json_to_sheet(data_array), sheetName);
+            XLSXutils.book_append_sheet(book, XLSXutils.json_to_sheet(data_array), sheetName);
         }
 
         // Sheet containing PV information.
-        XLSX.utils.book_append_sheet(book, XLSX.utils.json_to_sheet(sheetInfo), 'Sheet Info');
+        XLSXutils.book_append_sheet(book, XLSXutils.json_to_sheet(sheetInfo), 'Sheet Info');
 
         // Write the stuff
-        var wbout = XLSX.write(book, {bookType:t, type: 'binary'});
+        var wbout = XLSXwrite(book, {bookType:t, type: 'binary'});
         try {
-	        FileSaver.saveAs(new Blob([s2ab(wbout)],{type:"application/octet-stream"}), 'export.' + t);
+	        FileSaverSaveAs(new Blob([s2ab(wbout)],{type:"application/octet-stream"}), 'export.' + t);
         } catch(e) { if(typeof console != 'undefined') console.log(e, wbout); }
 
         return wbout;
     };
 
-    var printCanvas = function (canvas) {
-
-       var dataUrl = canvas.toDataURL(); //attempt to save base64 string to server using this var
-
-       var windowContent = '<!DOCTYPE html>';
-       windowContent += '<html>'
-       windowContent += '<head><title>Print canvas</title></head>';
-       windowContent += '<body>'
-       windowContent += '<img style="position: relative; width: 110%; height: 500px; margin-top: 50px;" src="' + dataUrl + '">';
-
-       for (var i = 0; i < control.chart ().data.datasets.length; i++) {
-
-           var datasetMetadata = control.chart ().chart.getDatasetMeta (i);
-
-           if (!datasetMetadata.hidden)
-               windowContent += "<span style=\"position: relative; padding: 5px; font-size: 14px; color:" + control.chart ().data.datasets [i].backgroundColor + " \">" + control.chart ().data.datasets [i].label + "</span>";
-       }
-
-       windowContent += '<br> <span style=\"position: relative; padding: 5px; font-size: 14px;\"> From ' + control.start () + ' to ' + control.end() + '</span>';
-       windowContent += '</body>';
-       windowContent += '</html>';
-
-       var printWin = window.open('','','width=340,height=260');
-       printWin.document.open();
-       printWin.document.write(windowContent);
-       printWin.document.close();
-       printWin.focus();
-       printWin.print();
-       printWin.close();
-    };
-
     var undoHandler = function () {
-
         if (control.undo_stack().length > 0 && !control.auto_enabled ()) {
 
             var undo = control.undo_stack().pop ();
@@ -729,7 +697,6 @@ module.exports = (function () {
     };
 
     return {
-
         onChangeDateHandler : onChangeDateHandler,
         updateTimeWindow: updateTimeWindow,
         updateEndNow: updateEndNow,
@@ -750,7 +717,6 @@ module.exports = (function () {
 
         toogleTable: toogleTable,
         exportAs: exportAs,
-        printCanvas: printCanvas,
         undoHandler: undoHandler,
         redoHandler: redoHandler,
         updateReferenceTime: updateReferenceTime,

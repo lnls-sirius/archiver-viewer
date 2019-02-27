@@ -4,9 +4,7 @@
 * fetch data from the archiver.
 **/
 
-/* Module dependencies */
-var $ = require('jquery-browserify');
-var ui = require ("./ui.js");
+import * as ui from './ui';
 
 module.exports = (function () {
 

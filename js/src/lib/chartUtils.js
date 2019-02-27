@@ -1,8 +1,4 @@
 /******* Chart control functions *******/
-
-/* Module dependencies */
-var $ = require('jquery-browserify');
-
 module.exports = (function () {
 
     const TIME_AXIS_ID = "x-axis-0";
@@ -184,6 +180,10 @@ module.exports = (function () {
         chart.options.scales.xAxes[TIME_AXIS_INDEX].time.max = to;
     };
 
+    var toggleAxisType = (chart, isLinear )=>{
+        console.log('Set chart linear ', isLinear);
+    }
+
     /**
     * Adds a new vertical axis to the chart.
     **/
@@ -216,7 +216,6 @@ module.exports = (function () {
 
         // @todo: Add back vertical border dash
         // borderDash = [5, 5 * Object.keys(yAxisUseCounter).length];
-
         chart.options.scales.yAxes.push(
             {
                 id: n_id,
@@ -238,6 +237,9 @@ module.exports = (function () {
             }
         );
         chart.update();
+        // console.log(chart.options.scales.yAxes);
+        // chart.options.scales.yAxes[n_id].type = 'logarithmic';
+        // chart.update();
     };
 
     var appendDataset = function(chart, data, bins, precision, metadata) {
@@ -321,10 +323,10 @@ module.exports = (function () {
     **/
     var labelCallback = function (label, chart) {
         if (label.yLabel != 0 && Math.abs(label.yLabel) < Math.pow(10, -chart.datasets[label.datasetIndex].pv.precision))
-            return chart.datasets[label.datasetIndex].label + ": " + label.yLabel.toExponential (Math.min(3, chart.datasets[label.datasetIndex].pv.precision))
+            return chart.datasets[label.datasetIndex].label + ": " + label.yLabel.toExponential (Math.min(3, chart.datasets[label.datasetIndex].pv.precision));
 
         if (chart.datasets[label.datasetIndex].pv.precision > 4)
-            return chart.datasets[label.datasetIndex].label + ": " + label.yLabel.toExponential(3) ;
+            return chart.datasets[label.datasetIndex].label + ": " + label.yLabel.toExponential(3);
 
         return chart.datasets[label.datasetIndex].label + ": " +  label.yLabel.toFixed(chart.datasets[label.datasetIndex].pv.precision);
     };

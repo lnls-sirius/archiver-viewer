@@ -7,7 +7,6 @@
 /* require archInterface, chartUtils */
 
 /* Module dependencies */
-var $ = require('jquery-browserify');
 var ui = require ("./ui.js");
 var chartUtils = require ("./chartUtils.js");
 var archInterface = require ("./archInterface.js");
@@ -131,7 +130,6 @@ module.exports = (function () {
     var appendPV = function (pv, optimized, undo) {
 
         if (chartUtils.colorStack ().length == 0) {
-
             ui.toogleSearchWarning ("Maximum plotted PV number has already been reached.");
             return;
         }
