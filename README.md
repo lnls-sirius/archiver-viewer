@@ -6,6 +6,7 @@ A web interface based on [jQuery](https://jquery.com/) and [Chartjs](http://www.
 Inside `./js` run `npm install` and `npm run build`.
 
 ## Info
+https://medium.freecodecamp.org/how-to-use-reactjs-with-webpack-4-babel-7-and-material-design-ff754586f618<br>
 webpack
     - used to configure our new app
 webpack-cli
