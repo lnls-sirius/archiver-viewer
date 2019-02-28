@@ -173,15 +173,27 @@ module.exports = (function () {
     * Updates chart's time axes, but does not updates it by calling update(0, false).
     **/
     var updateTimeAxis = function (chart, unit, unitStepSize, from, to) {
-
         chart.options.scales.xAxes[TIME_AXIS_INDEX].time.unit = unit;
         chart.options.scales.xAxes[TIME_AXIS_INDEX].time.stepSize = unitStepSize;
         chart.options.scales.xAxes[TIME_AXIS_INDEX].time.min = from;
         chart.options.scales.xAxes[TIME_AXIS_INDEX].time.max = to;
     };
 
-    var toggleAxisType = (chart, isLinear )=>{
-        console.log('Set chart linear ', isLinear);
+    var toggleAxisType = (chart, axisId, isLogarithmic )=>{
+        if(chart.options.scales.yAxes.length <= 1)
+            return;
+
+        for(let i=1; i < chart.options.scales.yAxes.length; i++){
+            if (chart.options.scales.yAxes[i].id == axisId){
+                if(isLogarithmic){
+                    chart.options.scales.yAxes[i].type = 'logarithmic';
+                    chart.update();
+                }else {
+                    chart.options.scales.yAxes[i].type = 'linear';
+                    chart.update();
+                }
+            }
+        }
     }
 
     /**
@@ -237,9 +249,6 @@ module.exports = (function () {
             }
         );
         chart.update();
-        // console.log(chart.options.scales.yAxes);
-        // chart.options.scales.yAxes[n_id].type = 'logarithmic';
-        // chart.update();
     };
 
     var appendDataset = function(chart, data, bins, precision, metadata) {
@@ -345,7 +354,7 @@ module.exports = (function () {
 
         /* Setters */
         updateAxisPositionLeft: function (a) { axisPositionLeft = a; } ,
-
+        toggleAxisType:toggleAxisType,
         updateTimeAxis: updateTimeAxis,
         appendDataAxis: appendDataAxis,
         appendDataset: appendDataset,

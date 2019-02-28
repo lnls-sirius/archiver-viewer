@@ -105,13 +105,9 @@ module.exports = (function () {
         }
 
         optimizeAllGraphs ();
-
         updateAllPlots(true);
-
         updateURL();
-
         chartUtils.updateTimeAxis (chart, chartUtils.timeAxisPreferences[window_time].unit, chartUtils.timeAxisPreferences[window_time].unitStepSize, start, end);
-
         chart.update(0, false);
 
         ui.disableLoading();
@@ -123,6 +119,23 @@ module.exports = (function () {
         }
         */
     }
+
+    /** get all yAxis*/
+    var getChartyAxes = ()=>{
+
+    }
+
+    /** Toggle char axis type between linear and */
+    var toggleChartAxisType = (isLinear, axisId)=>{
+        if(axisId != null){
+            if(isLinear){
+
+            }else{
+
+            }
+        }
+        // ui.updateDataAxisInfoTable();
+    };
 
     /**
     * Appends a new variable into the chart.
@@ -148,6 +161,7 @@ module.exports = (function () {
             ui.toogleSearchWarning ("No data was received from server.");
         else{
             chartUtils.appendDataset(chart, improveData(archInterface.parseData(data[0].data)), bins, parseInt(data[0].meta.PREC) + 1, metadata);
+            handleDataAxisInfoTableUpdate();
         }
 
         updateOptimizedWarning();
@@ -531,13 +545,18 @@ module.exports = (function () {
     };
 
     var optimizeHandler = function (event) {
-
         optimizePlot (event.data.datasetIndex, this.checked);
     };
 
-    var removeHandler = function (event) {
+    var handleDataAxisInfoTableUpdate = ()=>{
+        ui.updateDataAxisInfoTable(chart.options.scales.yAxes, (evt)=>{
+            chartUtils.toggleAxisType(chart, evt.data.axisId, evt.target.checked);
+        });
+    }
 
-        removeDataset (event.data.datasetIndex);
+    var removeHandler = function (event) {
+        removeDataset(event.data.datasetIndex);
+        handleDataAxisInfoTableUpdate();
     };
 
     return {

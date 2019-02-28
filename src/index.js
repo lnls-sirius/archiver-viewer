@@ -17,6 +17,13 @@ import * as ui from './lib/ui';
 import './css/archiver.css';
 
 // Future react migration ...
+
+/*
+ * Add this to package.json
+ * "react": "16.8.3",
+ * "react-dom": "16.8.3"
+ *
+ * */
 /*
 import React from "react";
 import ReactDOM from "react-dom";

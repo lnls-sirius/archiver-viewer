@@ -128,7 +128,7 @@ module.exports = (function () {
                 else
                   selectedPVs.splice (selectedPVs.indexOf (event.data.name), 1);
 
-                console.log (selectedPVs)
+                  console.log (selectedPVs)
             }).appendTo (tdCheckbox));
 
             $('<label></label>').text(data[i]).appendTo (tdCheckbox);
@@ -290,6 +290,40 @@ module.exports = (function () {
         $('#data_table_area .data_table').hide();
     };
 
+    var updateDataAxisInfoTable = (series, toggleChartAxisTypeHandler) =>{
+        let row;
+        $('#data_axis .data_axis_table').remove();
+        let table = $('<table></table>').addClass('data_axis_table');
+
+        if(series.length <= 1)
+            return
+
+        // Draw a table containing each series in the chart.
+        for(let i = 1; i < series.length; i++){
+            row = $("<tr></tr>");
+            row.appendTo(table);
+            $('<td></td>').text('Chart Series: ' + series[i].id).appendTo(row);
+            var tdIsLogarithmic = $('<td></td>');
+            $('<input />')
+                .attr({
+                    "type" : "checkbox",
+                    "checked" : series[i].type != 'linear'
+                })
+                .click({"axisId" : series[i].id}, toggleChartAxisTypeHandler)
+                .appendTo(tdIsLogarithmic);
+            var div = $('<label></label>')
+                .attr('class', 'tooltip')
+                .text('isLogarithmic?');
+            $('<span></span>')
+                .attr('class', 'tooltiptext')
+                .text('Check it if you want this axis to be displayed in a logarithmic scale.')
+                .appendTo(div);
+            div.appendTo(tdIsLogarithmic);
+            tdIsLogarithmic.appendTo(row);
+        }
+        $('#data_axis').append(table);
+    }
+
     var updatePVInfoTable = function (datasets, legendHandler, optimizeHandler, removeHandler) {
         var row;
         // Remove all data before rewriting
@@ -319,16 +353,6 @@ module.exports = (function () {
                 .appendTo(div);
             div.appendTo (tdOptimized);
             tdOptimized.appendTo(row);
-
-            // var div = $('<label></label>')
-            //     .attr('class', 'tooltip')
-            //     .text('Logarithmic?');
-            // $('<span></span>')
-            //     .attr('class', 'tooltiptext')
-            //     .text('Check it if you want logarithimc scale.')
-            //     .appendTo(div);
-            // div.appendTo(tdOptimized);w
-            // tdOptimized.appendTo(row);
 
             var tdRemove = $('<td></td>');
             tdRemove
@@ -372,6 +396,7 @@ module.exports = (function () {
 
         selectedPVs: function () { return selectedPVs; },
 
+        updateDataAxisInfoTable : updateDataAxisInfoTable,
         updateDateComponents : updateDateComponents,
         toogleWindowButton: toogleWindowButton,
         enableLoading: enableLoading,

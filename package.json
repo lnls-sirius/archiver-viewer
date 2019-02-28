@@ -10,8 +10,6 @@
     "jquery": "3.0.0",
     "jquery-browserify": "1.8.1",
     "nodejs": "0.0.0",
-    "react": "16.8.3",
-    "react-dom": "16.8.3",
     "xlsx": "0.13.5"
   },
   "devDependencies": {
