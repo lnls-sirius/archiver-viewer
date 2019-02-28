@@ -17,11 +17,17 @@ import * as ui from './lib/ui';
 import './css/archiver.css';
 
 // Future react migration ...
-// import React from "react";
-// import ReactDOM from "react-dom";
-//
-//
-//
+/*
+import React from "react";
+import ReactDOM from "react-dom";
+
+ReactDOM.render(
+  <HelloWorld/>,
+  document.getElementById("root")
+);
+
+*/
+
 /* Module dependencies */
 
 
