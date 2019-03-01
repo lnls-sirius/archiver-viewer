@@ -1,0 +1,105 @@
+<html>
+
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="theme-color" content="#000000" />
+</head>
+
+<body>
+  <!-- HEADER section: PV search text box and logo images -->
+  <div id="header">
+
+    <div id="header_title">
+      <img src="img/search.png">
+      <input type="text" id="PV">
+    </div>
+
+    <div id="warning">
+      <h4>No PVs corresponding to the search string have been found.</h4>
+    </div>
+
+    <div id="header_logo">
+      <a href="" id="home">
+        <img src="img/labLogo.png" style="max-height:70%;">
+        <img src="img/labLogo2.png" style="max-height:70%;">
+      </a>
+    </div>
+  </div>
+  <!-- HEADER section end -->
+
+  <!-- WINDOW TIME section: buttons to select window time size -->
+  <div id="window_size">
+    <table id="window_table">
+      <tr>
+        <td class="unpushed">1 year</td>
+        <td class="unpushed">1 month</td>
+        <td class="unpushed">2 w</td>
+        <td class="unpushed">1 w</td>
+        <td class="unpushed">2.5d </td>
+        <td class="unpushed">1d</td>
+        <td class="unpushed">18h</td>
+        <td class="unpushed">12h</td>
+        <td class="unpushed">8h</td>
+        <td class="unpushed">4h</td>
+        <td class="unpushed">2h</td>
+        <td class="unpushed">1h</td>
+        <td class="unpushed">30m</td>
+        <td class="unpushed">10m</td>
+        <td class="unpushed">5m</td>
+        <td class="unpushed">1m</td>
+        <td class="unpushed">30s</td>
+      </tr>
+    </table>
+  </div>
+  <!-- WINDOW TIME section end -->
+
+  <div id="date">
+    <select class="type">
+      <option value="start">START</option>
+      <option value="end" selected="selected">END</option>
+    </select>
+    : <input type="date" class="date" id="day" required="required"> | <input type="text" class="hh" id="hour"> :
+    <input type="text" class="hh" id="minute"> : <input type="text" class="hh" id="second"> |
+    <span class="now">NOW</span> | <span class="backward">
+      <</span> <span class="forward">>
+    </span> | <span class="zoom">ZOOM</span> | <span class="auto">AUTO</span>
+    <img src="img/loading.gif" class="loading">
+    <img class='img-redo'>
+    <img src="img/redo.png" id="redo" class="export">
+    <img src="img/undo.png" id="undo" class="export">
+    <img src="img/excel.ico" id="xlsx" class="export">
+    <img src="img/ods.png" id="ods" class="export">
+    <img src="img/csv.png" id="csv" class="export">
+  </div>
+
+  <div id="obs">
+    <h4> In order to reduce the data amount retrieved from server, an optimization is used. Each point corresponds
+      to an average calculated over its neighborhood. </h4>
+  </div>
+
+  <div id="canvas_area">
+    <canvas id="archiver_viewer" width="450" height="450"></canvas>
+    <span class="selection_box"></span>
+  </div>
+
+  <div id="archived_PVs">
+    <div id="archived_PVs_header">
+      <h2>Retrieved PVs</h2>
+      <button id="plotSelected">Plot!</button>
+      <button id="selectAll" class="selectAll">Select all</button>
+      <button id="deselectAll" class="deselectAll">Deselect All</button>
+    </div>
+    <table id="table_PVs">
+    </table>
+    <span id="next" class="change">></span>
+    <span id="previous" class="change"><</span>
+  </div>
+
+  <div id="data_pv_info"> </div>
+
+  <div id="data_axis"> </div>
+
+<script type="text/javascript" src="index.bundle.js"></script></body>
+
+</html>
