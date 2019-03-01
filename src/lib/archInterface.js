@@ -49,6 +49,7 @@ module.exports = (function () {
             url: components[0],
             data: components[1],
             type: HTTPMethod,
+            crossDomain: true,
             dataType: 'json',
             async: false,
             success: function(data, textStatus, jqXHR) {
@@ -87,6 +88,7 @@ module.exports = (function () {
             url: components[0],
             data: components[1],
             type: HTTPMethod,
+            crossDomain: true,
             dataType: 'json',
             async: false,
             success: function(data, textStatus, jqXHR) {
@@ -104,7 +106,7 @@ module.exports = (function () {
     /**
     * Key event handler which looks for PVs in the archiver
     **/
-    var query = function (pvs) {  
+    var query = function (pvs) {
 
         var jsonurl = url + '/retrieval/bpl/getMatchingPVs?pv=' + pvs + "&limit=4000",
             components = jsonurl.split('?'),
@@ -116,6 +118,7 @@ module.exports = (function () {
             url: components[0],
             data: querystring,
             type: HTTPMethod,
+            crossDomain: true,
             dataType: 'json',
             async: false,
             timeout: 3000,
