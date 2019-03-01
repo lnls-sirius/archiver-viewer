@@ -41,6 +41,10 @@ ReactDOM.render(
 /* Registers event handler functions */
 
 $(document).click(handlers.refreshScreen);
+document.addEventListener('DOMContentLoaded', function() {
+    var elems = document.querySelectorAll('.tooltipped');
+    var instances = M.Tooltip.init(elems, {delay: 10});
+});
 
 $("#window_size table tr td").on("click", handlers.updateTimeWindow);
 
@@ -81,7 +85,7 @@ $("#ods").click ({"type" : "ods"}, function (event) {
 $("#csv").click ({"type" : "csv"}, function (event) {
     handlers.exportAs(event.data.type);
 });
-
+ 
 
 
 /******* Initialization function *******/
