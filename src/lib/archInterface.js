@@ -8,7 +8,7 @@ import * as ui from './ui';
 
 module.exports = (function () {
 
-    var url = "http://10.0.6.57:11998";
+    var url = "https://10.0.6.57";
 
     /**
     * Parses the data retrieved from the archiver in a way that it can be understood by the chart controller
