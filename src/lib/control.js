@@ -120,23 +120,6 @@ module.exports = (function () {
         */
     }
 
-    /** get all yAxis*/
-    var getChartyAxes = ()=>{
-
-    }
-
-    /** Toggle char axis type between linear and */
-    var toggleChartAxisType = (isLinear, axisId)=>{
-        if(axisId != null){
-            if(isLinear){
-
-            }else{
-
-            }
-        }
-        // ui.updateDataAxisInfoTable();
-    };
-
     /**
     * Appends a new variable into the chart.
     **/
@@ -510,36 +493,26 @@ module.exports = (function () {
     var removeDataset = function (datasetIndex, undo) {
 
         chartUtils.yAxisUseCounter () [chart.data.datasets[datasetIndex].yAxisID]--;
-
         chartUtils.colorStack ().push (chart.data.datasets[datasetIndex].backgroundColor);
 
         if (!undo || undo == undefined)
-            undo_stack.push ({action : STACK_ACTIONS.REMOVE_PV, pv : chart.data.datasets[datasetIndex].label, optimized : chart.data.datasets[datasetIndex].pv.optimized});
+            undo_stack.push({action : STACK_ACTIONS.REMOVE_PV, pv : chart.data.datasets[datasetIndex].label, optimized : chart.data.datasets[datasetIndex].pv.optimized});
 
         if (chartUtils.yAxisUseCounter () [chart.data.datasets[datasetIndex].yAxisID] == 0) {
-
             delete chartUtils.yAxisUseCounter () [chart.data.datasets[datasetIndex].yAxisID];
-
             chart.scales[chart.data.datasets[datasetIndex].yAxisID].options.display = false;
-
             chartUtils.updateAxisPositionLeft (chart.scales[chart.data.datasets[datasetIndex].yAxisID].position == "left");
-
             delete chart.scales[chart.data.datasets[datasetIndex].yAxisID];
         }
 
         chart.data.datasets.splice (datasetIndex, 1);
-
         chart.update (0, false);
-
         updateURL ();
-
         ui.updatePVInfoTable(chart.data.datasets, hideAxis, optimizeHandler, removeHandler);
-
-        updateOptimizedWarning ();
+        updateOptimizedWarning();
     };
 
     var hideAxis = function (event) {
-
         chartUtils.hidesAxis (chart.getDatasetMeta (event.data.datasetIndex), chart);
         chart.update (0, false);
     };
@@ -549,8 +522,9 @@ module.exports = (function () {
     };
 
     var handleDataAxisInfoTableUpdate = ()=>{
-        ui.updateDataAxisInfoTable(chart.options.scales.yAxes, (evt)=>{
-            chartUtils.toggleAxisType(chart, evt.data.axisId, evt.target.checked);
+        ui.updateDataAxisInfoTable(
+            chartUtils.getAxesInUse(chart.options.scales.yAxes),
+            (evt)=>{chartUtils.toggleAxisType(chart, evt.data.axisId, evt.target.checked);
         });
     }
 

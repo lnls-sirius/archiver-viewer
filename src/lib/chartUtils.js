@@ -188,6 +188,7 @@ module.exports = (function () {
                 if(isLogarithmic){
                     chart.options.scales.yAxes[i].type = 'logarithmic';
                     chart.update();
+
                 }else {
                     chart.options.scales.yAxes[i].type = 'linear';
                     chart.update();
@@ -196,9 +197,19 @@ module.exports = (function () {
         }
     }
 
-    /**
-    * Adds a new vertical axis to the chart.
-    **/
+    var getAxesInUse = (axes)=> {
+        if(axes == null || axes.length <= 1){ return []; }
+
+        var axesInUse = [];
+        axes.forEach(element => {
+            if(element.id in yAxisUseCounter && yAxisUseCounter[element.id] > 0){
+                axesInUse.push(element);
+            }
+        });
+        return axesInUse;
+    }
+
+    /** Adds a new vertical axis to the chart. */
     var appendDataAxis = function (chart, n_id, ticks_precision) {
 
         if (n_id in yAxisUseCounter) {
@@ -297,18 +308,13 @@ module.exports = (function () {
     };
 
     var hidesAxis = function (metadata, chart) {
-
         if (metadata.hidden) {
-
             yAxisUseCounter [metadata.yAxisID]++
             chart.scales [metadata.yAxisID].options.display = true;
-
             metadata.hidden = null;
         } else {
-
             metadata.hidden = true;
             yAxisUseCounter[metadata.yAxisID]--;
-
             if (yAxisUseCounter[metadata.yAxisID] <= 0)
                 chart.scales[metadata.yAxisID].options.display = false;
         }
@@ -348,6 +354,7 @@ module.exports = (function () {
         timeIDs: TIME_IDS,
 
         /* Getters */
+        getAxesInUse: getAxesInUse,
         yAxisUseCounter: function () { return yAxisUseCounter; },
         colorStack: function () { return colorStack; },
         axisPositionLeft: function () { return axisPositionLeft; },

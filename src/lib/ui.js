@@ -128,7 +128,6 @@ module.exports = (function () {
                 else
                   selectedPVs.splice (selectedPVs.indexOf (event.data.name), 1);
 
-                  console.log (selectedPVs)
             }).appendTo (tdCheckbox));
 
             $('<label></label>').text(data[i]).appendTo (tdCheckbox);
@@ -145,7 +144,6 @@ module.exports = (function () {
     }
 
     var deselectedAllPVs = function (e) {
-
         for (var i = 0; i < checkboxes.length; i++)
           checkboxes [i].prop('checked', false).triggerHandler("click");
     }
@@ -295,35 +293,55 @@ module.exports = (function () {
         $('#data_axis .data_axis_table').remove();
         let table = $('<table></table>').addClass('data_axis_table');
 
-        if(series.length <= 1)
+        if(series.length < 1)
             return
 
         // Draw a table containing each series in the chart.
-        for(let i = 1; i < series.length; i++){
-            row = $("<tr></tr>");
-            row.appendTo(table);
-            $('<td></td>').text('Chart Series: ' + series[i].id).appendTo(row);
-            var tdIsLogarithmic = $('<td></td>');
-            $('<input />')
+        for(let i = 0; i < series.length; i++){
+
+            if (!(i % PV_PER_ROW_INFO)) {
+                row = $("<tr></tr>");
+                row.appendTo(table);
+            }
+        //     <label>
+        //     <input type="checkbox" checked="checked" />
+        //     <span>Yellow</span>
+        //   </label>
+            $('<td></td>')
+                .text('Chart Series: ' + series[i].id).appendTo(row);
+
+            let tdIsLogarithmic = $('<td></td>');
+            let chkBoxBase = $('<label></label>');
+
+            let chk = $('<input />')
                 .attr({
                     "type" : "checkbox",
                     "checked" : series[i].type != 'linear'
                 })
                 .click({"axisId" : series[i].id}, toggleChartAxisTypeHandler)
-                .appendTo(tdIsLogarithmic);
-            var div = $('<label></label>')
+                .appendTo(chkBoxBase);
+
+            let chkText = $('<span></span>')
                 .attr('class', 'tooltip')
                 .text('isLogarithmic?');
-            $('<span></span>')
+            let chkTooltip = $('<label></label>')
                 .attr('class', 'tooltiptext')
                 .text('Check it if you want this axis to be displayed in a logarithmic scale.')
-                .appendTo(div);
-            div.appendTo(tdIsLogarithmic);
+                .appendTo(chkText);
+
+                // <!-- <a class="btn tooltipped" data-position="bottom" data-tooltip="I am a tooltip">Hover me!</a> -->
+                // <p>
+                //     <label>
+                //       <input type="checkbox" />
+                //       <span class="tooltipped" data-position="bottom"  data-tooltip="I am a tooltip" >Red</span>
+                //     </label>
+                //   </p>
+            chkText.appendTo(chkBoxBase);
+            chkBoxBase.appendTo(tdIsLogarithmic);
             tdIsLogarithmic.appendTo(row);
         }
         $('#data_axis').append(table);
     }
-
     var updatePVInfoTable = function (datasets, legendHandler, optimizeHandler, removeHandler) {
         var row;
         // Remove all data before rewriting
