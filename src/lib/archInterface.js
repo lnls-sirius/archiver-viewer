@@ -8,7 +8,7 @@ import * as ui from './ui';
 
 module.exports = (function () {
 
-    var url = "https://10.0.6.57";
+    var url = "https://10.0.38.42";
 
     /**
     * Parses the data retrieved from the archiver in a way that it can be understood by the chart controller
@@ -89,16 +89,26 @@ module.exports = (function () {
             data: components[1],
             type: HTTPMethod,
             crossDomain: true,
-            dataType: 'json',
+            dataType: 'text',
             async: false,
             success: function(data, textStatus, jqXHR) {
                 returnData = textStatus == "success" ? data : null;
+                if(returnData){
+                    try{
+                        returnData = returnData.replace(/(-?Infinity)/g, "\"$1\"");
+                        returnData = returnData.replace(/(NaN)/g, "\"$1\"");
+                        returnData = JSON.parse(returnData);
+                    }catch(err){
+                        ui.toogleSearchWarning ("Failed to parse data from request " + components[0] + ". " + err.message);
+                        console.log(components[0], err.message);
+                    }
+                }
             },
             error: function(xmlHttpRequest, textStatus, errorThrown) {
                 ui.toogleSearchWarning ("Connection failed with " + xmlHttpRequest + " -- " + textStatus + " -- " + errorThrown);
+                console.log(components[0], textStatus, errorThrown);
             }
         });
-
         return returnData;
     }
 
