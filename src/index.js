@@ -78,53 +78,39 @@ $("#xlsx").click ({"type" : "xlsx"}, function (event) {
     handlers.exportAs(event.data.type);
 });
 
-$("#ods").click ({"type" : "ods"}, function (event) {
-    handlers.exportAs(event.data.type);
-});
-
-$("#csv").click ({"type" : "csv"}, function (event) {
-    handlers.exportAs(event.data.type);
-});
- 
-
-
 /******* Initialization function *******/
 /**
 * Instantiates a new chart and global structures
 **/
 $(document).ready(function () {
-
-    control.init (new Chart($("#archiver_viewer"), {
-        type: 'line',
-        data: [],
-        options: {
+    let options = {
+            responsiveAnimationDuration: 0,
+            responsive: true,
+            maintainAspectRatio: false,
             animation: { duration: 0 },
             tooltips: {
                 mode: 'nearest',
                 intersect: false,
-                cornerRadius: 15,
-                callbacks: {
-                    label: chartUtils.labelCallback,
-                },
+                cornerRadius: 5,
+                callbacks: { label: chartUtils.labelCallback },
             },
             hover: {
                 mode: 'nearest',
                 intersect: false,
                 animationDuration: 0,
             },
-            title: {
-                display: true,
-            },
+            title: { display: false },
             scales: {
                 xAxes: [{
                     // Common x axis
                     id: chartUtils.timeAxisID,
                     type: 'time',
+                    distribution: 'series',
                     time: {
                         unit: 'minute',
-                        unitStepSize: 10,
+                        unitStepSize: 5,
                         displayFormats: {
-                            minute: 'HH:mm'
+                            minute: 'DD/MM/YYYY HH:mm:ss'
                         },
                         tooltipFormat: 'ddd MMM DD YYYY HH:mm:ss.SSS ZZ',
                     },
@@ -144,9 +130,13 @@ $(document).ready(function () {
             legend : {
                 display: false,
                 onClick : chartUtils.legendCallback,
-            },
-            maintainAspectRatio: false,
-        }
+            }
+        };
+
+    control.init (new Chart($("#archiver_viewer"), {
+        type: 'line',
+        data: [],
+        options: options
     }));
 
     $("#home").attr("href", archInterface.url().split(':')[0] + ":" + archInterface.url().split(':')[1]);

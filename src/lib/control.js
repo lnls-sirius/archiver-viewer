@@ -58,7 +58,6 @@ module.exports = (function () {
     var undo_stack = [], redo_stack = [];
 
     var init = function (c) {
-
         chart = c;
     };
 
@@ -125,9 +124,8 @@ module.exports = (function () {
     **/
     var appendPV = function (pv, optimized, undo) {
 
-        if (chartUtils.colorStack ().length == 0) {
-            ui.toogleSearchWarning ("Maximum plotted PV number has already been reached.");
-            return;
+        if (chartUtils.colorStack().length == 0) {
+            console.log('Color stack limit reached. A random color will be used for pv ' + pv + '.');
         }
 
         // Asks for the PV's metadata
@@ -140,9 +138,10 @@ module.exports = (function () {
             bins = chartUtils.timeAxisPreferences[window_time].bins;
 
         var data = archInterface.fetchData(pv, start, end, bins < 0 ? false : true, bins);
-        if (data == undefined || data == null || data[0].data.length == 0)
+        if (data == undefined || data == null || data[0].data.length == 0){
             ui.toogleSearchWarning ("No data was received from server.");
-        else{
+            console.log('No data received from server. ', pv);
+        }else{
             chartUtils.appendDataset(chart, improveData(archInterface.parseData(data[0].data)), bins, parseInt(data[0].meta.PREC) + 1, metadata);
             handleDataAxisInfoTableUpdate();
         }
@@ -363,7 +362,6 @@ module.exports = (function () {
     }
 
     var optimizeAllGraphs = function () {
-
         for (var i = 0; i < chart.data.datasets.length; i++) {
             var bins = shouldOptimizeRequest(chart.data.datasets[i].pv.samplingPeriod, chart.data.datasets[i].pv.type);
             chart.data.datasets[i].pv.optimized = bins < 0 ? false : true;
@@ -449,11 +447,11 @@ module.exports = (function () {
                 window_time++;
         }
         else
-            updateStartAndEnd (new Date (), true);
+            updateStartAndEnd(new Date (), true);
 
-        ui.toogleWindowButton (window_time, undefined);
+        ui.toogleWindowButton(window_time, undefined);
 
-        ui.updateDateComponents (end);
+        ui.updateDateComponents(end);
 
         chartUtils.updateTimeAxis (chart, chartUtils.timeAxisPreferences[window_time].unit, chartUtils.timeAxisPreferences[window_time].unitStepSize, start, end);
 

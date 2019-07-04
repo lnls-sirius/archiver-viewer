@@ -1,512 +1,519 @@
+body {
+      font-family: Dejavu Sans;
+      text-align: center;
+}
+
+button {
+    cursor: pointer;
+    background-color: grey;
+    border: none;
+    color: white;
+    padding: 8px 10px 8px 10px;
+    font-size: 12px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 12px;
+}
+button:hover {
+    box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
+}
+
+select{
+     -webkit-appearance: none;  /* Remove estilo padrão do Chrome */
+     -moz-appearance: none; /* Remove estilo padrão do FireFox */
+     appearance: none; /* Remove estilo padrão do FireFox*/
+     border: 1px solid #ddd;
+     background-color: grey;
+     color: white;
+     text-align: center;
+    padding: 8px 10px 8px 10px;
+}
+
 #header {
-    position: relative;
-    height: 100px;
-    width: 90%;
-    margin-top: 25px;
-    margin-left: 5%;
+      position: relative;
+      height: 100px;
+      width: 90%;
+      margin-top: 25px;
+      margin-left: 5%;
 
 }
 
 #header_title {
 
-    position: relative;
+      position: relative;
 
-    margin-left: 11%;
+      margin-left: 11%;
 
-    top: 25px;
+      top: 25px;
 
-    font-family: "Helvetica Neue", "Helvetica", "Arial", "sans-serif";
 
-    float: left;
-    height: 80%;
+      float: left;
+      height: 80%;
 
-    width: 20%;
+      width: 20%;
 }
 
 #header_title input {
-    font-family: "Helvetica Neue", "Helvetica", "Arial", "sans-serif";
-    width: 90%;
+      width: 90%;
 }
 
 #header_title img {
-    position: relative;
-    top: 3px;
-    width: 18px;
-    margin-right: 3px;
+      position: relative;
+      top: 3px;
+      width: 18px;
+      margin-right: 3px;
 }
 
 #warning {
+      position: relative;
+      padding: 10px 0 10px 0;
 
-    position: relative;
+      top: 23px;
 
-    padding: 10px 0 10px 0;
+      font-size: 14px;
 
-    top: 23px;
+      border-width: 0px;
+      border-style: solid;
+      border-color: rgba(255, 0, 0, 0.3);
+      border-radius: 5px;
 
-    font-family: "Helvetica Neue", "Helvetica", "Arial", "sans-serif";
-    font-size: 14px;
+      float: left;
 
-    border-width: 0px;
-    border-style: solid;
-    border-color: rgba(255, 0, 0, 0.3);
-    border-radius: 5px;
-
-    float: left;
-
-    background-color: rgba(255, 0, 0, 0.3);
+      background-color: rgba(255, 0, 0, 0.3);
 }
 
 #warning h4 {
 
-    margin:0;
-    margin-left:20px;
-    margin-right:20px;
+      margin:0;
+      margin-left:20px;
+      margin-right:20px;
 }
 
 #header_logo {
 
-   height: 100%;
-   float: right;
+     height: 100%;
+     float: right;
 }
 
 #canvas_area {
 
-    position: relative;
+      position: relative;
 
-    top: 10px;
-    width: 95%;
-    height: 65%;
+      top: 10px;
+      width: 95%;
+      height: 65%;
 
-    padding-left: 2.5%;
+      padding-left: 2.5%;
 }
 
 #date {
+      position: relative;
+      font-size: 14px;
+      font-weight: bold;
+      color: #666;
 
-    position: relative;
+      margin: 0 0 0 5px;
 
-    font-family: "Helvetica Neue", "Helvetica", "Arial", "sans-serif";
-    font-size: 14px;
-    font-weight: bold;
-    color: #666;
+      left: 15%;
+      top: 5px;
 
-    margin: 0 0 0 5px;
-
-    left: 15%;
-    top: 5px;
-
-    height: 35px;
-    width: 70%;
+      height: 35px;
+      width: 70%;
 }
 
 #date input, select {
-
-    font-family: "Helvetica Neue", "Helvetica", "Arial", "sans-serif";
-    font-size: 14px;
-    height: 35px;
+      font-size: 14px;
+      height: 35px;
 }
 
 #date input.date {
 
-    width: 150px;
+      width: 150px;
 }
 
 #date input.hh {
 
-    width: 35px;
+      width: 35px;
 }
 
 #date span {
 
-    margin: 0 2px 0 2px;
-    padding: 9px;
+      margin: 0 2px 0 2px;
+      padding: 9px;
 
-    border-width: 1px;
-    border-style: solid;
-    border-color: lightgrey;
+      border-width: 1px;
+      border-style: solid;
+      border-color: lightgrey;
 
-    cursor: pointer;
+      cursor: pointer;
 }
 
 #date span:not(.disabled):hover {
-    background-color: lightgray!important;
+      background-color: lightgray!important;
 }
 
 #date img {
-    position: relative;
-    height: 80%;
-    top: 20%;
-    margin: 0 5px 0 5px;
-    cursor: pointer;
+      position: relative;
+      height: 80%;
+      top: 20%;
+      margin: 0 5px 0 5px;
+      cursor: pointer;
 }
 
 #date img.loading {
-    /* background: url("../img/loading.gif") repeat 0 0; */
-    top: 5px;
-    height: 20px;
-
-    margin: 0 5px 0 5px;
-
-    display:none;
-
-    cursor: auto;
-  }
+      /* background: url("../img/loading.gif") repeat 0 0; */
+      top: 5px;
+      height: 20px;
+      margin: 0 5px 0 5px;
+      display:none;
+      cursor: auto;
+}
 
 #date img.export {
-    float: right;
+      float: right;
 }
+#date img.export:hover {
+    box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
+}
+
 
 #window_size {
 
-    position: relative;
-    left: 15%;
-    width: 70%;
-    height: 35px;
+      position: relative;
+      left: 15%;
+      width: 70%;
+      height: 35px;
 }
 
 #window_size table {
-    width: 100%;
-    height: 90%;
+      width: 100%;
+      height: 90%;
 }
 
 .line-separator{
-
-    height:1px;
-    background:#FFFFFF;
-    border-bottom:1px solid #313030;
+      height:1px;
+      background:#FFFFFF;
+      border-bottom:1px solid #313030;
 }
 
 #window_size table tr td {
-
-    padding: 5px 5px 5px 5px;
-
-    font-family: "Helvetica Neue", "Helvetica", "Arial", "sans-serif";
-    font-size: 12px;
-
-    text-align: center;
-
-    width: auto;
-
-    border-width: 1px;
-    border-style: solid;
-    border-color: lightgrey;
-
-    color: #666;
-
-    cursor: pointer;
+      padding: 5px 5px 5px 5px;
+      font-size: 12px;
+      text-align: center;
+      width: auto;
+      border-width: 1px;
+      border-style: solid;
+      border-color: lightgrey;
+      color: #666;
+      cursor: pointer;
 }
 
 #window_size table tr td.unpushed {
-    background-color: white;
+      background-color: grey;
+      color: white;
 }
-
+#window_size table tr td:hover {
+    box-shadow: 0 8px 12px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
+}
 #window_size table tr td.pushed {
-    background-color: lightgray;
+      background-color: lightgray;
+      color: black;
 }
 
 #archived_PVs {
 
-    position: fixed;
+      position: fixed;
 
-    background-color:white;
+      background-color: white;
 
-    display: none;
+      display: none;
 
-    border-width: 1px;
-    border-style: solid;
-    border-radius: 5px;
-    border-color: lightgrey;
+      border-width: 1px;
+      border-style: solid;
+      border-radius: 5px;
+      border-color: lightgrey;
 
-    font-family: Arial,Helvetica,sans-serif;
+      top: 50px;
+      left: 7.5%;
 
-    top: 50px;
-    left: 7.5%;
-
-    width: 85%;
+      width: 85%;
 }
 
 #archived_PVs_header {
 
-    background-color: lightgrey;
+      background-color: lightgrey;
 
-    height: 50px;
+      height: 50px;
 }
 
 #archived_PVs_header h2 {
 
-    margin: 0;
-    padding: 15px 0 15px 15px;
+      margin: 0;
+      padding: 15px 0 15px 15px;
 
-    font-size: 14px;
-    font-weight: bold;
+      font-size: 14px;
+      font-weight: bold;
 
-    width: 75%;
+      width: 75%;
 
-    display: inline;
+      display: inline;
 }
 
 #archived_PVs_header button {
 
-    position: relative;
-    display: inline;
-    margin : 10px;
-    background-color: #008CBA;
-    border: none;
-    color: white;
-    padding: 5px 15px;
-    text-align: center;
-    text-decoration: none;
-    cursor: pointer;
+      position: relative;
+      display: inline;
+      margin : 10px;
+      background-color: #008CBA;
+      border: none;
+      color: white;
+      padding: 5px 15px;
+      text-align: center;
+      text-decoration: none;
+      cursor: pointer;
 }
 
 #archived_PVs_header button.selectAll {
 
-    background-color: #4CAF50;
+      background-color: #4CAF50;
 }
 
 #archived_PVs_header button.deselectAll {
 
-    background-color: #f44336;
+      background-color: #f44336;
 }
 
 #archived_PVs table {
 
-    width: 100%;
+      width: 100%;
 }
 
 #archived_PVs table tr td {
 
-    padding: 15px 5px 15px 5px;
+      padding: 15px 5px 15px 5px;
 
-    height: 50px;
+      height: 50px;
 
-    font-family: Arial,Helvetica,sans-serif;
-    font-size: 14px;
+      font-size: 14px;
 }
 
 #archived_PVs table tr td label {
 
-    position: relative;
-    top: -2px;
+      position: relative;
+      top: -2px;
 }
 
 #archived_PVs span.change {
 
-    position: relative;
+      position: relative;
 
-    height: 20px;
-    width: 20px;
+      height: 20px;
+      width: 20px;
 
-    margin: 0 2px 5px 2px;
-    padding: 2px;
+      margin: 0 2px 5px 2px;
+      padding: 2px;
 
-    border-width: 1px;
-    border-style: solid;
-    border-color: lightgrey;
-    border-radius: 5px;
+      border-width: 1px;
+      border-style: solid;
+      border-color: lightgrey;
+      border-radius: 5px;
 
-    text-align: center;
+      text-align: center;
 
-    cursor: pointer;
+      cursor: pointer;
+      float: right;
 
-    font-family: Arial,Helvetica,sans-serif;
-
-    float: right;
-
-    right: 50%;
+      right: 50%;
 }
 
 #archived_PVs span.change:hover {
 
-    background-color: lightgray;
+      background-color: lightgray;
 }
 
 
 #data_table_area {
 
-    position: relative;
+      position: relative;
 
-    width: 95%;
+      width: 95%;
 
-    margin-top: 45px;
-    padding-left: 2.5%;
+      margin-top: 45px;
+      padding-left: 2.5%;
 
-    font-family: Arial,Helvetica,sans-serif;
-    font-size: 14px;
+      font-size: 14px;
 
-    font-weight: bold;
+      font-weight: bold;
 }
 
 #data_table_area .data_table {
 
-    font-size: 14px;
+      font-size: 14px;
 
-    display: none;
+      display: none;
 
-    border-width: 2px;
-    border-style: solid;
-    border-color: lightgrey;
+      border-width: 2px;
+      border-style: solid;
+      border-color: lightgrey;
 }
 
 #data_table_area .data_table tr td {
 
-    padding: 5px;
-    border-width: 1px;
-    border-style: solid;
-    border-color: lightgrey;
+      padding: 5px;
+      border-width: 1px;
+      border-style: solid;
+      border-color: lightgrey;
 }
 
 #data_table_area .data_table tr td.pv_time {
 
-    background-color: lightgrey;
-    font-weight: bold;
+      background-color: lightgrey;
+      font-weight: bold;
 }
 
 #data_table_area h2 {
 
-    margin-top: 20px;
-    margin-bottom: 0px;
+      margin-top: 20px;
+      margin-bottom: 0px;
 
-    padding: 15px 0 15px 15px;
+      padding: 15px 0 15px 15px;
 
-    background-color: lightgrey;
+      background-color: lightgrey;
 
-    font-family: Arial,Helvetica,sans-serif;
-    font-size: 14px;
+      font-size: 14px;
 
-    font-weight: bold;
+      font-weight: bold;
 }
 
 #obs {
 
-    position: relative;
+      position: relative;
 
-    padding: 10px 0 10px 0;
+      padding: 10px 0 10px 0;
 
-    font-family: Arial,Helvetica,sans-serif;
-    font-size: 14px;
+      font-size: 14px;
 
-    border-width: 1px;
-    border-style: solid;
-    border-color: lightgrey;
-    border-radius: 5px;
+      border-width: 1px;
+      border-style: solid;
+      border-color: lightgrey;
+      border-radius: 5px;
 
-    left: 15%;
-    width: 70%;
+      left: 15%;
+      width: 70%;
 
-    top: 20px;
+      top: 20px;
 
-    background-color: lightblue;
+      background-color: lightblue;
 }
 
 #obs h4 {
 
-    padding: 0;
-    margin:0;
-    margin-left:25px;
+      padding: 0;
+      margin:0;
+      margin-left:25px;
 }
 
 #canvas_area span.selection_box {
-    display: none;
-    position: absolute;
-    background: lightblue;
-    border-color: blue;
-    border-width: 1px;
-    border-style: solid;
-    opacity: 0.3;
-    pointer-events: none;
+      display: none;
+      position: absolute;
+      background: lightblue;
+      border-color: blue;
+      border-width: 1px;
+      border-style: solid;
+      opacity: 0.3;
+      pointer-events: none;
 }
 
 #data_pv_info {
-    position: relative;
-    width: 95%;
-    margin-top: 15px;
-    padding-left: 2.5%;
+      position: relative;
+      width: 95%;
+      margin-top: 15px;
+      padding-left: 2.5%;
 }
 
 #data_pv_info tr td {
-    padding: 5px;
-    border-width: 1px;
-    border-style: solid;
-    border-color: lightgrey;
+      padding: 5px;
+      border-width: 1px;
+      border-style: solid;
+      border-color: lightgrey;
 
-    font-family: Arial,Helvetica,sans-serif;
-    font-size: 12px;
-    color: #666;
-    font-weight: bold;
+      font-size: 12px;
+      color: #666;
+      font-weight: bold;
 }
 
 #data_pv_info tr td label {
-    position: relative;
-    top: -3px;
+      position: relative;
+      top: -3px;
 }
 
 #data_axis {
-    position: relative;
-    width: 95%;
-    margin-top: 15px;
-    padding-left: 2.5%;
+      position: relative;
+      width: 95%;
+      margin-top: 15px;
+      padding-left: 2.5%;
 }
 
 #data_axis tr td {
-    padding: 5px;
-    border-width: 1px;
-    border-style: solid;
-    border-color: lightgrey;
+      padding: 5px;
+      border-width: 1px;
+      border-style: solid;
+      border-color: lightgrey;
 
-    font-family: Arial,Helvetica,sans-serif;
-    font-size: 12px;
-    color: #666;
-    font-weight: bold;
+      font-size: 12px;
+      color: #666;
+      font-weight: bold;
 }
 
 #data_axis tr td label {
-    position: relative;
-    top: -3px;
+      position: relative;
+      top: -3px;
 }
 
  /* Tooltip container */
 .tooltip {
-    position: relative;
-    display: inline-block;
-    border-bottom: 1px dotted black; /* If you want dots under the hoverable text */
+      position: relative;
+      display: inline-block;
+      border-bottom: 1px dotted black; /* If you want dots under the hoverable text */
 }
 
 /* Tooltip text */
 .tooltip .tooltiptext {
-    visibility: hidden;
-    width: 120px;
-    background-color: #555;
-    color: #fff;
-    text-align: center;
-    padding: 5px 0;
-    border-radius: 6px;
+      visibility: hidden;
+      width: 120px;
+      background-color: #555;
+      color: #fff;
+      text-align: center;
+      padding: 5px 0;
+      border-radius: 6px;
 
-    /* Position the tooltip text */
-    position: absolute;
-    z-index: 1;
-    bottom: 125%;
-    left: 50%;
-    margin-left: -60px;
+      /* Position the tooltip text */
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      margin-left: -60px;
 
-    /* Fade in tooltip */
-    opacity: 0;
-    transition: opacity 0.3s;
+      /* Fade in tooltip */
+      opacity: 0;
+      transition: opacity 0.3s;
 }
 
 /* Tooltip arrow */
 .tooltip .tooltiptext::after {
-    content: "";
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    margin-left: -5px;
-    border-width: 5px;
-    border-style: solid;
-    border-color: #555 transparent transparent transparent;
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      margin-left: -5px;
+      border-width: 5px;
+      border-style: solid;
+      border-color: #555 transparent transparent transparent;
 }
 
 /* Show the tooltip text when you mouse over the tooltip container */
 .tooltip:hover .tooltiptext {
-    visibility: visible;
-    opacity: 1;
+      visibility: visible;
+      opacity: 1;
 }

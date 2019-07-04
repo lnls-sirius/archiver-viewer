@@ -215,7 +215,7 @@ module.exports = (function () {
         if (enable)
             $("#date .zoom").css('background-color',"lightgrey");
         else
-            $("#date .zoom").css('background-color',"white");
+            $("#date .zoom").css('background-color',"grey");
     }
 
     var hideZoomBox = function () {
@@ -398,7 +398,7 @@ module.exports = (function () {
 
     var enable = function (button) {
         button.removeClass("disabled");
-        button.css({"background-color" : "white", "cursor" : "pointer", "pointerEvents" : "auto"});
+        button.css({"background-color" : "grey", "cursor" : "pointer", "pointerEvents" : "auto"});
     };
 
     var isEndSelected = function () {

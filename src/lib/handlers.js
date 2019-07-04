@@ -214,7 +214,7 @@ module.exports = (function () {
 
         if (control.auto_enabled ()) {
 
-            $(this).css("background-color", "white");
+            $(this).css("background-color", "grey");
 
             clearInterval(control.timer ());
 

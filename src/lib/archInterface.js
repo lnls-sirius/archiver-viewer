@@ -5,6 +5,7 @@
 **/
 
 import * as ui from './ui';
+import simplify from 'simplify-js';
 
 module.exports = (function () {
 
@@ -13,21 +14,31 @@ module.exports = (function () {
     /**
     * Parses the data retrieved from the archiver in a way that it can be understood by the chart controller
     **/
-    var parseData = function (data) {
-
-        var parsedData = [];
-
-        for (var i = 0; i < data.length; i++) {
-
-            var timedate = new Date(data[i].secs * 1e3 + data[i].nanos * 1e-6);
-
+    var parseData = function (data, optimize = false, tolerance = 0.001, highRes = false) {
+        let parsedData = [];
+        for (let i = 0; i < data.length; i++) {
+            let timedate = new Date(data[i].secs * 1e3 + data[i].nanos * 1e-6);
             if (!isNaN(timedate.getTime())) {
-
-                parsedData.push({
-                    x : timedate,
-                    y : data[i].val.length > 0 ? data[i].val[0] : data[i].val
-                });
+                parsedData.push(
+                    (optimize ? {
+                        timedate : timedate,
+                        x : i,
+                        y : data[i].val.length > 0 ? data[i].val[0] : data[i].val
+                    }:{
+                        x : timedate,
+                        y : data[i].val.length > 0 ? data[i].val[0] : data[i].val
+                    })
+                );
             }
+        }
+
+        if(optimize){
+            let result = simplify(parsedData, tolerance, highRes);
+            for(let i=0; i < result.length; i++){
+                result[i].x = result[i].timedate;
+            }
+            console.log(parsedData.length, result.length);
+            return result;
         }
         return parsedData;
     }

@@ -9,8 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
 
     <!-- Compiled and minified JavaScript -->
-    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-             -->
+        <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>-->
 
 
 </head>
@@ -18,7 +17,6 @@
 <body>
   <!-- HEADER section: PV search text box and logo images -->
   <div id="header">
-
     <div id="header_title">
       <img src="img/search.png">
       <input type="text" id="PV">
@@ -63,23 +61,23 @@
   </div>
   <!-- WINDOW TIME section end -->
 
-  <div id="date">
+  <div id="date" class="dropdown">
     <select class="type">
       <option value="start">START</option>
       <option value="end" selected="selected">END</option>
     </select>
     : <input type="date" class="date" id="day" required="required"> | <input type="text" class="hh" id="hour"> :
     <input type="text" class="hh" id="minute"> : <input type="text" class="hh" id="second"> |
-    <span class="now">NOW</span> | <span class="backward">
-      <</span> <span class="forward">>
-    </span> | <span class="zoom">ZOOM</span> | <span class="auto">AUTO</span>
+    <button class="now">NOW</button>
+    <button class="backward"> < </button>
+    <button class="forward">></button>
+    <button class="zoom">ZOOM</button>
+    <button class="auto">AUTO</button>
     <img src="img/loading.gif" class="loading">
     <img class='img-redo'>
     <img src="img/redo.png" id="redo" class="export">
     <img src="img/undo.png" id="undo" class="export">
     <img src="img/excel.ico" id="xlsx" class="export">
-    <img src="img/ods.png" id="ods" class="export">
-    <img src="img/csv.png" id="csv" class="export">
   </div>
 
   <div id="obs">
@@ -106,9 +104,8 @@
   </div>
 
   <div id="data_pv_info"> </div>
-
   <div id="data_axis"> </div>
 
-</body>
+<script type="text/javascript" src="index.bundle.js"></script></body>
 
 </html>
