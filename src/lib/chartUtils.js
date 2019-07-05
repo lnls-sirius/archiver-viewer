@@ -238,11 +238,15 @@ module.exports = (function() {
         var ticks_cb = function(value) {
 
             if(value != 0 && Math.abs(value) < Math.pow(10, -ticks_precision))
+                console.log( value.toExponential(ticks_precision))
                 return value.toExponential(ticks_precision)
 
             /* ticks_precision stands for the number of decimal cases shown by the plot in the vertical axis */
             if(ticks_precision > 4)
+                console.log(value.toExponential(3))
                 return value.toExponential(3);
+
+            console.log(value.toFixed(ticks_precision))
 
             return value.toFixed(ticks_precision);
         };

@@ -303,10 +303,6 @@ module.exports = (function () {
                 row = $("<tr></tr>");
                 row.appendTo(table);
             }
-        //     <label>
-        //     <input type="checkbox" checked="checked" />
-        //     <span>Yellow</span>
-        //   </label>
             $('<td></td>')
                 .text('Chart Series: ' + series[i].id).appendTo(row);
 
@@ -329,13 +325,6 @@ module.exports = (function () {
                 .text('Check it if you want this axis to be displayed in a logarithmic scale.')
                 .appendTo(chkText);
 
-                // <!-- <a class="btn tooltipped" data-position="bottom" data-tooltip="I am a tooltip">Hover me!</a> -->
-                // <p>
-                //     <label>
-                //       <input type="checkbox" />
-                //       <span class="tooltipped" data-position="bottom"  data-tooltip="I am a tooltip" >Red</span>
-                //     </label>
-                //   </p>
             chkText.appendTo(chkBoxBase);
             chkBoxBase.appendTo(tdIsLogarithmic);
             tdIsLogarithmic.appendTo(row);

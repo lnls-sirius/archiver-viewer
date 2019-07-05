@@ -13,16 +13,16 @@ button {
     text-align: center;
     text-decoration: none;
     display: inline-block;
+
     font-size: 12px;
+    font-family: Dejavu Sans;
+    text-align: center;
 }
 button:hover {
     box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
 }
 
 select{
-     -webkit-appearance: none;  /* Remove estilo padrão do Chrome */
-     -moz-appearance: none; /* Remove estilo padrão do FireFox */
-     appearance: none; /* Remove estilo padrão do FireFox*/
      border: 1px solid #ddd;
      background-color: grey;
      color: white;
@@ -36,68 +36,48 @@ select{
       width: 90%;
       margin-top: 25px;
       margin-left: 5%;
-
 }
 
 #header_title {
-
       position: relative;
-
-      margin-left: 11%;
-
-      top: 25px;
-
-
-      float: left;
-      height: 80%;
-
-      width: 20%;
 }
 
 #header_title input {
-      width: 90%;
 }
 
 #header_title img {
-      position: relative;
-      top: 3px;
-      width: 18px;
-      margin-right: 3px;
+    height: 15px;
+    width:  20px;
+}
+
+.header_logo {
+    height: 50px;
+    float: right;
+}
+.header_logo img{
+    max-width:  100%;
+    max-height: 100%;
 }
 
 #warning {
-      position: relative;
       padding: 10px 0 10px 0;
-
+      margin: 0 50 0 50;
       top: 23px;
-
       font-size: 14px;
-
       border-width: 0px;
       border-style: solid;
       border-color: rgba(255, 0, 0, 0.3);
       border-radius: 5px;
-
-      float: left;
-
       background-color: rgba(255, 0, 0, 0.3);
 }
 
 #warning h4 {
-
       margin:0;
       margin-left:20px;
       margin-right:20px;
 }
 
-#header_logo {
-
-     height: 100%;
-     float: right;
-}
-
 #canvas_area {
-
       position: relative;
 
       top: 10px;
@@ -112,12 +92,9 @@ select{
       font-size: 14px;
       font-weight: bold;
       color: #666;
-
       margin: 0 0 0 5px;
-
       left: 15%;
       top: 5px;
-
       height: 35px;
       width: 70%;
 }
@@ -128,24 +105,18 @@ select{
 }
 
 #date input.date {
-
       width: 150px;
 }
-
 #date input.hh {
-
       width: 35px;
 }
 
 #date span {
-
       margin: 0 2px 0 2px;
       padding: 9px;
-
       border-width: 1px;
       border-style: solid;
       border-color: lightgrey;
-
       cursor: pointer;
 }
 
@@ -179,16 +150,17 @@ select{
 
 
 #window_size {
-
-      position: relative;
-      left: 15%;
-      width: 70%;
-      height: 35px;
+ /*   margin: 15px 25px 5px 25px;*/
+    height: 25px;
+    position: relative;
+    width: 75%;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 #window_size table {
       width: 100%;
-      height: 90%;
+      height: 100%;
 }
 
 .line-separator{
@@ -248,20 +220,16 @@ select{
 }
 
 #archived_PVs_header h2 {
-
       margin: 0;
       padding: 15px 0 15px 15px;
-
       font-size: 14px;
       font-weight: bold;
-
       width: 75%;
-
       display: inline;
 }
 
 #archived_PVs_header button {
-
+    font-weight: bold;
       position: relative;
       display: inline;
       margin : 10px;
@@ -272,29 +240,24 @@ select{
       text-align: center;
       text-decoration: none;
       cursor: pointer;
+      height: 30px;
 }
 
 #archived_PVs_header button.selectAll {
-
-      background-color: #4CAF50;
+      background-color: green;
 }
 
 #archived_PVs_header button.deselectAll {
-
       background-color: #f44336;
 }
 
 #archived_PVs table {
-
       width: 100%;
 }
 
 #archived_PVs table tr td {
-
       padding: 15px 5px 15px 5px;
-
       height: 50px;
-
       font-size: 14px;
 }
 
@@ -387,28 +350,21 @@ select{
 }
 
 #obs {
-
-      position: relative;
-
-      padding: 10px 0 10px 0;
-
-      font-size: 14px;
-
-      border-width: 1px;
-      border-style: solid;
-      border-color: lightgrey;
-      border-radius: 5px;
-
-      left: 15%;
-      width: 70%;
-
-      top: 20px;
-
-      background-color: lightblue;
+    margin: 0 0 10 0;
+    position: relative;
+    padding: 10px 0 10px 0;
+    font-size: 14px;
+    border-width: 1px;
+    border-style: solid;
+    border-color: lightgrey;
+    border-radius: 5px;
+    left: 15%;
+    width: 70%;
+    top: 20px;
+    background-color: lightblue;
 }
 
 #obs h4 {
-
       padding: 0;
       margin:0;
       margin-left:25px;
