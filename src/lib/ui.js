@@ -390,10 +390,10 @@ module.exports = (function () {
         button.css({"background-color" : "grey", "cursor" : "pointer", "pointerEvents" : "auto"});
     };
 
-    var isEndSelected = function () {
+/*    var isEndSelected = function () {
         return ($('#date .type').find(":selected").text() == "END");
     };
-
+*/
     var enableReference = function (i) {
         $('#date .type>option:eq(' + (1 - i) + ')').prop('selected', false);
         $('#date .type>option:eq(' + i + ')').prop('selected', true);
@@ -430,7 +430,7 @@ module.exports = (function () {
         toogleSearchWarning: toogleSearchWarning,
         disable: disable,
         enable: enable,
-        isEndSelected: isEndSelected,
+//        isEndSelected: isEndSelected,
         enableReference: enableReference,
         selectedAllPVs: selectedAllPVs,
         deselectedAllPVs: deselectedAllPVs,
