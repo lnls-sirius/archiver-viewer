@@ -17,16 +17,6 @@
       background-color: lightgray;
       color: black;
 }
-
-.header-logo {
-    height: 50px;
-    float: right;
-}
-.header-logo img{
-    max-width:  100%;
-    max-height: 100%;
-}
-
 .header-controls{
     font-size: 16pt;
     margin-left: 5px;
@@ -37,4 +27,7 @@
 }
 .header-controls.active{
     color: lightgrey;
+}
+.header-logo img{
+    height: 50px;
 }

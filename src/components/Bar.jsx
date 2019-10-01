@@ -2,23 +2,24 @@ import React, { Component } from "react";
 import BarControl from './BarControl.jsx';
 import SearchPV from 'components/SearchPV.jsx';
 import Intervals from 'components/Intervals.jsx';
-
-import '../css/bar.css';
+import 'css/bar.css';
+import labLogo1 from './../img/labLogo.png';
+ import labLogo2 from './../img/labLogo2.png';
 
 function Logo(props){
         return <span className="header-logo">
           <a>
-            <img src="../img/labLogo.png"/>
-            <img src="../img/labLogo2.png"/>
+            <img src={labLogo1}/>
+            <img src={labLogo2}/>
           </a>
         </span>
 }
 
 class Bar extends Component {
-    constructor(props){
+    constructor(props) {
         super(props);
     }
-    
+
     render() {
         return (
            <div className='main-bar'>
