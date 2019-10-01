@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import DatePicker from 'react-datepicker';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faStop, faBackward, faForward, faUndo, faRedo, faFileExcel, faCircle, faSearchPlus, faCarSide} from '@fortawesome/free-solid-svg-icons';
+import { faBackward, faForward, faUndo, faRedo, faFileExcel, faCircle, faSearchPlus, faCarSide} from '@fortawesome/free-solid-svg-icons';
 import { exportAs, undoHandler, redoHandler, onChangeDateHandler, updateEndNow,
         backTimeWindow, forwTimeWindow, zoomClickHandler, autoRefreshingHandler, 
         updateReferenceTime } from '../lib/handlers';
@@ -47,11 +47,12 @@ class BarControl extends Component {
 
     render(){
       return <span>
-            <select onChange={this.handleTimeRefChange}>
+            <select
+                onChange={this.handleTimeRefChange}>
                 <option value={this.END}>End</option>
                 <option value={this.START}>Start</option>
             </select>
-            <DatePicker
+            <DatePicker title="Start/end timestamp"
                 showTimeSelect
                 selected={this.state.startDate}
                 onChange={this.handleDateChange}
@@ -60,14 +61,14 @@ class BarControl extends Component {
                 dateFormat="dd/MM/yy h:mm aa"
                 maxDate={new Date()}
                 />
-            <FontAwesomeIcon icon={faBackward}  className='header-controls' onClick={()=>{backTimeWindow()}}/>
-            <FontAwesomeIcon icon={faCircle}    className='header-controls' onClick={()=>{updateEndNow()}}/>
-            <FontAwesomeIcon icon={faForward}   className='header-controls' onClick={()=>{forwTimeWindow()}}/>
-            <FontAwesomeIcon icon={faUndo}      className='header-controls' onClick={()=>undoHandler()}/>
-            <FontAwesomeIcon icon={faRedo}      className='header-controls'  onClick={()=>redoHandler()}/>
-            <FontAwesomeIcon icon={faCarSide}     onClick={this.handleAuto} className={(this.state.auto)?'header-controls active':'header-controls'}/>
-            <FontAwesomeIcon icon={faSearchPlus}  onClick={this.handleZoom} className={(this.state.zoom)?'header-controls active':'header-controls'}/>
-            <FontAwesomeIcon icon={faFileExcel}  className='header-controls' onClick={()=>{exportAs("xlsx")}}/>
+            <FontAwesomeIcon icon={faBackward}   title="Backward" className='header-controls' onClick={()=>{backTimeWindow()}}/>
+            <FontAwesomeIcon icon={faCircle}     title="Now" className='header-controls' onClick={()=>{updateEndNow()}}/>
+            <FontAwesomeIcon icon={faForward}    title="Forward" className='header-controls' onClick={()=>{forwTimeWindow()}}/>
+            <FontAwesomeIcon icon={faUndo}       title="Undo action" className='header-controls' onClick={()=>undoHandler()}/>
+            <FontAwesomeIcon icon={faRedo}       title="Redo action" className='header-controls'  onClick={()=>redoHandler()}/>
+            <FontAwesomeIcon icon={faCarSide}    title="Auto scroll" onClick={this.handleAuto} className={(this.state.auto)?'header-controls active':'header-controls'}/>
+            <FontAwesomeIcon icon={faSearchPlus} title="Zoom" onClick={this.handleZoom} className={(this.state.zoom)?'header-controls active':'header-controls'}/>
+            <FontAwesomeIcon icon={faFileExcel}  title="Export as xlsx" className='header-controls' onClick={()=>{exportAs("xlsx")}}/>
             {/* <button onClick={()=>{backTimeWindow()}}>Backard</button>          
             <button onClick={()=>{updateEndNow()}}>Now</button>          
             <button onClick={()=>{forwTimeWindow()}}>Forward</button>           */}

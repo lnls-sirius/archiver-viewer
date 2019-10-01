@@ -187,7 +187,7 @@ module.exports = (function () {
         if (control.scrolling_enabled ()) {
             ui.enableLoading();
             control.disableScrolling ();
-            var window_time_new = evt.deltaY < 0 ? Math.max(control.window_time () - 1, 0) : Math.min(control.window_time () + 1, chartUtils.timeIDs.SEG_30);
+            var window_time_new = evt.deltaY > 0 ? Math.max(control.window_time () - 1, 0) : Math.min(control.window_time () + 1, chartUtils.timeIDs.SEG_30);
             if (window_time_new != control.window_time ()){
                 control.updateTimeWindow(window_time_new);
             }
