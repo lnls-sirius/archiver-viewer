@@ -1,7 +1,5 @@
 import React, { Component } from 'react';
 import { timeAxisPreferences } from '../lib/chartUtils';
-import { updateTimeWindow } from '../lib/handlers';
-import { getWindowTime } from '../lib/control';
 
 import '../css/bar.css';
 
