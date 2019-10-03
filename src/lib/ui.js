@@ -151,7 +151,6 @@ module.exports = (function () {
     var showSearchResults = function (data) {
 
         if (data != null && data.length > 0) {
-
             if (data.length > 1)
                 $("#archived_PVs h2").text(data.length + " PVs have been found.");
             else
@@ -203,12 +202,6 @@ module.exports = (function () {
 
         $('#archived_PVs').hide();
         $(document.body).children().css('opacity', '1.0');
-    }
-
-    var refreshScreen = function (event) {
-
-        if (event.target.id != 'archived_PVs' && !$('#archived_PVs').find(event.target).length)
-            hideSearchedPVs();
     }
 
     var toggleZoomButton = function (enable) {
@@ -416,7 +409,6 @@ module.exports = (function () {
         showSearchResultsAtPage: showSearchResultsAtPage,
         showSearchResults: showSearchResults,
         hideSearchedPVs: hideSearchedPVs,
-        refreshScreen: refreshScreen,
         toggleZoomButton: toggleZoomButton,
         hideZoomBox: hideZoomBox,
         drawZoomBox:drawZoomBox,
