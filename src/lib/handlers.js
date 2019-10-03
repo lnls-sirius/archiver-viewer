@@ -125,22 +125,32 @@ module.exports = (function () {
         }
     }
 
-    /**
-    * Key event handler which looks for PVs in the archiver
-    **/
-    var queryPVs = function (e, val) {
 
+    var handleQuerryBefore = ()=>{ ui.enableLoading() }
+    var handleQuerySuccess = (data, statusText) =>{
+        let pv_list = [];
+        data.forEach(element => {
+           if(element.status=='Being archived'){
+            pv_list.push(element['pvName']);
+           }
+        });
+        ui.showSearchResults(pv_list, appendPVHandler);
+    }
+    var handleQueryError = (data, statusText, errorThrown) =>{
+        ui.toogleSearchWarning("An error occured on the server while disconnected PVs -- " + statusText + " -- " + errorThrown);
+    }
+    var handleQueryComplete = (data)=>{ ui.disableLoading() }
+    var queryPVs = function (e, val) {
         if (e.which == KEY_ENTER) {
-            ui.enableLoading ();
-            ui.showSearchResults(archInterface.query(val), appendPVHandler);
-            ui.disableLoading ();
+            archInterface.getPVStatus(val,
+                handleQuerySuccess, handleQueryError,
+                handleQueryComplete, handleQuerryBefore);
         }
     }
 
-    /**
-    * Closes PV selection area.
-    **/
-    var refreshScreen = ui.refreshScreen;
+    var handleFetchDataError = (xmlHttpRequest, textStatus, errorThrown)=>{
+        ui.toogleSearchWarning ("Connection failed with " + xmlHttpRequest + " -- " + textStatus + " -- " + errorThrown);
+    }
 
     /**
     * Event handler which is called when the user clicks over a PV to append it
@@ -162,11 +172,10 @@ module.exports = (function () {
 
     var plotSelectedPVs = function (e) {
         var pvs = ui.selectedPVs ();
-        for (var i = 0; i < pvs.length; i++) {
-
+        for (var i = 0; i < pvs.length; i++) { 
             var pv_index = control.getPlotIndex(pvs [i]);
             if (pv_index == null){
-                control.appendPV (pvs [i]);
+                control.appendPV(pvs [i]);
             }
             else{
                 control.updatePlot (pv_index);
@@ -674,8 +683,6 @@ module.exports = (function () {
     };
 
     var updateReferenceTime = function (isEndSelected) {
-
-        //if (ui.isEndSelected ()) {
         if (isEndSelected) {
             ui.updateDateComponents (control.end ());
             control.updateTimeReference (control.references.END);
@@ -687,13 +694,15 @@ module.exports = (function () {
     };
 
     return {
+        handleFetchDataError:handleFetchDataError,
+
+
         onChangeDateHandler : onChangeDateHandler,
         updateTimeWindow: updateTimeWindow,
         updateEndNow: updateEndNow,
         backTimeWindow: backTimeWindow,
         forwTimeWindow: forwTimeWindow,
         queryPVs: queryPVs,
-        refreshScreen: refreshScreen,
         appendPVHandler: appendPVHandler,
         plotSelectedPVs: plotSelectedPVs,
         scrollChart: scrollChart,
