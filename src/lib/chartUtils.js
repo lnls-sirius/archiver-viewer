@@ -261,7 +261,6 @@ module.exports = (function() {
             return ;
         }
 
-
         /* yAxisUseCounter[n_id] stands for the times this axis is used */
         yAxisUseCounter[n_id] = 1;
 
@@ -298,6 +297,7 @@ module.exports = (function() {
                 }
             }
         );
+        axisPositionLeft = (axisPositionLeft)?false:true;
         chart.update();
     };
 
