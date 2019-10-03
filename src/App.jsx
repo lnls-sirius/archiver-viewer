@@ -3,6 +3,7 @@ import Bar from "./components/Bar.jsx";
 import Chart from "./components/Chart.jsx";
 
 import {updateTimeWindow, scrollChart} from './lib/handlers';
+import { hideSearchedPVs } from './lib/ui';
 import {getWindowTime} from './lib/control';
 
 
@@ -27,7 +28,7 @@ class App extends Component{
 
     render(){
         return (
-            <div>
+            <div onClick={hideSearchedPVs}>
                 <Bar 
                     handlers={{
                         handleScrollChart:this.handleScrollChart,
