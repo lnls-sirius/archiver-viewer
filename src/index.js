@@ -28,11 +28,10 @@ $("#archiver_viewer").mousedown(handlers.startDragging);
 $("#archiver_viewer").mousemove(handlers.doDragging);
 $("#archiver_viewer").mouseup(handlers.stopDragging);
 
-$(document).click(handlers.refreshScreen);
-
 $("#plotSelected").on('click', handlers.plotSelectedPVs);
 $("#selectAll").on('click', ui.selectedAllPVs);
 $("#deselectAll").on('click', ui.deselectedAllPVs);
+$("#close").on('click', ui.hideSearchedPVs);
 
 
 /******* Initialization function *******/
@@ -45,6 +44,11 @@ $(document).ready(function () {
             responsive: true,
             maintainAspectRatio: false,
             animation: { duration: 0 },
+            elements: {
+                line:{
+                    tension:0 // disable belzier curves
+                }
+            },
             tooltips: {
                 mode: 'nearest',
                 intersect: false,
