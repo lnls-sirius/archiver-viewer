@@ -69,17 +69,6 @@ class BarControl extends Component {
             <FontAwesomeIcon icon={faCarSide}    title="Auto scroll" onClick={this.handleAuto} className={(this.state.auto)?'header-controls active':'header-controls'}/>
             <FontAwesomeIcon icon={faSearchPlus} title="Zoom" onClick={this.handleZoom} className={(this.state.zoom)?'header-controls active':'header-controls'}/>
             <FontAwesomeIcon icon={faFileExcel}  title="Export as xlsx" className='header-controls' onClick={()=>{exportAs("xlsx")}}/>
-            {/* <button onClick={()=>{backTimeWindow()}}>Backard</button>          
-            <button onClick={()=>{updateEndNow()}}>Now</button>          
-            <button onClick={()=>{forwTimeWindow()}}>Forward</button>           */}
-
-            {/* <button className={(this.state.zoom)?'active':''} onClick={this.handleZoom}>Zoom</button>          
-            <button className={(this.state.auto)?'active':''} onClick={this.handleAuto}>Auto</button> */}
-            {/* <span className="header-controls">
-                <img onClick={()=>undoHandler()} src="img/undo.png"/>
-                <img onClick={()=>redoHandler()} src="img/redo.png"/>  
-                <img onClick={()=>{exportAs("xlsx")}}   src="img/excel.ico"/>
-            </span>           */}
       </span>
     }
 }
