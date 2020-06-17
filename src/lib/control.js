@@ -124,7 +124,6 @@ module.exports = (function () {
     * Appends a new variable into the chart.
     **/
     var appendPV = function (pv, optimized, undo) {
-
         if (chartUtils.colorStack().length == 0) {
             console.log('Color stack limit reached. A random color will be used for pv ' + pv + '.');
         }
@@ -160,6 +159,7 @@ module.exports = (function () {
 
         if (!undo || undo == undefined)
             undo_stack.push ({action : STACK_ACTIONS.APPEND_PV, pv : pv});
+	
     }
 
     /**
