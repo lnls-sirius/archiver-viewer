@@ -281,7 +281,7 @@ module.exports = (function () {
         $('#data_table_area .data_table').hide();
     };
 
-    var updateDataAxisInfoTable = (series, toggleChartAxisTypeHandler) =>{
+        var updateDataAxisInfoTable = (series, toggleChartAxisTypeHandler, toggleAutoYHandler, changeYLimitHandler) =>{
         let row;
         $('#data_axis .data_axis_table').remove();
         let table = $('<table></table>').addClass('data_axis_table');
@@ -302,6 +302,43 @@ module.exports = (function () {
             let tdIsLogarithmic = $('<td></td>');
             let chkBoxBase = $('<label></label>');
 
+            let intervalMin = $('<input />')
+                .attr({
+                    "type" : "text",
+                    "placeholder" : "Min"
+                })
+                .blur({"axisId" : series[i].id}, changeYLimitHandler)
+                .appendTo(row)
+		.hide();
+
+            let intervalMax = $('<input />')
+                .attr({
+                    "type" : "text",
+                    "placeholder" : "Max"
+                })
+                .blur({"axisId" : series[i].id}, changeYLimitHandler)  
+                .appendTo(row)
+		.hide();
+
+	    let chkAutoY = $('<input />')
+                .attr({
+                    "type" : "checkbox",
+                    "checked" : typeof series[i].ticks.max !== 'undefined'
+                })
+                .click({"axisId" : series[i].id}, toggleAutoYHandler)
+                .appendTo(chkBoxBase);
+
+            let chkAutoYText = $('<span></span>')
+                .attr("class", "tooltip")
+                .text("Manual Y Limit")
+                .appendTo(chkBoxBase);
+
+            chkBoxBase.appendTo(tdIsLogarithmic);
+            tdIsLogarithmic.appendTo(row);
+
+	    tdIsLogarithmic = $('<td></td>');
+	    chkBoxBase = $('<label></label>');
+
             let chk = $('<input />')
                 .attr({
                     "type" : "checkbox",
@@ -312,18 +349,15 @@ module.exports = (function () {
 
             let chkText = $('<span></span>')
                 .attr('class', 'tooltip')
-                .text('isLogarithmic?');
-            let chkTooltip = $('<label></label>')
-                .attr('class', 'tooltiptext')
-                .text('Check it if you want this axis to be displayed in a logarithmic scale.')
-                .appendTo(chkText);
+                .text('Log Y Axis')
+            	.appendTo(chkBoxBase);
 
-            chkText.appendTo(chkBoxBase);
             chkBoxBase.appendTo(tdIsLogarithmic);
             tdIsLogarithmic.appendTo(row);
         }
         $('#data_axis').append(table);
     }
+
     var updatePVInfoTable = function (datasets, legendHandler, optimizeHandler, removeHandler) {
         var row;
         // Remove all data before rewriting
@@ -346,7 +380,7 @@ module.exports = (function () {
 
             var div = $('<label></label>')
                 .attr('class', 'tooltip')
-                .text('Optimize?');
+                .text('Optimize');
             $('<span></span>')
                 .attr('class', 'tooltiptext')
                 .text('Uncheck it if you want raw data sent from the server.')

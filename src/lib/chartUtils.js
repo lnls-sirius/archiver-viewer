@@ -231,11 +231,72 @@ module.exports = (function() {
             if(chart.options.scales.yAxes[i].id == axisId){
                 if(isLogarithmic){
                     chart.options.scales.yAxes[i].type = 'logarithmic';
-                    chart.update();
-                }else {
+		    chart.options.scales.yAxes[i].ticks.maxTicksLimit = 10;
+                }else{
                     chart.options.scales.yAxes[i].type = 'linear';
-                    chart.update();
                 }
+                chart.update();
+            }
+        }
+    }
+
+    var toggleAutoY = (chart, axisId, autoFire) => {
+    var table = $(autoFire).closest(".data_axis_table").find(":text");
+    table.toggle();
+
+    for (let i = 1; i < chart.options.scales.yAxes.length; i++) {
+        if (chart.options.scales.yAxes[i].id == axisId) {
+            if (autoFire.checked) {
+                for (let j = 0; j < table.length; j++) {
+                    var limit = parseFloat(table[j].value);
+                    if (!isNaN(limit)) {
+                        if ($(table[j]).attr("placeholder") === "Max") {
+                            chart.options.scales.yAxes[i].ticks.max = limit;
+                        } else {
+                            chart.options.scales.yAxes[i].ticks.min = limit;
+                        }
+                        chart.update();
+                    }
+                }
+          } else {
+        delete chart.options.scales.yAxes[i].ticks.max;
+        delete chart.options.scales.yAxes[i].ticks.min;
+ 	}
+    }
+    }
+    chart.update();
+    }
+
+
+    var changeYLimit = (chart, axisId, limitInput )=>{
+	if(chart.options.scales.yAxes.length <= 1)
+            return;
+
+        for(let i=1; i < chart.options.scales.yAxes.length; i++){
+            if(chart.options.scales.yAxes[i].id == axisId){
+		var limit = parseFloat(limitInput.value);
+		if($(limitInput).attr("placeholder") === "Max")
+		{
+		    if(!isNaN(limit))
+		    {
+                        chart.options.scales.yAxes[i].ticks.max =  limit;
+		    }
+		    else
+		    {
+			delete chart.options.scales.yAxes[i].ticks.max;
+		    }
+		} else {
+		    if(!isNaN(limit))
+                    {
+			chart.options.scales.yAxes[i].ticks.min =  limit;
+		    }
+		    else
+                    {
+                        delete chart.options.scales.yAxes[i].ticks.min;
+                    }
+
+		}
+                chart.update();
             }
         }
     }
@@ -398,7 +459,9 @@ module.exports = (function() {
 
         /* Setters */
         updateAxisPositionLeft: function(a) { axisPositionLeft = a; } ,
-        toggleAxisType:toggleAxisType,
+        toggleAxisType: toggleAxisType,
+	toggleAutoY: toggleAutoY,
+	changeYLimit: changeYLimit,
         updateTimeAxis: updateTimeAxis,
         appendDataAxis: appendDataAxis,
         appendDataset: appendDataset,

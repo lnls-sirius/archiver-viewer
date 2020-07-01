@@ -529,8 +529,10 @@ module.exports = (function () {
     var handleDataAxisInfoTableUpdate = ()=>{
         ui.updateDataAxisInfoTable(
             chartUtils.getAxesInUse(chart.options.scales.yAxes),
-            (evt)=>{chartUtils.toggleAxisType(chart, evt.data.axisId, evt.target.checked);
-        });
+            (evt)=>{chartUtils.toggleAxisType(chart, evt.data.axisId, evt.target.checked);},
+            (evt)=>{chartUtils.toggleAutoY(chart, evt.data.axisId, evt.currentTarget);},
+	    (evt)=>{chartUtils.changeYLimit(chart, evt.data.axisId, evt.currentTarget);},
+	);
     }
 
     var removeHandler = function (event) {
