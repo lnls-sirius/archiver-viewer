@@ -7,6 +7,10 @@
     vertical-align: middle;
 }
 
+.react-datepicker__tab-loop {
+    display: inline-block;
+}
+
 .time-button{
       font-size: 16px;
       text-align: center;
