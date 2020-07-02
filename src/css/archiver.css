@@ -358,6 +358,19 @@ select{
       width: 100%;
 }
 
+.footer-box-wrapper {
+      display: block;
+}
+
+.footer-box {
+      display: inline-block;
+      width: 138px;
+}
+
+.footer-input {
+      width: 150px;
+}
+
 #archived_PVs table tr td {
       padding: 15px 5px 15px 5px;
       height: 50px;
@@ -579,7 +592,9 @@ select{
 
 .lds-ellipsis {
   display: none;
-  position: relative;
+  position: absolute;
+  bottom: 90px;
+  text-align: center;
   width: 80px;
   height: 80px;
 }

@@ -245,7 +245,8 @@ module.exports = (function() {
     
     for (let i = 1; i < chart.options.scales.yAxes.length; i++) {
         if (chart.options.scales.yAxes[i].id == axisId) {
-	    table.slice((i-1)*2,(i-1)*2+2).toggle();
+	    table = table.slice((i-1)*2,(i-1)*2+2);
+	    table.toggle();
             if (autoFire.checked) {
                 for (let j = 0; j < table.length; j++) {
                     var limit = parseFloat(table[j].value);

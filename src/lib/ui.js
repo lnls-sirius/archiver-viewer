@@ -299,11 +299,13 @@ module.exports = (function () {
             $('<td></td>')
                 .text('Chart Series: ' + series[i].id).appendTo(row);
 
-            let tdIsLogarithmic = $('<td></td>');
+	    let wrapper = $('<div class="footer-box-wrapper"></div>');
+            let tdIsLogarithmic = $('<td class="footer-box"></td>');
             let chkBoxBase = $('<label></label>');
 
             let intervalMin = $('<input />')
                 .attr({
+		    "class" : "footer-input",
                     "type" : "text",
                     "placeholder" : "Min"
                 })
@@ -313,6 +315,7 @@ module.exports = (function () {
 
             let intervalMax = $('<input />')
                 .attr({
+		    "class" : "footer-input",
                     "type" : "text",
                     "placeholder" : "Max"
                 })
@@ -334,9 +337,9 @@ module.exports = (function () {
                 .appendTo(chkBoxBase);
 
             chkBoxBase.appendTo(tdIsLogarithmic);
-            tdIsLogarithmic.appendTo(row);
+            tdIsLogarithmic.appendTo(wrapper);
 
-	    tdIsLogarithmic = $('<td></td>');
+	    tdIsLogarithmic = $('<td class="footer-box"></td>');
 	    chkBoxBase = $('<label></label>');
 
             let chk = $('<input />')
@@ -353,7 +356,9 @@ module.exports = (function () {
             	.appendTo(chkBoxBase);
 
             chkBoxBase.appendTo(tdIsLogarithmic);
-            tdIsLogarithmic.appendTo(row);
+            tdIsLogarithmic.appendTo(wrapper);
+
+	    wrapper.appendTo(row);
         }
         $('#data_axis').append(table);
     }
