@@ -358,6 +358,10 @@ select{
       width: 100%;
 }
 
+.footer-box:last-child {
+      margin-right: 30px;
+}
+
 .footer-box-wrapper {
       display: block;
 }
@@ -592,13 +596,10 @@ select{
 
 .lds-ellipsis {
   display: none;
-<<<<<<< HEAD
   position: absolute;
   bottom: 90px;
   text-align: center;
-=======
   position: relative;
->>>>>>> f35ecc0257c267d1593a857cb64c23df1636600c
   width: 80px;
   height: 80px;
 }
