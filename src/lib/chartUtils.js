@@ -418,6 +418,7 @@ module.exports = (function() {
             if(yAxisUseCounter[metadata.yAxisID] <= 0)
                 chart.scales[metadata.yAxisID].options.display = false;
         }
+	console.log(chart.scales);
 
     }
 

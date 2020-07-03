@@ -508,9 +508,16 @@ module.exports = (function () {
             chart.scales[chart.data.datasets[datasetIndex].yAxisID].options.display = false;
             chartUtils.updateAxisPositionLeft (chart.scales[chart.data.datasets[datasetIndex].yAxisID].position == "left");
             delete chart.scales[chart.data.datasets[datasetIndex].yAxisID];
+	    for(var i = 1; i < chart.options.scales.yAxes.length; i++)
+	    {
+		if(chart.options.scales.yAxes[i].id == chart.data.datasets[datasetIndex].yAxisID)
+		{
+			chart.options.scales.yAxes.splice (i, 1);
+		}
+	    }
         }
 
-        chart.data.datasets.splice (datasetIndex, 1);
+	chart.data.datasets.splice (datasetIndex, 1);
         chart.update (0, false);
         updateURL ();
         ui.updatePVInfoTable(chart.data.datasets, hideAxis, optimizeHandler, removeHandler);
