@@ -75,7 +75,7 @@ module.exports = (function () {
     **/
     var fetchData = function (pv, from, to, isOptimized, bins, handleError) {
 	$('.lds-ellipsis').css("display", "inline-block");
-        if (from == undefined || to == undefined)
+	if (from == undefined || to == undefined)
             return null;
 
         var jsonurl = url + '/retrieval/data/getData.json?pv=' + pv + "&from=" + from.toJSON() + "&to=" + to.toJSON();

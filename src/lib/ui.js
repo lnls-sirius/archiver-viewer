@@ -296,32 +296,41 @@ module.exports = (function () {
                 row = $("<tr></tr>");
                 row.appendTo(table);
             }
+	    
             $('<td></td>')
                 .text('Chart Series: ' + series[i].id).appendTo(row);
 
 	    let wrapper = $('<div class="footer-box-wrapper"></div>');
             let tdIsLogarithmic = $('<td class="footer-box"></td>');
             let chkBoxBase = $('<label></label>');
+	    let isManual = !isNaN(series[i].ticks.max) || !isNaN(series[i].ticks.min);
+
+	    console.log(isManual);
 
             let intervalMin = $('<input />')
                 .attr({
 		    "class" : "footer-input",
                     "type" : "text",
-                    "placeholder" : "Min"
+                    "placeholder" : "Min",
+		    "value": isManual ? series[i].ticks.min : ''
                 })
                 .blur({"axisId" : series[i].id}, changeYLimitHandler)
-                .appendTo(row)
-		.hide();
+                .appendTo(row);
 
             let intervalMax = $('<input />')
                 .attr({
 		    "class" : "footer-input",
                     "type" : "text",
-                    "placeholder" : "Max"
+                    "placeholder" : "Max",
+		    "value": isManual ? series[i].ticks.max : ''
                 })
                 .blur({"axisId" : series[i].id}, changeYLimitHandler)  
-                .appendTo(row)
-		.hide();
+                .appendTo(row);
+		if(!isManual)
+		{
+		intervalMax.hide();
+		intervalMin.hide();
+		}
 
 	    let chkAutoY = $('<input />')
                 .attr({

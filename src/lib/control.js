@@ -513,6 +513,7 @@ module.exports = (function () {
 		if(chart.options.scales.yAxes[i].id == chart.data.datasets[datasetIndex].yAxisID)
 		{
 			chart.options.scales.yAxes.splice (i, 1);
+			break;
 		}
 	    }
         }
