@@ -305,9 +305,7 @@ module.exports = (function () {
             let chkBoxBase = $('<label></label>');
 	    let isManual = !isNaN(series[i].ticks.max) || !isNaN(series[i].ticks.min);
 
-	    console.log(isManual);
-
-            let intervalMin = $('<input />')
+	    let intervalMin = $('<input />')
                 .attr({
 		    "class" : "footer-input",
                     "type" : "text",
