@@ -42,3 +42,15 @@
 .header-logo img{
     height: 35px;
 }
+
+.main-bar input {
+    height: 35px;
+}
+
+.main-bar .search-input {
+    margin-top: 2px;
+}
+
+.main-bar input:not(.search-input) {
+    margin-left: 5px;
+}
