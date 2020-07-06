@@ -335,7 +335,7 @@ module.exports = (function () {
 	    let chkAutoY = $('<input />')
                 .attr({
                     "type" : "checkbox",
-                    "checked" : typeof series[i].ticks.max !== 'undefined'
+                    "checked" : isManual
                 })
                 .click({"axisId" : series[i].id}, toggleAutoYHandler)
                 .appendTo(chkBoxBase);

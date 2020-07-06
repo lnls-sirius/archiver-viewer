@@ -373,6 +373,7 @@ select{
 
 .footer-input {
       width: 150px;
+      height: 35px;
 }
 
 #archived_PVs table tr td {
