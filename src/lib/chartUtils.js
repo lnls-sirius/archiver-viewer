@@ -394,7 +394,7 @@ module.exports = (function() {
             pointRadius : 0,
             backgroundColor : color,
             borderColor: color,
-            pv: {
+	    pv: {
                 precision: precision,
                 type: type,
                 samplingPeriod: samplingPeriod,
@@ -404,6 +404,8 @@ module.exports = (function() {
                 metadata: metadata
             },
         });
+	chart.options.scales.xAxes[0].ticks.maxRotation = 0;
+	chart.options.scales.xAxes[0].ticks.minRotation = 0;
         chart.update();
     };
 
