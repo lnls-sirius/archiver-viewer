@@ -406,7 +406,16 @@ module.exports = (function() {
         });
 	chart.options.scales.xAxes[0].ticks.maxRotation = 0;
 	chart.options.scales.xAxes[0].ticks.minRotation = 0;
-        chart.update();
+	chart.options.scales.xAxes[0].time = {
+	    displayFormats: {
+	    	second: 'hh:mm:ss',
+	    	minute: 'hh:mm',
+		hour: 'hh:ss',
+		day: 'MMM D hh:mm',
+		month: 'MMM YYYY'
+	    }	
+	};
+	chart.update();
     };
 
     var hidesAxis = function(metadata, chart) {
