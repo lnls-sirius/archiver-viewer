@@ -40,6 +40,7 @@ $("#close").on('click', ui.hideSearchedPVs);
 **/
 $(document).ready(function () {
     let options = {
+	    spanGaps: true,
             responsiveAnimationDuration: 0,
             responsive: true,
             maintainAspectRatio: false,
@@ -83,7 +84,8 @@ $(document).ready(function () {
                         autoSkip: true,
                         autoSkipPadding: 5,
 			maxRotation: 0,
-			minRotation: 0
+			minRotation: 0,
+			stepSize: 1
                     }
                 }],
                 yAxes: [{
