@@ -72,9 +72,9 @@ $(document).ready(function () {
                         unit: 'minute',
                         unitStepSize: 5,
                         displayFormats: {
-                           	second: 'hh:mm:ss',
-	    			minute: 'hh:mm',
-				hour: 'hh:ss',
+                           	second: 'HH:mm:ss',
+	    			minute: 'HH:mm',
+				hour: 'HH:ss',
 				day: 'MMM D hh:mm',
 				month: 'MMM YYYY'
                         },
