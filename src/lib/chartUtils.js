@@ -221,6 +221,11 @@ module.exports = (function() {
         chart.options.scales.xAxes[TIME_AXIS_INDEX].time.stepSize = unitStepSize;
         chart.options.scales.xAxes[TIME_AXIS_INDEX].time.min = from;
         chart.options.scales.xAxes[TIME_AXIS_INDEX].time.max = to;
+	console.log(unitStepSize);
+	chart.data.datasets.forEach((dataset) => {
+        	dataset.data.push({x:from, y:null});
+   		dataset.data.push({x:to, y:null});
+	});
     };
 
     var toggleAxisType = (chart, axisId, isLogarithmic )=>{

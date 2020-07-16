@@ -65,6 +65,7 @@ $(document).ready(function () {
             scales: {
                 xAxes: [{
                     // Common x axis
+		    offset: true,
                     id: chartUtils.timeAxisID,
                     type: 'time',
                     distribution: 'series',
@@ -81,11 +82,13 @@ $(document).ready(function () {
                         tooltipFormat: 'ddd MMM DD YYYY HH:mm:ss.SSS ZZ',
                     },
                     ticks: {
+			source: "data",
                         autoSkip: true,
                         autoSkipPadding: 5,
 			maxRotation: 0,
 			minRotation: 0,
-			stepSize: 1
+			stepSize: 1,
+			maxTicksLimit: 15
                     }
                 }],
                 yAxes: [{
