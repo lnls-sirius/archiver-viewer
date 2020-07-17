@@ -68,7 +68,7 @@ $(document).ready(function () {
 		    offset: true,
                     id: chartUtils.timeAxisID,
                     type: 'time',
-                    distribution: 'series',
+                    distribution: 'linear',
                     time: {
                         unit: 'minute',
                         unitStepSize: 5,
