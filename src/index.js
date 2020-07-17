@@ -82,13 +82,13 @@ $(document).ready(function () {
                         tooltipFormat: 'ddd MMM DD YYYY HH:mm:ss.SSS ZZ',
                     },
                     ticks: {
-			source: "data",
+			source: "auto",
                         autoSkip: true,
                         autoSkipPadding: 5,
 			maxRotation: 0,
 			minRotation: 0,
 			stepSize: 1,
-			maxTicksLimit: 15
+			//maxTicksLimit: 15
                     }
                 }],
                 yAxes: [{
