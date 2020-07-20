@@ -306,8 +306,8 @@ module.exports = (function () {
     var startDragging = function (evt) {
 
         control.startDrag ();
-
-        control.updateDragOffsetX (evt.offsetX);
+	
+	control.updateDragOffsetX (evt.offsetX);
 
         control.updateDragEndTime (control.end ());
 

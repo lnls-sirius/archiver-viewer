@@ -51,14 +51,16 @@ $(document).ready(function () {
                 }
             },
             tooltips: {
-                mode: 'nearest',
+                mode: 'index',
                 intersect: false,
+		axis: 'y',
                 cornerRadius: 5,
                 callbacks: { label: chartUtils.labelCallback },
             },
             hover: {
-                mode: 'nearest',
+                mode: 'index',
                 intersect: false,
+		axis: 'y',
                 animationDuration: 0,
             },
             title: { display: false },
