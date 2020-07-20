@@ -53,14 +53,14 @@ $(document).ready(function () {
             tooltips: {
                 mode: 'index',
                 intersect: false,
-		axis: 'y',
+		axis: 'x',
                 cornerRadius: 5,
                 callbacks: { label: chartUtils.labelCallback },
             },
             hover: {
                 mode: 'index',
                 intersect: false,
-		axis: 'y',
+		axis: 'x',
                 animationDuration: 0,
             },
             title: { display: false },
