@@ -239,7 +239,7 @@ module.exports = (function() {
             if(chart.options.scales.yAxes[i].id == axisId){
                 if(isLogarithmic){
                     chart.options.scales.yAxes[i].type = 'logarithmic';
-		    chart.options.scales.yAxes[i].ticks.maxTicksLimit = 10;
+		    //chart.options.scales.yAxes[i].ticks.maxTicksLimit = 25;
                 }else{
                     chart.options.scales.yAxes[i].type = 'linear';
                 }
