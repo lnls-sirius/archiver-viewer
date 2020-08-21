@@ -38,7 +38,7 @@ $("#close").on('click', ui.hideSearchedPVs);
 /**
 * Instantiates a new chart and global structures
 **/
-$(document).ready(function () {
+$(document).ready(function () { 
     let options = {
 	    spanGaps: true,
             responsiveAnimationDuration: 0,
@@ -51,15 +51,17 @@ $(document).ready(function () {
                 }
             },
             tooltips: {
-                mode: 'index',
-                intersect: false,
+                mode: 'nearest',
+		intersect: false,
+		custom: chartUtils.customTooltips,
 		axis: 'x',
                 cornerRadius: 5,
-                callbacks: { label: chartUtils.labelCallback },
+		position: 'cursor',
+                callbacks: { label: chartUtils.labelCallback, beforeBody: chartUtils.bodyCallback },
             },
             hover: {
-                mode: 'index',
-                intersect: false,
+                mode: 'nearest',
+		intersect: false,
 		axis: 'x',
                 animationDuration: 0,
             },
@@ -81,7 +83,7 @@ $(document).ready(function () {
 				day: 'MMM D hh:mm',
 				month: 'MMM YYYY'
                         },
-                        tooltipFormat: 'ddd MMM DD YYYY HH:mm:ss.SSS ZZ',
+                        tooltipFormat: 'ddd MMM DD YYYY HH:mm:ss.S ZZ',
                     },
                     ticks: {
 			source: "auto",

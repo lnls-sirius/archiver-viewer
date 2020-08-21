@@ -223,7 +223,6 @@ module.exports = (function() {
         chart.options.scales.xAxes[TIME_AXIS_INDEX].time.max = to;
 	
 	chart.options.tooltips.mode
-	console.log(unitStepSize);
 	/*
 	chart.data.datasets.forEach((dataset) => {
         	dataset.data.push({x:from, y:null});
@@ -427,8 +426,6 @@ module.exports = (function() {
             if(yAxisUseCounter[metadata.yAxisID] <= 0)
                 chart.scales[metadata.yAxisID].options.display = false;
         }
-	console.log(chart.scales);
-
     }
 
     /**
@@ -455,6 +452,76 @@ module.exports = (function() {
         return chart.datasets[label.datasetIndex].label + ": " +  label.yLabel.toFixed(chart.datasets[label.datasetIndex].pv.precision);
     };
 
+    Chart.Tooltip.positioners.cursor = function(chartElements, coordinates) {
+  	return coordinates;
+    };
+
+    function closestDateValue(searchDate, dates) {
+        var bestDate = dates.length;
+	var bestDiff = -(new Date(0,0,0)).valueOf();
+        var currDiff = 0;
+        var i;
+
+        for(i = 0; i < dates.length; i++){
+        currDiff = Math.abs(dates[i] - searchDate);
+        if(currDiff < bestDiff){
+                bestDate = i;
+                bestDiff = currDiff;
+                }   
+        }
+	
+        return bestDate;
+    };
+
+    var customTooltips = function(tooltip) {
+			if(tooltip.dataPoints != undefined){
+			var i;
+			for(i = 1; i < tooltip.dataPoints.length; i++){
+				if(tooltip.dataPoints[i].backgroundColor != undefined){
+					tooltip.labelColors.push({
+					backgroundColor: tooltip.dataPoints[i].backgroundColor,
+					borderColor: tooltip.dataPoints[i].borderColor
+					});
+					tooltip.labelTextColors.push('#fff');
+				}
+			}
+			}
+		};
+
+    var bodyCallback = function(labels, chart) {
+	var drawnDatasets = labels.map(x => x.datasetIndex);
+	var masterSet = labels[0].datasetIndex;
+	var stringDate = labels[0].xLabel.substring(0,23);
+	var masterDate = new Date(stringDate);
+	var index = 1;
+
+	for (var i = 0; i < chart.datasets.length; i++)
+	{
+	    if(i != masterSet)
+	    {
+		var closest = closestDateValue(masterDate, chart.datasets[i].data.map(x => x.x));
+
+		if(drawnDatasets.includes(i)){
+		    labels[index].yLabel = chart.datasets[i].data[closest].y;
+		    labels[index].x = labels[0].x;
+		    labels[index].y = chart.datasets[i].data[closest].y.toString();
+		    index++;
+		} else {
+		    labels.push({datasetIndex: i,
+		     index: closest,
+                     label: chart.datasets[i].data[closest].x.toString(),
+	             value: chart.datasets[i].data[closest].y.toString(),
+	             x: labels[0].x,
+		     xLabel: labels[0].xLabel,
+		     y: labels[0].y,
+	             yLabel: chart.datasets[i].data[closest].y,
+		     backgroundColor: chart.datasets[i].backgroundColor,
+		     borderColor: chart.datasets[i].borderColor});	    
+		}
+	    }
+	}
+    };
+
     return {
 
         /* const references */
@@ -479,7 +546,9 @@ module.exports = (function() {
         hidesAxis: hidesAxis,
         legendCallback: legendCallback,
         labelCallback: labelCallback,
-        randomColorGenerator: randomColorGenerator
+	customTooltips: customTooltips,
+	bodyCallback: bodyCallback,
+	randomColorGenerator: randomColorGenerator
     };
 
 })();
