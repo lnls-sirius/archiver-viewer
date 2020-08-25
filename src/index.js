@@ -46,7 +46,10 @@ $(document).ready(function () {
             maintainAspectRatio: false,
             animation: { duration: 0 },
             elements: {
-                line:{
+		point:{
+		    hoverRadius: 0
+		},
+		line:{
                     tension:0 // disable belzier curves
                 }
             },
@@ -56,11 +59,15 @@ $(document).ready(function () {
 		custom: chartUtils.customTooltips,
 		axis: 'x',
                 cornerRadius: 5,
+		caretSize: 0,
+		yAlign: 'no-transform',
+		xAlign: 'no-transform',
 		position: 'cursor',
                 callbacks: { label: chartUtils.labelCallback, beforeBody: chartUtils.bodyCallback },
             },
             hover: {
                 mode: 'nearest',
+		position: 'cursor',
 		intersect: false,
 		axis: 'x',
                 animationDuration: 0,

@@ -3,7 +3,7 @@
 * The following functions control the start and end time that will be plotted on the graph.
 * end stands for the most recent time, meanwhile start
 * stands for the beginning of the window time.
-**/
+*/
 /* require archInterface, chartUtils */
 
 /* Module dependencies */
@@ -60,6 +60,36 @@ module.exports = (function () {
 
     var init = function (c) {
         chart = c;
+	};
+
+    let parentEventHandler = Chart.Controller.prototype.eventHandler;
+    Chart.Controller.prototype.eventHandler = function () {
+	// This is not a duplicate of the cursor positioner, this handler is called when a tooltip's datapoint index does not change.
+	
+    	let ret = parentEventHandler.apply(this, arguments);
+	let tooltipWidth = this.tooltip._model.width;
+	let tooltipHeight = this.tooltip._model.height;
+
+    	let x = arguments[0].x;
+    	let y = arguments[0].y;
+    	this.clear();
+    	this.draw();
+    	let yScale = this.scales['y-axis-0'];
+    	this.chart.ctx.beginPath();
+    	this.chart.ctx.moveTo(x, yScale.getPixelForValue(yScale.max));
+    	this.chart.ctx.strokeStyle = "#ff0000";
+    	this.chart.ctx.lineTo(x, yScale.getPixelForValue(yScale.min));
+    	this.chart.ctx.stroke();
+
+	this.tooltip.width = this.tooltip._model.width;
+	this.tooltip.height = this.tooltip._model.height;	
+
+	let coordinates = chartUtils.reboundTooltip(arguments[0].x, arguments[0].y, this.tooltip, 0.5);
+	
+	this.tooltip._model.x = coordinates.x;
+	this.tooltip._model.y = coordinates.y;
+
+    	return ret;
     };
 
     var updateTimeWindow = function (window) {
@@ -607,8 +637,7 @@ module.exports = (function () {
         updateURL: updateURL,
         loadFromURL: loadFromURL,
         optimizePlot: optimizePlot,
-
-        removeDataset: removeDataset,
+	removeDataset: removeDataset,
         hideAxis: hideAxis,
         optimizeHandler: optimizeHandler,
         removeHandler: removeHandler,

@@ -221,13 +221,6 @@ module.exports = (function() {
         chart.options.scales.xAxes[TIME_AXIS_INDEX].time.stepSize = unitStepSize;
         chart.options.scales.xAxes[TIME_AXIS_INDEX].time.min = from;
         chart.options.scales.xAxes[TIME_AXIS_INDEX].time.max = to;
-	
-	chart.options.tooltips.mode
-	/*
-	chart.data.datasets.forEach((dataset) => {
-        	dataset.data.push({x:from, y:null});
-   		dataset.data.push({x:to, y:null});
-	});*/
     };
 
     var toggleAxisType = (chart, axisId, isLogarithmic )=>{
@@ -323,8 +316,7 @@ module.exports = (function() {
 
     /** Adds a new vertical axis to the chart. */
     var appendDataAxis = function(chart, n_id, ticks_precision) {
-
-        if(n_id in yAxisUseCounter) {
+	if(n_id in yAxisUseCounter) {
             /* Increments the number of times this axis is used by a PV. */
             yAxisUseCounter[n_id]++;
             return ;
@@ -452,9 +444,32 @@ module.exports = (function() {
         return chart.datasets[label.datasetIndex].label + ": " +  label.yLabel.toFixed(chart.datasets[label.datasetIndex].pv.precision);
     };
 
-    Chart.Tooltip.positioners.cursor = function(chartElements, coordinates) {
-  	return coordinates;
+    var reboundTooltip = function (x, y, tooltip, factor) {
+        let tooltipWidth = tooltip.width;
+        let tooltipHeight = tooltip.height;
+        let coordinates = {x:0, y:y};
+
+        if(x > tooltip._chart.width - (tooltipWidth + 10)) {
+            coordinates.x = x - tooltipWidth - 5;
+        } else {
+            coordinates.x = x + 5;
+        }
+
+        /*if(y > tooltip._chart.height - (tooltipHeight + 10)) {
+        *    coordinates.y = y + tooltipHeight - 5;
+        *} else {
+        *    coordinates.y = y - tooltipHeight*factor + 5;
+        *}
+	*/
+
+        return coordinates;
     };
+
+    Chart.Tooltip.positioners.cursor = function(chartElements, coordinates) {
+	// This exists to override default Chartjs behavior. It does not cause the whole tooltip element to be rerendered.
+	// As yAlign and xAlign properties are set to 'no-transform', we have to give an absolute position for the tooltip, this occurs in conjunction with the eventHandler in control.js.
+	return reboundTooltip(coordinates.x, coordinates.y, this, 0);
+     };
 
     function closestDateValue(searchDate, dates) {
         var bestDate = dates.length;
@@ -548,6 +563,7 @@ module.exports = (function() {
         labelCallback: labelCallback,
 	customTooltips: customTooltips,
 	bodyCallback: bodyCallback,
+	reboundTooltip: reboundTooltip,
 	randomColorGenerator: randomColorGenerator
     };
 
