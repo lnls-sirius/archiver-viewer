@@ -1,12 +1,12 @@
 import React, {Component} from 'react';
 import DatePicker from 'react-datepicker';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBackward, faForward, faUndo, faRedo, faFileExcel, faCircle, faSearchPlus, faCarSide} from '@fortawesome/free-solid-svg-icons';
+import { faBackward, faForward, faUndo, faRedo, faFileExcel, faCircle, faSearchPlus, faCarSide, faList} from '@fortawesome/free-solid-svg-icons';
 import { exportAs, undoHandler, redoHandler, onChangeDateHandler, updateEndNow,
         backTimeWindow, forwTimeWindow, zoomClickHandler, autoRefreshingHandler, 
-        updateReferenceTime } from '../lib/handlers';
+        updateReferenceTime, singleTipHandler } from '../lib/handlers';
 
-import {zoom_flags, auto_enabled} from '../lib/control';
+import {zoom_flags, auto_enabled, singleTip_enabled} from '../lib/control';
 
 import "react-datepicker/dist/react-datepicker.css";
 import "../css/bar.css";
@@ -33,6 +33,12 @@ class BarControl extends Component {
         this.setState({
             auto:auto_enabled(),
             zoom:zoom_flags().isZooming});
+    }
+
+    handleTooltip = ()=>{
+	singleTipHandler();
+	this.setState({
+	    singleTip:singleTip_enabled()});
     }
 
     handleDateChange = (e)=>{
@@ -69,6 +75,7 @@ class BarControl extends Component {
             <FontAwesomeIcon icon={faCarSide}    title="Auto scroll" onClick={this.handleAuto} className={(this.state.auto)?'header-controls active':'header-controls'}/>
             <FontAwesomeIcon icon={faSearchPlus} title="Zoom" onClick={this.handleZoom} className={(this.state.zoom)?'header-controls active':'header-controls'}/>
             <FontAwesomeIcon icon={faFileExcel}  title="Export as xlsx" className='header-controls' onClick={()=>{exportAs("xlsx")}}/>
+	    <FontAwesomeIcon icon={faList}  	 title="Show all in tooltip" onClick={this.handleTooltip} className={(this.state.singleTip)?'header-controls active':'header-controls'}/>
       </span>
     }
 }

@@ -205,6 +205,69 @@ module.exports = (function () {
         }
     };
 
+    var singleTipHandler = function (e) {
+	if (control.singleTip_enabled()) {
+	    $(this).css("background-color", "grey");
+	} else {
+  	    $(this).css("background-color", "light-grey");
+	}
+
+	control.toggleSingleTip();
+    }
+
+    function closestDateValue(searchDate, dates) {
+        var bestDate = dates.length;
+        var bestDiff = -(new Date(0,0,0)).valueOf();
+        var currDiff = 0;
+        var i;
+
+        for(i = 0; i < dates.length; i++){
+        currDiff = Math.abs(dates[i] - searchDate);
+        if(currDiff < bestDiff){
+                bestDate = i;
+                bestDiff = currDiff;
+                }   
+        }
+         
+        return bestDate;
+    };
+
+    var bodyCallback = function(labels, chart) {
+	if(control.singleTip_enabled()){return;}
+        var drawnDatasets = labels.map(x => x.datasetIndex);
+        var masterSet = labels[0].datasetIndex;
+        var stringDate = labels[0].xLabel.substring(0,23);
+        var masterDate = new Date(stringDate);
+        var index = 1;
+
+        for (var i = 0; i < chart.datasets.length; i++)
+        {
+            if(i != masterSet)
+            {
+                var closest = closestDateValue(masterDate, chart.datasets[i].data.map(x => x.x));
+
+                if(drawnDatasets.includes(i)){
+                    labels[index].yLabel = chart.datasets[i].data[closest].y;
+                    labels[index].x = labels[0].x;
+                    labels[index].y = chart.datasets[i].data[closest].y.toString();
+                    index++;
+                } else {
+                    labels.push({datasetIndex: i,
+                     index: closest,
+                     label: chart.datasets[i].data[closest].x.toString(),
+                     value: chart.datasets[i].data[closest].y.toString(),
+                     x: labels[0].x,
+                     xLabel: labels[0].xLabel,
+                     y: labels[0].y,
+                     yLabel: chart.datasets[i].data[closest].y,
+                     backgroundColor: chart.datasets[i].backgroundColor,
+                     borderColor: chart.datasets[i].borderColor});          
+                }
+            }
+        }
+    };
+
+
     /**
     * Enables or disables plot auto refreshing.
     **/
@@ -696,6 +759,7 @@ module.exports = (function () {
     return {
         handleFetchDataError:handleFetchDataError,
 
+	bodyCallback: bodyCallback,
 
         onChangeDateHandler : onChangeDateHandler,
         updateTimeWindow: updateTimeWindow,
@@ -707,7 +771,8 @@ module.exports = (function () {
         plotSelectedPVs: plotSelectedPVs,
         scrollChart: scrollChart,
         autoRefreshingHandler: autoRefreshingHandler,
-        dataClickHandler: dataClickHandler,
+        singleTipHandler: singleTipHandler,
+	dataClickHandler: dataClickHandler,
 
         startDragging: startDragging,
         doDragging: doDragging,

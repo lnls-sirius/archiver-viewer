@@ -268,7 +268,6 @@ module.exports = (function() {
     chart.update();
     }
 
-
     var changeYLimit = (chart, axisId, limitInput )=>{
 	if(chart.options.scales.yAxes.length <= 1)
             return;
@@ -456,11 +455,11 @@ module.exports = (function() {
         }
 
         /*if(y > tooltip._chart.height - (tooltipHeight + 10)) {
-        *    coordinates.y = y + tooltipHeight - 5;
-        *} else {
-        *    coordinates.y = y - tooltipHeight*factor + 5;
-        *}
-	*/
+            coordinates.y = y + tooltipHeight - 5;
+        } else {
+            coordinates.y = y - tooltipHeight*factor + 5;
+        }*/
+	coordinates.y = y - tooltipHeight*factor + 5;
 
         return coordinates;
     };
@@ -470,23 +469,6 @@ module.exports = (function() {
 	// As yAlign and xAlign properties are set to 'no-transform', we have to give an absolute position for the tooltip, this occurs in conjunction with the eventHandler in control.js.
 	return reboundTooltip(coordinates.x, coordinates.y, this, 0);
      };
-
-    function closestDateValue(searchDate, dates) {
-        var bestDate = dates.length;
-	var bestDiff = -(new Date(0,0,0)).valueOf();
-        var currDiff = 0;
-        var i;
-
-        for(i = 0; i < dates.length; i++){
-        currDiff = Math.abs(dates[i] - searchDate);
-        if(currDiff < bestDiff){
-                bestDate = i;
-                bestDiff = currDiff;
-                }   
-        }
-	
-        return bestDate;
-    };
 
     var customTooltips = function(tooltip) {
 			if(tooltip.dataPoints != undefined){
@@ -502,40 +484,6 @@ module.exports = (function() {
 			}
 			}
 		};
-
-    var bodyCallback = function(labels, chart) {
-	var drawnDatasets = labels.map(x => x.datasetIndex);
-	var masterSet = labels[0].datasetIndex;
-	var stringDate = labels[0].xLabel.substring(0,23);
-	var masterDate = new Date(stringDate);
-	var index = 1;
-
-	for (var i = 0; i < chart.datasets.length; i++)
-	{
-	    if(i != masterSet)
-	    {
-		var closest = closestDateValue(masterDate, chart.datasets[i].data.map(x => x.x));
-
-		if(drawnDatasets.includes(i)){
-		    labels[index].yLabel = chart.datasets[i].data[closest].y;
-		    labels[index].x = labels[0].x;
-		    labels[index].y = chart.datasets[i].data[closest].y.toString();
-		    index++;
-		} else {
-		    labels.push({datasetIndex: i,
-		     index: closest,
-                     label: chart.datasets[i].data[closest].x.toString(),
-	             value: chart.datasets[i].data[closest].y.toString(),
-	             x: labels[0].x,
-		     xLabel: labels[0].xLabel,
-		     y: labels[0].y,
-	             yLabel: chart.datasets[i].data[closest].y,
-		     backgroundColor: chart.datasets[i].backgroundColor,
-		     borderColor: chart.datasets[i].borderColor});	    
-		}
-	    }
-	}
-    };
 
     return {
 
@@ -562,7 +510,6 @@ module.exports = (function() {
         legendCallback: legendCallback,
         labelCallback: labelCallback,
 	customTooltips: customTooltips,
-	bodyCallback: bodyCallback,
 	reboundTooltip: reboundTooltip,
 	randomColorGenerator: randomColorGenerator
     };

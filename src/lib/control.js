@@ -43,7 +43,7 @@ module.exports = (function () {
 
     /* Control flags */
     var auto_enabled = false;
-
+    var singleTip_enabled = false;
     var scrolling_enabled = true;
 
     var drag_flags = {
@@ -509,9 +509,7 @@ module.exports = (function () {
     };
 
     var optimizePlot = function (datasetIndex, optimize) {
-
         chart.data.datasets[datasetIndex].pv.optimized = optimize;
-
         ui.enableLoading ();
 
         chart.data.datasets[datasetIndex].data.length = 0;
@@ -521,7 +519,6 @@ module.exports = (function () {
         chart.update (0, false);
 
         ui.disableLoading ();
-
         updateURL ();
     };
 
@@ -592,6 +589,7 @@ module.exports = (function () {
         window_time: function () { return window_time; },
         timer: function () { return timer; },
         auto_enabled: function () { return auto_enabled; },
+	singleTip_enabled: function () { return singleTip_enabled; },
         scrolling_enabled: function () { return scrolling_enabled; },
         drag_flags: function () { return drag_flags; },
         zoom_flags: function () { return zoom_flags; },
@@ -611,6 +609,7 @@ module.exports = (function () {
         updateStartAndEnd: updateStartAndEnd,
 
         toggleAuto : function () { auto_enabled = !auto_enabled; },
+	toggleSingleTip: function () { singleTip_enabled = !singleTip_enabled },
         disableAuto : function () { auto_enabled = false; },
         enableAuto : function () { auto_enabled = true; },
 
