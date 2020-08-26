@@ -443,6 +443,24 @@ module.exports = (function() {
 	return chart.datasets[label.datasetIndex].label + ": " +  label.yLabel.toFixed(chart.datasets[label.datasetIndex].pv.precision);
     };
 
+    var toggleTooltipBehavior = function (chart, isOld) {
+	if(isOld) {
+	    chart.options.tooltips.position = "nearest";
+	    chart.options.tooltips.caretSize = 5;
+	    delete chart.options.tooltips.yAlign;
+	    delete chart.options.tooltips.xAlign;
+	    chart.options.elements.point.hoverRadius = 5;
+	} else {
+	    chart.options.tooltips.position = "cursor";
+	    chart.options.tooltips.caretSize = 0;
+	    chart.options.tooltips.yAlign = "no-transform";
+	    chart.options.tooltips.xAlign = "no-transform";
+	    chart.options.elements.point.hoverRadius = 0;
+	}
+
+	chart.update();
+    }
+
     var reboundTooltip = function (x, y, tooltip, factor) {
         let tooltipWidth = tooltip.width;
         let tooltipHeight = tooltip.height;
@@ -484,6 +502,7 @@ module.exports = (function() {
         axisPositionLeft: function() { return axisPositionLeft; },
 
         /* Setters */
+	toggleTooltipBehavior: toggleTooltipBehavior,
         updateAxisPositionLeft: function(a) { axisPositionLeft = a; } ,
         toggleAxisType: toggleAxisType,
 	toggleAutoY: toggleAutoY,

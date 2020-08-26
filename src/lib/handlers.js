@@ -211,8 +211,8 @@ module.exports = (function () {
 	} else {
   	    $(this).css("background-color", "light-grey");
 	}
-
 	control.toggleSingleTip();
+	chartUtils.toggleTooltipBehavior(control.chart(), control.singleTip_enabled());
     }
 
     function closestDateValue(searchDate, dates) {

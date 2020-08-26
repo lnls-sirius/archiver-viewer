@@ -66,7 +66,7 @@ $(document).ready(function () {
             },
             hover: {
                 mode: 'nearest',
-		position: 'cursor',
+		position: 'nearest',
 		intersect: false,
 	        animationDuration: 0,
             },
