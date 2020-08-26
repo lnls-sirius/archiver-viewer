@@ -440,7 +440,7 @@ module.exports = (function() {
         if(chart.datasets[label.datasetIndex].pv.precision > 4)
             return chart.datasets[label.datasetIndex].label + ": " + label.yLabel.toExponential(3);
 
-        return chart.datasets[label.datasetIndex].label + ": " +  label.yLabel.toFixed(chart.datasets[label.datasetIndex].pv.precision);
+	return chart.datasets[label.datasetIndex].label + ": " +  label.yLabel.toFixed(chart.datasets[label.datasetIndex].pv.precision);
     };
 
     var reboundTooltip = function (x, y, tooltip, factor) {

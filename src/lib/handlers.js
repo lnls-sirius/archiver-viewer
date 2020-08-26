@@ -249,22 +249,22 @@ module.exports = (function () {
                 if(drawnDatasets.includes(i)){
                     labels[index].yLabel = chart.datasets[i].data[closest].y;
                     labels[index].x = labels[0].x;
-                    labels[index].y = chart.datasets[i].data[closest].y.toString();
+                    labels[index].y = chart.datasets[i].data[closest].y;
                     index++;
                 } else {
-                    labels.push({datasetIndex: i,
+	             labels.push({datasetIndex: i,
                      index: closest,
                      label: chart.datasets[i].data[closest].x.toString(),
                      value: chart.datasets[i].data[closest].y.toString(),
                      x: labels[0].x,
                      xLabel: labels[0].xLabel,
                      y: labels[0].y,
-                     yLabel: chart.datasets[i].data[closest].y,
+                     yLabel: typeof(chart.datasets[i].data[closest].y) == 'string' ? chart.datasets[i].data[closest].y*1 : chart.datasets[i].data[closest].y,
                      backgroundColor: chart.datasets[i].backgroundColor,
                      borderColor: chart.datasets[i].borderColor});          
                 }
             }
-        }
+	}
     };
 
 
