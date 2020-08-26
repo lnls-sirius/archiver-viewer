@@ -232,6 +232,26 @@ module.exports = (function () {
         return bestDate;
     };
 
+    var tooltipColorHandler = function(tooltip) {
+                        if(tooltip.dataPoints != undefined && !control.singleTip_enabled()){
+                        var i;
+			tooltip.labelColors = [];
+		        tooltip.labelTextColors = [];
+                        for(i = 0; i < tooltip.dataPoints.length; i++){
+                                if(tooltip.dataPoints[i].backgroundColor != undefined){
+                                        tooltip.labelColors.push({
+                                            backgroundColor: tooltip.dataPoints[i].backgroundColor,
+                                            borderColor: tooltip.dataPoints[i].borderColor
+                                        });
+					tooltip.labelTextColors.push('#fff');
+				}
+                        }
+                        }
+                };
+
+    /*
+    * Handles tooltip item list correction and addition
+    */
     var bodyCallback = function(labels, chart) {
 	if(control.singleTip_enabled()){return;}
         var drawnDatasets = labels.map(x => x.datasetIndex);
@@ -250,6 +270,8 @@ module.exports = (function () {
                     labels[index].yLabel = chart.datasets[i].data[closest].y;
                     labels[index].x = labels[0].x;
                     labels[index].y = chart.datasets[i].data[closest].y;
+		    labels[index].backgroundColor = chart.datasets[i].backgroundColor;
+		    labels[index].borderColor = chart.datasets[i].borderColor;
                     index++;
                 } else {
 	             labels.push({datasetIndex: i,
@@ -263,8 +285,13 @@ module.exports = (function () {
                      backgroundColor: chart.datasets[i].backgroundColor,
                      borderColor: chart.datasets[i].borderColor});          
                 }
-            }
+            } else {
+		labels[0].backgroundColor = chart.datasets[i].backgroundColor;
+                labels[0].borderColor = chart.datasets[i].borderColor;
+	    }
 	}
+	labels.splice(masterSet+1, 0, labels[0]);
+	labels.shift();
     };
 
 
@@ -760,6 +787,7 @@ module.exports = (function () {
         handleFetchDataError:handleFetchDataError,
 
 	bodyCallback: bodyCallback,
+	tooltipColorHandler: tooltipColorHandler,
 
         onChangeDateHandler : onChangeDateHandler,
         updateTimeWindow: updateTimeWindow,

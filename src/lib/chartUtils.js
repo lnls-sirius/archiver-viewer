@@ -470,22 +470,7 @@ module.exports = (function() {
 	return reboundTooltip(coordinates.x, coordinates.y, this, 0);
      };
 
-    var customTooltips = function(tooltip) {
-			if(tooltip.dataPoints != undefined){
-			var i;
-			for(i = 1; i < tooltip.dataPoints.length; i++){
-				if(tooltip.dataPoints[i].backgroundColor != undefined){
-					tooltip.labelColors.push({
-					backgroundColor: tooltip.dataPoints[i].backgroundColor,
-					borderColor: tooltip.dataPoints[i].borderColor
-					});
-					tooltip.labelTextColors.push('#fff');
-				}
-			}
-			}
-		};
-
-    return {
+         return {
 
         /* const references */
         timeAxisID: TIME_AXIS_ID,
@@ -509,7 +494,6 @@ module.exports = (function() {
         hidesAxis: hidesAxis,
         legendCallback: legendCallback,
         labelCallback: labelCallback,
-	customTooltips: customTooltips,
 	reboundTooltip: reboundTooltip,
 	randomColorGenerator: randomColorGenerator
     };

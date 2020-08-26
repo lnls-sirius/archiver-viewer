@@ -56,7 +56,7 @@ $(document).ready(function () {
             tooltips: {
                 mode: 'nearest',
 		intersect: false,
-		custom: chartUtils.customTooltips,
+		custom: handlers.tooltipColorHandler,
 	        cornerRadius: 5,
 		caretSize: 0,
 		yAlign: 'no-transform',
