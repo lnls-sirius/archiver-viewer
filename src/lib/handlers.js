@@ -216,9 +216,9 @@ module.exports = (function () {
     }
 
     function closestDateValue(searchDate, dates) {
-	if(searchDate - dates[0] < 0){
+	if(searchDate - dates[0] <= 0){
 	       return 0;
-	} else if (searchDate - dates[dates.length-1] > 0){
+	} else if (searchDate - dates[dates.length-1] >= 0){
 	       return dates.length-1;
 	}
 
@@ -226,8 +226,14 @@ module.exports = (function () {
 	
 	for(i = 0; i < dates.length;i++){
 	    if(searchDate - dates[i] < 0){ 
-		return i-1;}
+		return i-1;
+	    } else if (searchDate == dates[i]) {
+		return i;
+	    }
 	}
+
+	console.log(searchDate);
+	console.log(dates);
     };
 
     var tooltipColorHandler = function(tooltip) {
@@ -263,7 +269,7 @@ module.exports = (function () {
             if(i != masterSet)
             {
                 var closest = closestDateValue(masterDate, chart.datasets[i].data.map(x => x.x));
-
+		
                 if(drawnDatasets.includes(i)){
                     labels[index].yLabel = chart.datasets[i].data[closest].y;
                     labels[index].x = labels[0].x;
