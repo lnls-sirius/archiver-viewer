@@ -216,20 +216,18 @@ module.exports = (function () {
     }
 
     function closestDateValue(searchDate, dates) {
-        var bestDate = dates.length;
-        var bestDiff = -(new Date(0,0,0)).valueOf();
-        var currDiff = 0;
-        var i;
+	if(searchDate - dates[0] < 0){
+	       return 0;
+	} else if (searchDate - dates[dates.length-1] > 0){
+	       return dates.length-1;
+	}
 
-        for(i = 0; i < dates.length; i++){
-        currDiff = Math.abs(dates[i] - searchDate);
-        if(currDiff < bestDiff){
-                bestDate = i;
-                bestDiff = currDiff;
-                }   
-        }
-         
-        return bestDate;
+	let i;
+	
+	for(i = 0; i < dates.length;i++){
+	    if(searchDate - dates[i] < 0){ 
+		return i-1;}
+	}
     };
 
     var tooltipColorHandler = function(tooltip) {
