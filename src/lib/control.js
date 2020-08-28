@@ -43,7 +43,7 @@ module.exports = (function () {
 
     /* Control flags */
     var auto_enabled = false;
-    var singleTip_enabled = false;
+    var singleTip_enabled = true;
     var scrolling_enabled = true;
 
     var drag_flags = {
@@ -506,7 +506,9 @@ module.exports = (function () {
             appendPV (pvs[i], optimized);
         }
 
-	singleTip_enabled = getCookie("singleTip") == 'true' || false;
+	var singleTipCookie = getCookie("singleTip");
+
+	singleTip_enabled = singleTipCookie == 'true' || singleTipCookie == null;
 	chartUtils.toggleTooltipBehavior(chart, singleTip_enabled);
 	$(".fa-list").css("color", singleTip_enabled ? "lightgrey" : "black"); //addClass does not work in a predictable way
 
