@@ -506,25 +506,8 @@ module.exports = (function () {
             appendPV (pvs[i], optimized);
         }
 
-	singleTip_enabled = getCookie("singleTip") == 'true' || false;
-	chartUtils.toggleTooltipBehavior(chart, singleTip_enabled);
-	$(".fa-list").css("color", singleTip_enabled ? "lightgrey" : "black"); //addClass does not work in a predictable way
-
-	chart.update(0, false);
+        chart.update(0, false);
     };
-
-    function getCookie(name) {
-        var cookieArr = document.cookie.split(";");
-    
-        for(var i = 0; i < cookieArr.length; i++) {
-            var cookiePair = cookieArr[i].split("=");
-            if(name == cookiePair[0].trim()) {
-                return decodeURIComponent(cookiePair[1]);
-            }
-        }
-    
-        return null;
-    }
 
     var optimizePlot = function (datasetIndex, optimize) {
         chart.data.datasets[datasetIndex].pv.optimized = optimize;

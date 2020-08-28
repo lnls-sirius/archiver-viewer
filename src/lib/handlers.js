@@ -206,10 +206,12 @@ module.exports = (function () {
     };
 
     var singleTipHandler = function (e) {
-	$(".fa-list").css("color", control.singleTip_enabled() ? "black" : "lightgrey");
-	
+	if (control.singleTip_enabled()) {
+	    $(this).css("background-color", "grey");
+	} else {
+  	    $(this).css("background-color", "light-grey");
+	}
 	control.toggleSingleTip();
-	document.cookie = `singleTip=${control.singleTip_enabled()}; SameSite=Strict`;
 	chartUtils.toggleTooltipBehavior(control.chart(), control.singleTip_enabled());
     }
 
@@ -283,7 +285,7 @@ module.exports = (function () {
                      x: labels[0].x,
                      xLabel: labels[0].xLabel,
                      y: labels[0].y,
-                     yLabel: chart.datasets[i].data[closest].y*1,
+                     yLabel: typeof(chart.datasets[i].data[closest].y) == 'string' ? chart.datasets[i].data[closest].y*1 : chart.datasets[i].data[closest].y,
                      backgroundColor: chart.datasets[i].backgroundColor,
                      borderColor: chart.datasets[i].borderColor});          
                 }
