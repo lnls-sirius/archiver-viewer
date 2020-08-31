@@ -74,7 +74,6 @@ module.exports = (function () {
     * Requests data from the archiver.
     **/
     var fetchData = function (pv, from, to, isOptimized, bins, handleError) {
-	$('.lds-ellipsis').css("display", "inline-block");
 	if (from == undefined || to == undefined)
             return null;
 
@@ -112,12 +111,10 @@ module.exports = (function () {
             },
             error: handleError
         });
-	$('.lds-ellipsis').css("display", "none");
         return returnData;	
     }
 
     var getPVStatus = function(pvs, handleSuccess, handleError, handleComplete, handleBefore){
-	$('.lds-ellipsis').css("display", "inline-block");
         var jsonurl = url + '/mgmt/bpl/getPVStatus?pv=' + pvs + "&limit=4000",
             components = jsonurl.split('?'),
             querystring = components.length > 1 ? querystring = components[1] : '',
@@ -137,7 +134,7 @@ module.exports = (function () {
             error: handleError,
             complete: handleComplete
         });
-	$('.lds-ellipsis').css("display", "none");
+
         return returnData;
     }
     /**

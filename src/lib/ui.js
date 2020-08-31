@@ -41,12 +41,12 @@ module.exports = (function () {
     };
 
     var enableLoading = function (){
-        $("#date .loading").show();
+        $('.lds-ellipsis').css("display", "inline-block");
     };
 
     var disableLoading = function (){
 
-        $("#date .loading").hide();
+        $('.lds-ellipsis').css("display", "none");
     };
 
     var showWarning = function (){
