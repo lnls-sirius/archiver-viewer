@@ -55,6 +55,7 @@ $(document).ready(function () {
             },
             tooltips: {
                 mode: 'nearest',
+		axis: 'x',
 		intersect: false,
 		custom: handlers.tooltipColorHandler,
 	        cornerRadius: 5,

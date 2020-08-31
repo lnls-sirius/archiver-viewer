@@ -449,12 +449,14 @@ module.exports = (function() {
 	    chart.options.tooltips.caretSize = 5;
 	    delete chart.options.tooltips.yAlign;
 	    delete chart.options.tooltips.xAlign;
+	    delete chart.options.tooltips.axis;
 	    chart.options.elements.point.hoverRadius = 5;
 	} else {
 	    chart.options.tooltips.position = "cursor";
 	    chart.options.tooltips.caretSize = 0;
 	    chart.options.tooltips.yAlign = "no-transform";
 	    chart.options.tooltips.xAlign = "no-transform";
+	    chart.options.tooltips.axis = 'x';
 	    chart.options.elements.point.hoverRadius = 0;
 	}
 
