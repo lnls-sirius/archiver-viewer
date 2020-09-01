@@ -255,10 +255,14 @@ module.exports = (function () {
     * Handles tooltip item list correction and addition
     */
     var bodyCallback = function(labels, chart) {
-	if(control.singleTip_enabled()){return;}
+    if(control.singleTip_enabled() || labels[0] === undefined ){return;}
         var drawnDatasets = labels.map(x => x.datasetIndex);
         var masterSet = labels[0].datasetIndex;
         var stringDate = labels[0].xLabel.substring(0,23);
+
+        labels[0].backgroundColor = chart.datasets[masterSet].backgroundColor;
+        labels[0].borderColor = chart.datasets[masterSet].borderColor;
+
         var masterDate = new Date(stringDate);
         var index = 1;
 
@@ -267,34 +271,40 @@ module.exports = (function () {
             if(i != masterSet)
             {
                 var closest = closestDateValue(masterDate, chart.datasets[i].data.map(x => x.x));
-		
+
+                if(chart.datasets[i].data[closest] === undefined || chart.datasets[i].data[closest] === undefined){
+                    return "Loading datasets...";
+                }
                 if(drawnDatasets.includes(i)){
                     labels[index].yLabel = chart.datasets[i].data[closest].y;
                     labels[index].x = labels[0].x;
                     labels[index].y = chart.datasets[i].data[closest].y;
-		    labels[index].backgroundColor = chart.datasets[i].backgroundColor;
-		    labels[index].borderColor = chart.datasets[i].borderColor;
+                    labels[index].backgroundColor = chart.datasets[i].backgroundColor;
+                    labels[index].borderColor = chart.datasets[i].borderColor;
                     index++;
                 } else {
-	             labels.push({datasetIndex: i,
-                     index: closest,
-                     label: chart.datasets[i].data[closest].x.toString(),
-                     value: chart.datasets[i].data[closest].y.toString(),
-                     x: labels[0].x,
-                     xLabel: labels[0].xLabel,
-                     y: labels[0].y,
-                     yLabel: chart.datasets[i].data[closest].y*1,
-                     backgroundColor: chart.datasets[i].backgroundColor,
-                     borderColor: chart.datasets[i].borderColor});          
+                    labels.push({datasetIndex: i,
+                    index: closest,
+                    label: chart.datasets[i].data[closest].x.toString(),
+                    value: chart.datasets[i].data[closest].y.toString(),
+                    x: labels[0].x,
+                    xLabel: labels[0].xLabel,
+                    y: labels[0].y,
+                    yLabel: chart.datasets[i].data[closest].y*1,
+                    backgroundColor: chart.datasets[i].backgroundColor,
+                    borderColor: chart.datasets[i].borderColor});          
                 }
-            } else {
-		labels[0].backgroundColor = chart.datasets[i].backgroundColor;
-                labels[0].borderColor = chart.datasets[i].borderColor;
-	    }
-	}
-	labels.splice(masterSet+1, 0, labels[0]);
-	labels.shift();
-    };
+            }
+        }
+
+            labels.sort(function(a,b) {
+                return a.datasetIndex - b.datasetIndex;
+            });
+
+            //labels.splice(masterSet+1, 0, labels[0]);
+            //labels.shift();
+        };
+
 
 
     /**
