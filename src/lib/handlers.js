@@ -59,7 +59,7 @@ module.exports = (function () {
                 ui.enableReference(control.references.END);
             }
 
-            control.updateStartAndEnd(new Date(), true);
+            control.updateStartAndEnd(archInterface.getDateNow(), true);
 
             chartUtils.updateTimeAxis (control.chart (), chartUtils.timeAxisPreferences[control.window_time ()].unit, chartUtils.timeAxisPreferences[control.window_time ()].unitStepSize, control.start (), control.end ());
 
@@ -338,7 +338,7 @@ module.exports = (function () {
                     ui.enableReference(control.references.END);
                 }
 
-                control.updateStartAndEnd(new Date(), true, true);
+                control.updateStartAndEnd(archInterface.getDateNow(), true, true);
 
                 chartUtils.updateTimeAxis (control.chart (), chartUtils.timeAxisPreferences[control.window_time ()].unit, chartUtils.timeAxisPreferences[control.window_time ()].unitStepSize, control.start (), control.end ());
 

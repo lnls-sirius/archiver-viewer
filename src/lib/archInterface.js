@@ -166,6 +166,23 @@ module.exports = (function () {
         return returnData;
     }
 
+    function getDateNow() {
+	var returnData;
+
+	$.ajax ({
+            url: "http://10.0.105.127/date",
+            async: false,
+            success: function(data, textStatus, jqXHR) {
+                returnData = new Date(data);
+	    },
+            error: function(data, textStatus, jqXHR) {
+		returnData = new Date();
+	    }
+        });
+
+	return returnData;
+    }
+
     return {
 
         url: function () { return url; },
@@ -175,7 +192,8 @@ module.exports = (function () {
         fetchMetadata : fetchMetadata,
         fetchData: fetchData,
         query: query,
-        getPVStatus: getPVStatus
+        getPVStatus: getPVStatus,
+	getDateNow: getDateNow
     }
 
 })();

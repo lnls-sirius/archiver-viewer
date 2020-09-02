@@ -498,7 +498,7 @@ module.exports = (function() {
         timeIDs: TIME_IDS,
 
         /* Getters */
-        getAxesInUse: getAxesInUse,
+	getAxesInUse: getAxesInUse,
         yAxisUseCounter: function() { return yAxisUseCounter; },
         colorStack: function() { return colorStack; },
         axisPositionLeft: function() { return axisPositionLeft; },

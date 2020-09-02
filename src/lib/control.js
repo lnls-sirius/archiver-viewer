@@ -93,7 +93,7 @@ module.exports = (function () {
     	    return ret;
     };
 
-    var updateTimeWindow = function (window) {
+    function updateTimeWindow(window) {
 
        // ui.toogleWindowButton (window, window_time);
 
@@ -128,8 +128,8 @@ module.exports = (function () {
 
         else if (reference == REFERENCE.START) {
 
-            var now = new Date ();
-
+            var now = archInterface.getDateNow();
+	    
             if (start.getTime() + chartUtils.timeAxisPreferences[window_time].milliseconds <= now.getTime())
                 end = new Date(start.getTime() + chartUtils.timeAxisPreferences[window_time].milliseconds);
             else end = now;
@@ -224,12 +224,12 @@ module.exports = (function () {
     * Sets end to date and updates start according
     * to the time window size. Updates HTML elements in the case updateHtml is true.
     **/
-    var updateStartAndEnd = function (date, updateHtml, undo) {
+    function updateStartAndEnd(date, updateHtml, undo) {
 
         if (updateHtml == undefined || updateHtml == null)
             updateHtml = false;
 
-        var now = new Date();
+        var now = archInterface.getDateNow();
 
         if (reference == REFERENCE.END) {
 
