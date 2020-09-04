@@ -446,6 +446,7 @@ module.exports = (function() {
     var toggleTooltipBehavior = function (chart, isOld) {
 	if(isOld) {
 	    chart.options.tooltips.position = "nearest";
+	    chart.options.tooltips.mode = "nearest";
 	    chart.options.tooltips.caretSize = 5;
 	    delete chart.options.tooltips.yAlign;
 	    delete chart.options.tooltips.xAlign;
@@ -453,6 +454,7 @@ module.exports = (function() {
 	    chart.options.elements.point.hoverRadius = 5;
 	} else {
 	    chart.options.tooltips.position = "cursor";
+	    chart.options.tooltips.mode = "nearest";
 	    chart.options.tooltips.caretSize = 0;
 	    chart.options.tooltips.yAlign = "no-transform";
 	    chart.options.tooltips.xAlign = "no-transform";
@@ -498,7 +500,7 @@ module.exports = (function() {
         timeIDs: TIME_IDS,
 
         /* Getters */
-	getAxesInUse: getAxesInUse,
+        getAxesInUse: getAxesInUse,
         yAxisUseCounter: function() { return yAxisUseCounter; },
         colorStack: function() { return colorStack; },
         axisPositionLeft: function() { return axisPositionLeft; },

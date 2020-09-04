@@ -9,7 +9,6 @@ import simplify from 'simplify-js';
 module.exports = (function () {
 
     var url = "https://10.0.38.42";
-
     /**
     * Parses the data retrieved from the archiver in a way that it can be understood by the chart controller
     **/
@@ -45,7 +44,7 @@ module.exports = (function () {
     /**
     * Gets the metadata associated with a PV.
     **/
-    var fetchMetadata = function (pv, handleError) {
+    async function fetchMetadata (pv, handleError) {
         if (pv == undefined)
             return null;
 
@@ -54,26 +53,26 @@ module.exports = (function () {
             HTTPMethod = jsonurl.length > 2048 ? 'POST' : 'GET',
             returnData = null;
 
-        $.ajax ({
+        await $.ajax ({
             url: components[0],
             data: components[1],
             type: HTTPMethod,
             crossDomain: true,
             dataType: 'json',
-            async: false,
-            success: function(data, textStatus, jqXHR) {
-                returnData = textStatus == "success" ? data : null;
-            },
-            error:handleError
-        });
+            //async: false,
+        })
+	.done(function(data, textStatus, jqXHR) {
+               returnData = textStatus == "success" ? data : null;
+            })
+        .fail(function (jqXHR, textStatus, errorThrown) { handleError(jqXHR, textStatus, errorThrown); });
 
-        return returnData;
+	return returnData;
     }
 
     /**
     * Requests data from the archiver.
     **/
-    var fetchData = function (pv, from, to, isOptimized, bins, handleError) {
+    async function fetchData (pv, from, to, isOptimized, bins, handleError, showLoading) {
 	if (from == undefined || to == undefined)
             return null;
 
@@ -90,14 +89,16 @@ module.exports = (function () {
             HTTPMethod = jsonurl.length > 2048 ? 'POST' : 'GET',
             returnData = null;
 
-        $.ajax ({
+        await $.ajax ({
             url: components[0],
             data: components[1],
             type: HTTPMethod,
             crossDomain: true,
             dataType: 'text',
-            async: false,
-            success: function(data, textStatus, jqXHR) {
+	    beforeSend:showLoading,
+            //async: false,
+        })
+	.done(function(data, textStatus, jqXHR) {
                 returnData = textStatus == "success" ? data : null;
                 if(returnData){
                     try{
@@ -108,26 +109,26 @@ module.exports = (function () {
                         console.log("Failed to parse data from request", components[0], err.message);
                     }
                 }
-            },
-            error: handleError
-        });
-        return returnData;	
+            })
+	.fail(function (jqXHR, textStatus, errorThrown) { handleError(jqXHR, textStatus, errorThrown); });
+
+	return returnData;
     }
 
-    var getPVStatus = function(pvs, handleSuccess, handleError, handleComplete, handleBefore){
+    async function getPVStatus(pvs, handleSuccess, handleError, handleComplete, handleBefore){
         var jsonurl = url + '/mgmt/bpl/getPVStatus?pv=' + pvs + "&limit=4000",
             components = jsonurl.split('?'),
             querystring = components.length > 1 ? querystring = components[1] : '',
             HTTPMethod = jsonurl.length > 2048 ? 'POST' : 'GET',
             returnData = null;
 
-        $.ajax({
+        await $.ajax({
             url: components[0],
             data: querystring,
             type: HTTPMethod,
             dataType: 'json',
             crossDomain: true,
-            async: false,
+            //async: false,
             timeout: 3000,
             beforeSend:handleBefore,
             success: handleSuccess,
@@ -166,23 +167,6 @@ module.exports = (function () {
         return returnData;
     }
 
-    function getDateNow() {
-	var returnData;
-
-	$.ajax ({
-            url: "http://10.0.105.127/date",
-            async: false,
-            success: function(data, textStatus, jqXHR) {
-                returnData = new Date(data);
-	    },
-            error: function(data, textStatus, jqXHR) {
-		returnData = new Date();
-	    }
-        });
-
-	return returnData;
-    }
-
     return {
 
         url: function () { return url; },
@@ -192,8 +176,7 @@ module.exports = (function () {
         fetchMetadata : fetchMetadata,
         fetchData: fetchData,
         query: query,
-        getPVStatus: getPVStatus,
-	getDateNow: getDateNow
-    }
+        getPVStatus: getPVStatus
+	}
 
 })();

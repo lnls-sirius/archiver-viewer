@@ -45,6 +45,7 @@ module.exports = (function () {
     var auto_enabled = false;
     var singleTip_enabled = true;
     var scrolling_enabled = true;
+    var serverDate_enabled = true;
 
     var drag_flags = {
         drag_started: false,
@@ -93,7 +94,7 @@ module.exports = (function () {
     	    return ret;
     };
 
-    function updateTimeWindow(window) {
+    async function updateTimeWindow(window) {
 
        // ui.toogleWindowButton (window, window_time);
 
@@ -121,15 +122,13 @@ module.exports = (function () {
         else if (!auto_enabled)
             ui.enable ($("#date span.auto"));
 
-        ui.enableLoading();
-
         if (reference == REFERENCE.END)
             start = new Date(end.getTime() - chartUtils.timeAxisPreferences[window_time].milliseconds);
 
         else if (reference == REFERENCE.START) {
 
-            var now = archInterface.getDateNow();
-	    
+            var now = new Date();
+
             if (start.getTime() + chartUtils.timeAxisPreferences[window_time].milliseconds <= now.getTime())
                 end = new Date(start.getTime() + chartUtils.timeAxisPreferences[window_time].milliseconds);
             else end = now;
@@ -139,7 +138,7 @@ module.exports = (function () {
         updateAllPlots(true);
         updateURL();
         chartUtils.updateTimeAxis (chart, chartUtils.timeAxisPreferences[window_time].unit, chartUtils.timeAxisPreferences[window_time].unitStepSize, start, end);
-        chart.update(0, false);
+        chart.update();
 
         ui.disableLoading();
 
@@ -154,13 +153,13 @@ module.exports = (function () {
     /**
     * Appends a new variable into the chart.
     **/
-    var appendPV = function (pv, optimized, undo) {
+    async function appendPV(pv, optimized, undo) {
         if (chartUtils.colorStack().length == 0) {
             console.log('Color stack limit reached. A random color will be used for pv ' + pv + '.');
         }
 
         // Asks for the PV's metadata
-        var metadata = archInterface.fetchMetadata(
+        var metadata = await archInterface.fetchMetadata(
             pv, ()=>{ui.toogleSearchWarning("Connection failed with " + xmlHttpRequest + " -- " + textStatus + " -- " + errorThrown)});
                 
         if(metadata == null){
@@ -174,7 +173,7 @@ module.exports = (function () {
         }else if (optimized && bins == -1){
             bins = chartUtils.timeAxisPreferences[window_time].bins;
         }
-        var data = archInterface.fetchData(pv, start, end, bins < 0 ? false : true, bins, handlers.handleFetchDataError);
+        var data = await archInterface.fetchData(pv, start, end, bins < 0 ? false : true, bins, handlers.handleFetchDataError, ui.enableLoading);
         if (data == undefined || data == null || data[0].data.length == 0){
             ui.toogleSearchWarning ("No data was received from server.");
             console.log('No data received from server. ', pv);
@@ -183,14 +182,14 @@ module.exports = (function () {
             handleDataAxisInfoTableUpdate();
         }
 
-        updateOptimizedWarning();
+	updateOptimizedWarning();
         updateURL();
 
         ui.updatePVInfoTable(chart.data.datasets, hideAxis, optimizeHandler, removeHandler);
 
         if (!undo || undo == undefined)
             undo_stack.push ({action : STACK_ACTIONS.APPEND_PV, pv : pv});
-	
+	ui.disableLoading();
     }
 
     /**
@@ -224,12 +223,13 @@ module.exports = (function () {
     * Sets end to date and updates start according
     * to the time window size. Updates HTML elements in the case updateHtml is true.
     **/
-    function updateStartAndEnd(date, updateHtml, undo) {
-
+    async function updateStartAndEnd(date, updateHtml, undo) {
+	if(date === undefined){date = new Date();}
+	
         if (updateHtml == undefined || updateHtml == null)
             updateHtml = false;
 
-        var now = archInterface.getDateNow();
+	var now = await getDateNow() || new Date(); // Guarantees that the chart will respect date boundaries
 
         if (reference == REFERENCE.END) {
 
@@ -260,6 +260,8 @@ module.exports = (function () {
 
             if (updateHtml) ui.updateDateComponents (start);
         }
+
+	ui.disableLoading();
     };
 
     var updateOptimizedWarning = function () {
@@ -302,9 +304,8 @@ module.exports = (function () {
     /**
     * Updates a plot of index pv_index.
     **/
-    var updatePlot = function (pv_index) {
-
-        // If the dataset is already empty, no verification is needed. All optimized request must be pass this condition.
+    async function updatePlot(pv_index) {
+	// If the dataset is already empty, no verification is needed. All optimized request must be pass this condition.
         if (chart.data.datasets[pv_index].data.length == 0) {
 
             //var bins = shouldOptimizeRequest(chart.data.datasets[pv_index].pv.samplingPeriod, chart.data.datasets[pv_index].pv.type);
@@ -312,11 +313,11 @@ module.exports = (function () {
 
             var bins = chartUtils.timeAxisPreferences[window_time].bins;
 
-            var fetchedData = archInterface.fetchData (chart.data.datasets[pv_index].label, start, end, chart.data.datasets[pv_index].pv.optimized, bins, handlers.handleFetchDataError);
+            var fetchedData = await archInterface.fetchData (chart.data.datasets[pv_index].label, start, end, chart.data.datasets[pv_index].pv.optimized, bins, handlers.handleFetchDataError,
+		 ui.enableLoading);
 
             if (fetchedData && fetchedData.length > 0)
                 Array.prototype.push.apply(chart.data.datasets[pv_index].data, improveData (archInterface.parseData(fetchedData[0].data)));
-
         }
         else {
 
@@ -330,7 +331,7 @@ module.exports = (function () {
             if (first.getTime() > start.getTime()) {
 
                 // Fetches data from the start to the first measure's time
-                var appendData = archInterface.fetchData(chart.data.datasets[pv_index].label, start, first, false, handlers.handleFetchDataError);
+                var appendData = await archInterface.fetchData(chart.data.datasets[pv_index].label, start, first, false, handlers.handleFetchDataError, ui.enableLoading);
 
                 // Appends new data into the dataset
                 if (appendData.length > 0) {
@@ -361,7 +362,7 @@ module.exports = (function () {
             if (last.getTime() < end.getTime()) {
 
                 // Fetches data from the last measure's time to the end
-                var appendData = archInterface.fetchData(chart.data.datasets[pv_index].label, last, end, false, handlers.handleFetchDataError);
+                var appendData = await archInterface.fetchData(chart.data.datasets[pv_index].label, last, end, false, handlers.handleFetchDataError, ui.enableLoading);
 
                 // Appends new data into the dataset
                 if (appendData.length > 0) {
@@ -393,7 +394,7 @@ module.exports = (function () {
 
             }
 
-            improveData(chart.data.datasets[pv_index].data);
+            await improveData(chart.data.datasets[pv_index].data);
         }
 
         updateOptimizedWarning();
@@ -409,9 +410,8 @@ module.exports = (function () {
     /**
     * Updates all plots added so far. Resets informs if the user wants to reset the data in the dataset.
     **/
-    var updateAllPlots = function (reset) {
-
-        if (reset == undefined)
+    async function updateAllPlots(reset) {
+	if (reset == undefined)
             reset = false;
 
         for (var i = 0; i < chart.data.datasets.length; i++) {
@@ -419,10 +419,12 @@ module.exports = (function () {
             if (chart.data.datasets[i].pv.optimized || reset)
                 chart.data.datasets[i].data.length = 0;
 
-            updatePlot(i);
+            await updatePlot(i);
         }
 
-        ui.updatePVInfoTable(chart.data.datasets, hideAxis, optimizeHandler, removeHandler);
+	ui.updatePVInfoTable(chart.data.datasets, hideAxis, optimizeHandler, removeHandler);
+	await chart.update();
+	ui.disableLoading();
     };
 
     /**
@@ -456,7 +458,7 @@ module.exports = (function () {
 
     };
 
-    var loadFromURL = function (searchPath) {
+    async function loadFromURL(searchPath) {
 
         var pvs = [], urlStart = null, urlEnd = null;
 
@@ -485,7 +487,7 @@ module.exports = (function () {
                 window_time++;
         }
         else
-            updateStartAndEnd(new Date (), true);
+            await updateStartAndEnd(new Date(), true);
 
         //ui.toogleWindowButton(window_time, undefined);
 
@@ -509,6 +511,7 @@ module.exports = (function () {
 	var singleTipCookie = getCookie("singleTip");
 
 	singleTip_enabled = singleTipCookie == 'true' || singleTipCookie == null;
+	
 	chartUtils.toggleTooltipBehavior(chart, singleTip_enabled);
 	$(".fa-list").css("color", singleTip_enabled ? "lightgrey" : "black"); //addClass does not work in a predictable way
 
@@ -528,15 +531,31 @@ module.exports = (function () {
         return null;
     }
 
+    async function getDateNow() {
+    if(!serverDate_enabled){return new Date();}
+        Promise.resolve( $.ajax ({
+            url: "http://10.0.105.37/date",
+	    timeout: 100
+        })
+        ).then(function(e) {
+		return new Date(e.data);
+        })
+        .catch(function(e) {
+                serverDate_enabled = false;
+		console.log('Date retrieval has failed. Will use local date for remainder of session.');
+                return new Date();
+        });
+    }
+
+
     var optimizePlot = function (datasetIndex, optimize) {
         chart.data.datasets[datasetIndex].pv.optimized = optimize;
-        ui.enableLoading ();
-
+        
         chart.data.datasets[datasetIndex].data.length = 0;
 
         updatePlot (datasetIndex);
 
-        chart.update (0, false);
+        chart.update();
 
         ui.disableLoading ();
         updateURL ();
@@ -566,7 +585,7 @@ module.exports = (function () {
         }
 
 	chart.data.datasets.splice (datasetIndex, 1);
-        chart.update (0, false);
+        chart.update(0);
         updateURL ();
         ui.updatePVInfoTable(chart.data.datasets, hideAxis, optimizeHandler, removeHandler);
         updateOptimizedWarning();
@@ -574,7 +593,7 @@ module.exports = (function () {
 
     var hideAxis = function (event) {
         chartUtils.hidesAxis (chart.getDatasetMeta (event.data.datasetIndex), chart);
-        chart.update (0, false);
+        chart.update(0, false);
     };
 
     var optimizeHandler = function (event) {
@@ -611,6 +630,7 @@ module.exports = (function () {
         auto_enabled: function () { return auto_enabled; },
 	singleTip_enabled: function () { return singleTip_enabled; },
         scrolling_enabled: function () { return scrolling_enabled; },
+	serverDate_enabled: function () { return serverDate_enabled; },
         drag_flags: function () { return drag_flags; },
         zoom_flags: function () { return zoom_flags; },
         undo_stack: function () { return undo_stack; },
@@ -631,6 +651,7 @@ module.exports = (function () {
         toggleAuto : function () { auto_enabled = !auto_enabled; },
 	toggleSingleTip: function () { singleTip_enabled = !singleTip_enabled },
         disableAuto : function () { auto_enabled = false; },
+	disableServerDate : function () { serverDate_enabled = false; },
         enableAuto : function () { auto_enabled = true; },
 
         disableScrolling : function () { scrolling_enabled = false; },

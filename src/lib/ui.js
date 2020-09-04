@@ -20,6 +20,7 @@ module.exports = (function () {
     }
 
     var updateDateComponents = function (date) {
+	if(date === undefined){date = new Date();}
 
         var day   = ("0" + date.getDate()).slice(-2),
             month = ("0" + (date.getMonth() + 1)).slice(-2);
@@ -45,7 +46,6 @@ module.exports = (function () {
     };
 
     var disableLoading = function (){
-
         $('.lds-ellipsis').css("display", "none");
     };
 
