@@ -7,8 +7,22 @@
 import simplify from 'simplify-js';
 
 module.exports = (function () {
+    var getUrl = ()=> {
+        var host = "10.0.38.42"; // Initialize with the proxy addr
+        if (window.location.host == "vpn.cnpem.br") { // If using WEB VPN
+                // Capture IPv4 addr
+                var ipRegExp = /(?<=https?\/)((?:(?:2(?:[0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9])\.){3}(?:(?:2([0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9])))(?=\/)/;
+                var match = ipRegExp.exec(window.location.href);
+                if(match && match.length > 1){
+                    host = match[1];
+                }
+        } else {
+            host = window.location.host;
+        }
+        return "https://" + host;
+    }
 
-    var url = "https://10.0.38.42";
+    var url = getUrl();
     /**
     * Parses the data retrieved from the archiver in a way that it can be understood by the chart controller
     **/
