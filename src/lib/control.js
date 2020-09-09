@@ -398,8 +398,6 @@ module.exports = (function () {
 
             await improveData(chart.data.datasets[pv_index].data);
         }
-
-        updateOptimizedWarning();
     }
 
     var optimizeAllGraphs = function () {
@@ -415,6 +413,7 @@ module.exports = (function () {
     async function updateAllPlots(reset) {
 	if (reset == undefined)
             reset = false;
+	updateOptimizedWarning();
 
         for (var i = 0; i < chart.data.datasets.length; i++) {
 

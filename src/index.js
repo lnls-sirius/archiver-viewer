@@ -40,6 +40,7 @@ $("#close").on('click', ui.hideSearchedPVs);
 **/
 $(document).ready(function () { 
     let options = {
+	    showLine: true,
 	    spanGaps: true,
             responsiveAnimationDuration: 0,
             responsive: true,
