@@ -19,7 +19,13 @@ module.exports = (function () {
         } else {
             host = window.location.host;
         }
-        return "https://" + host;
+
+	if(host == "10.0.38.50"){
+	    host = "10.0.38.42";
+	    console.log("DEBUG SERVER. Setting host to 10.0.38.42");
+	}
+
+        return  "https://" + host;
     }
 
     var url = getUrl();
