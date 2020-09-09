@@ -264,7 +264,6 @@ module.exports = (function() {
  	}
     }
     }
-    console.log(chart);
     chart.update();
     }
 
