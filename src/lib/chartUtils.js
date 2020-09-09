@@ -256,7 +256,6 @@ module.exports = (function() {
                         } else {
                             chart.options.scales.yAxes[i].ticks.min = limit;
                         }
-                        chart.update();
                     }
                 }
           } else {
@@ -265,6 +264,7 @@ module.exports = (function() {
  	}
     }
     }
+    console.log(chart);
     chart.update();
     }
 
@@ -296,9 +296,9 @@ module.exports = (function() {
                     }
 
 		}
-                chart.update();
             }
         }
+	chart.update();
     }
 
     var getAxesInUse = (axes)=> {

@@ -51,7 +51,7 @@ module.exports = (function () {
 
     var showWarning = function (){
 
-        $("#obs").fadeIn();
+        $("#obs").fadeIn().delay(5000).fadeOut();
     };
 
     var hideWarning = function (){

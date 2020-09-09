@@ -272,10 +272,12 @@ module.exports = (function () {
             can_optimize |= chart.data.datasets[i].pv.optimized;
 
         // Shows a pleasant warning that the request is fetching optimized data
-        if (can_optimize)
-            ui.showWarning ();
-        else
-            ui.hideWarning ();
+	if($("#obs").css("display") != "block"){
+            if (can_optimize)
+            	ui.showWarning ();
+            else
+                ui.hideWarning ();
+	}
     }
 
     var improveData = function (data) {
