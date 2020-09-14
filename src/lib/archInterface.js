@@ -79,6 +79,7 @@ module.exports = (function () {
             type: HTTPMethod,
             crossDomain: true,
             dataType: 'json',
+	    timeout: 0,
             //async: false,
         })
 	.done(function(data, textStatus, jqXHR) {
@@ -116,6 +117,7 @@ module.exports = (function () {
             crossDomain: true,
             dataType: 'text',
 	    beforeSend:showLoading,
+	    timeout: 0,
             //async: false,
         })
 	.done(function(data, textStatus, jqXHR) {
@@ -149,7 +151,7 @@ module.exports = (function () {
             dataType: 'json',
             crossDomain: true,
             //async: false,
-            timeout: 3000,
+            timeout: 0,
             beforeSend:handleBefore,
             success: handleSuccess,
             error: handleError,
