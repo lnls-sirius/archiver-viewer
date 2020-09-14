@@ -107,8 +107,8 @@ $(document).ready(function () {
                     type: "linear",
                     display: false,
                     position: "left",
-                    id: "y-axis-0"
-                }],
+                    id: "y-axis-0",
+	        }],
             },
             legend : {
                 display: false,

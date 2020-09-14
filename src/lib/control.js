@@ -127,7 +127,7 @@ module.exports = (function () {
 
         else if (reference == REFERENCE.START) {
 
-            var now = new Date();
+            var now = await getDateNow();
 
             if (start.getTime() + chartUtils.timeAxisPreferences[window_time].milliseconds <= now.getTime())
                 end = new Date(start.getTime() + chartUtils.timeAxisPreferences[window_time].milliseconds);

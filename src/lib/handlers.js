@@ -200,20 +200,33 @@ module.exports = (function () {
 
     function closestDateValue(searchDate, dates) {
 	if(searchDate - dates[0] <= 0){
-	       return 0;
-	} else if (searchDate - dates[dates.length-1] >= 0){
-	       return dates.length-1;
-	}
+               return 0;
+        } else if (searchDate - dates[dates.length-1] >= 0){
+               return dates.length-1;
+        }
 
-	let i;
-	
-	for(i = 0; i < dates.length;i++){
-	    if(searchDate - dates[i] < 0){ 
-		return i-1;
-	    } else if (searchDate == dates[i]) {
-		return i;
-	    }
-	}
+        let i;
+        let first = 0;
+        let last = dates.length -1;
+        let middle;
+
+        while (first <= last) {
+            middle = Math.floor((first+last)/2);
+
+            if(dates[middle] ==  searchDate){
+                return middle; 
+            }
+
+            if(first == middle) {
+                return first < searchDate ? first : first-1;
+            }
+
+            if(dates[middle] > searchDate) {
+                last = middle - 1;
+            } else {
+                first = middle + 1;
+            }
+        }
     };
 
     var tooltipColorHandler = function(tooltip) {
