@@ -270,7 +270,8 @@ module.exports = (function () {
                 if(chart.datasets[i].data[closest] === undefined || chart.datasets[i].data[closest] === undefined){
                     return "Loading datasets...";
                 }
-                if(drawnDatasets.includes(i)){
+
+	        if(drawnDatasets.includes(i)){
                     labels[index].yLabel = chart.datasets[i].data[closest].y;
                     labels[index].x = labels[0].x;
                     labels[index].y = chart.datasets[i].data[closest].y;

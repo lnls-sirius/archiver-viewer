@@ -63,6 +63,12 @@ module.exports = (function () {
         chart = c;
 	};
 
+    const originalGetPixelForValue = Chart.scaleService.constructors.linear.prototype.getPixelForValue;
+    Chart.scaleService.constructors.linear.prototype.getPixelForValue = function(value) {
+  	const pixel = originalGetPixelForValue.call(this, value);
+  	return Math.min(2147483647, Math.max(-2147483647, pixel))
+    }
+
     let parentEventHandler = Chart.Controller.prototype.eventHandler;
     Chart.Controller.prototype.eventHandler = function () {
 	// This is not a duplicate of the cursor positioner, this handler is called when a tooltip's datapoint index does not change.
@@ -95,7 +101,6 @@ module.exports = (function () {
     };
 
     async function updateTimeWindow(window) {
-
        // ui.toogleWindowButton (window, window_time);
 
         window_time = window;

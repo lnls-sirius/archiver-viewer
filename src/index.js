@@ -74,6 +74,11 @@ $(document).ready(function () {
             },
             title: { display: false },
             scales: {
+                B: {
+                    display: false,
+                    min: 0,
+                    max: 10
+                },
                 xAxes: [{
                     // Common x axis
 		    offset: true,
@@ -102,7 +107,7 @@ $(document).ready(function () {
 			//maxTicksLimit: 15
                     }
                 }],
-                yAxes: [{
+		yAxes: [{
                     // Useless YAxis
                     type: "linear",
                     display: false,
@@ -117,7 +122,7 @@ $(document).ready(function () {
         };
 
     control.init (new Chart($("#archiver_viewer"), {
-        type: 'line',
+        type: "line",
         data: [],
         options: options
     }));
