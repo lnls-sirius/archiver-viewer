@@ -25,7 +25,7 @@ module.exports = (function () {
 	    console.log("DEBUG SERVER. Setting host to 10.0.38.42");
 	}
 
-        return  "https://" + host;
+        return  "https://10.0.38.42" //+host;
     }
 
     var url = getUrl();
