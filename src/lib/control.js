@@ -47,6 +47,9 @@ module.exports = (function () {
     var scrolling_enabled = true;
     var serverDate_enabled = true;
 
+    var cachedDate = new Date();
+    var lastFetch = new Date();
+
     var drag_flags = {
         drag_started: false,
         updateOnComplete: true,
@@ -234,8 +237,8 @@ module.exports = (function () {
         if (updateHtml == undefined || updateHtml == null)
             updateHtml = false;
 
-	var now = await getDateNow() || new Date(); // Guarantees that the chart will respect date boundaries
-
+	var now = await getDateNow();
+	
         if (reference == REFERENCE.END) {
 
             if (!undo || undo == undefined)
@@ -538,19 +541,14 @@ module.exports = (function () {
     }
 
     async function getDateNow() {
+    //console.log(archInterface.bypassUrl());
     if(!serverDate_enabled){return new Date();}
-        Promise.resolve( $.ajax ({
-            url: "http://10.0.105.37/date",
-	    timeout: 100
-        })
-        ).then(function(e) {
-		return new Date(e.data);
-        })
-        .catch(function(e) {
-                serverDate_enabled = false;
-		console.log('Date retrieval has failed. Will use local date for remainder of session.');
-                return new Date();
+        const result = await $.ajax ({
+            url: "http://" + archInterface.bypassUrl() +"/date",
+	    timeout: 300
         });
+
+	return result === undefined ? new Date() : new Date(result);
     }
 
 

@@ -268,7 +268,7 @@ module.exports = (function () {
                 var closest = closestDateValue(masterDate, chart.datasets[i].data.map(x => x.x));
 
                 if(chart.datasets[i].data[closest] === undefined || chart.datasets[i].data[closest] === undefined){
-                    return "Loading datasets...";
+		    return "Loading datasets...";
                 }
 
 	        if(drawnDatasets.includes(i)){
