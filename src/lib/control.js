@@ -543,7 +543,7 @@ module.exports = (function () {
     async function getDateNow() {
     //console.log(archInterface.bypassUrl());
     if(!serverDate_enabled){return new Date();}
-    if(new Date() - lastFetch < 10000){return cachedDate;}
+    if(new Date() - lastFetch < 2000){return cachedDate;}
     try {
         const result = await $.ajax ({
             url: "http://" + archInterface.bypassUrl() +"/date",
