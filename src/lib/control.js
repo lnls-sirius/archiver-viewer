@@ -48,7 +48,7 @@ module.exports = (function () {
     var serverDate_enabled = true;
 
     var cachedDate = new Date();
-    var lastFetch = new Date();
+    var lastFetch = 0;
 
     var drag_flags = {
         drag_started: false,
@@ -543,13 +543,17 @@ module.exports = (function () {
     async function getDateNow() {
     //console.log(archInterface.bypassUrl());
     if(!serverDate_enabled){return new Date();}
+    if(new Date() - lastFetch < 10000){return cachedDate;}
     try {
         const result = await $.ajax ({
             url: "http://" + archInterface.bypassUrl() +"/date",
 	    timeout: 300,
     	});
+	let currentTime = result === undefined ? new Date() : new Date(result);
 
-	return result === undefined ? new Date() : new Date(result);
+	cachedDate = currentTime;
+	lastFetch = new Date();
+	return currentTime;
     } catch (e) { 
 	console.log("Date retrieval failed. Using local date.");
 	serverDate_enabled = false;

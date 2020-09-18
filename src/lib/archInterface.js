@@ -29,7 +29,7 @@ module.exports = (function () {
     }
 
     var url = getUrl();
-    var bypassUrl = "10.0.105.37";
+    var bypassUrl = "10.0.38.59:26002";
     /**
     * Parses the data retrieved from the archiver in a way that it can be understood by the chart controller
     **/
