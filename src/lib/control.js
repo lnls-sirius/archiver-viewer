@@ -543,12 +543,18 @@ module.exports = (function () {
     async function getDateNow() {
     //console.log(archInterface.bypassUrl());
     if(!serverDate_enabled){return new Date();}
+    try {
         const result = await $.ajax ({
             url: "http://" + archInterface.bypassUrl() +"/date",
-	    timeout: 300
-        });
+	    timeout: 300,
+    	});
 
 	return result === undefined ? new Date() : new Date(result);
+    } catch (e) { 
+	console.log("Date retrieval failed. Using local date.");
+	serverDate_enabled = false;
+	return new Date(); 
+    }
     }
 
 
