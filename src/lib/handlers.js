@@ -337,7 +337,7 @@ module.exports = (function () {
 
                 chartUtils.updateTimeAxis (control.chart (), chartUtils.timeAxisPreferences[control.window_time ()].unit, chartUtils.timeAxisPreferences[control.window_time ()].unitStepSize, control.start (), control.end ());
 
-                control.updateAllPlots(true);
+                await control.updateAllPlots(true);
 
                 control.updateURL();
 

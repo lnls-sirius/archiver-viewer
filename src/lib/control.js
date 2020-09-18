@@ -651,6 +651,7 @@ module.exports = (function () {
         redo_stack: function () { return redo_stack; },
 
         getWindowTime: function(){return window_time},
+	getDateNow: getDateNow,
 
         /* Setters */
         startTimer : function (t) { timer = t; },
