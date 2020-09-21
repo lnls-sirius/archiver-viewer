@@ -29,7 +29,7 @@ module.exports = (function () {
     }
 
     var url = getUrl();
-    var bypassUrl = "10.0.38.59:26002";
+    var bypassUrl = url + "/archiver-generic-backend";
     /**
     * Parses the data retrieved from the archiver in a way that it can be understood by the chart controller
     **/
@@ -139,7 +139,7 @@ module.exports = (function () {
     }
 
     async function getPVStatus(pvs, handleSuccess, handleError, handleComplete, handleBefore){
-        var jsonurl = "http://" + bypassUrl + "/bypass?" +  url + '/mgmt/bpl/getPVStatus?pv=' + pvs + "&limit=4000",
+        var jsonurl = "https://" + bypassUrl + "/bypass?" +  url + '/mgmt/bpl/getPVStatus?pv=' + pvs + "&limit=4000",
             components = jsonurl.split('?'),
             querystring = components.length > 1 ? querystring = jsonurl.substring(components[0].length+1) : '',
             HTTPMethod = jsonurl.length > 2048 ? 'POST' : 'GET',
