@@ -9,7 +9,7 @@ var control = require ("./control.js");
 module.exports = (function () {
 
     const KEY_ENTER = 13;
-    const REFRESH_INTERVAL = 1;
+    const REFRESH_INTERVAL = 5;
 
     /**
     * Updates the chart after a date is chosen by the user.
@@ -25,8 +25,6 @@ module.exports = (function () {
         control.updateURL();
 
         chartUtils.updateTimeAxis (control.chart (), chartUtils.timeAxisPreferences[control.window_time ()].unit, chartUtils.timeAxisPreferences[control.window_time ()].unitStepSize, control.start (), control.end ());
-
-        control.chart ().update(0, false);
     }
 
     /**
@@ -60,8 +58,6 @@ module.exports = (function () {
 
             control.updateAllPlots(true);
             control.updateURL();
-
-            control.chart ().update(0, false);
         }
     }
 
@@ -82,8 +78,6 @@ module.exports = (function () {
 
             control.updateAllPlots(true);
             control.updateURL();
-
-            control.chart ().update(0, false);
         }
     }
 
@@ -103,8 +97,6 @@ module.exports = (function () {
 
             control.updateAllPlots(true);
             control.updateURL();
-
-            control.chart ().update(0, false);
 
             ui.disableLoading();
         }
@@ -324,7 +316,6 @@ module.exports = (function () {
 
         }
         else {
-
             control.startTimer (setInterval(async function () {
                 if (control.reference () == control.references.START) {
                     control.updateTimeReference (control.references.END);
@@ -337,11 +328,9 @@ module.exports = (function () {
 
                 chartUtils.updateTimeAxis (control.chart (), chartUtils.timeAxisPreferences[control.window_time ()].unit, chartUtils.timeAxisPreferences[control.window_time ()].unitStepSize, control.start (), control.end ());
 
-                await control.updateAllPlots(true);
+                await control.updateAllPlots(false, true);
 
                 control.updateURL();
-
-                control.chart ().update(0, false);
             }, REFRESH_INTERVAL * 1000));
 
             $(this).css('background-color',"lightgrey");

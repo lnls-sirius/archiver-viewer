@@ -146,7 +146,6 @@ module.exports = (function () {
         updateAllPlots(true);
         updateURL();
         chartUtils.updateTimeAxis (chart, chartUtils.timeAxisPreferences[window_time].unit, chartUtils.timeAxisPreferences[window_time].unitStepSize, start, end);
-        chart.update();
 
         ui.disableLoading();
 
@@ -418,21 +417,22 @@ module.exports = (function () {
     /**
     * Updates all plots added so far. Resets informs if the user wants to reset the data in the dataset.
     **/
-    async function updateAllPlots(reset) {
+    async function updateAllPlots(reset, constantUpdate) {
 	if (reset == undefined)
             reset = false;
 	updateOptimizedWarning();
 
         for (var i = 0; i < chart.data.datasets.length; i++) {
 
-            if (chart.data.datasets[i].pv.optimized || reset)
+            if ((chart.data.datasets[i].pv.optimized && !constantUpdate) || reset)
                 chart.data.datasets[i].data.length = 0;
 
             await updatePlot(i);
         }
 
 	ui.updatePVInfoTable(chart.data.datasets, hideAxis, optimizeHandler, removeHandler);
-	await chart.update();
+
+	chart.update();
 	ui.disableLoading();
     };
 
@@ -546,7 +546,7 @@ module.exports = (function () {
     if(new Date() - lastFetch < 2000){return cachedDate;}
     try {
         const result = await $.ajax ({
-            url: "https://" + archInterface.bypassUrl() +"/date",
+            url: "http://" + archInterface.bypassUrl() +"/date",
 	    timeout: 300,
     	});
 	let currentTime = result === undefined ? new Date() : new Date(result);
@@ -568,9 +568,7 @@ module.exports = (function () {
         chart.data.datasets[datasetIndex].data.length = 0;
 
         updatePlot (datasetIndex);
-
-        chart.update();
-
+        
         ui.disableLoading ();
         updateURL ();
     };
