@@ -8,8 +8,6 @@ import simplify from 'simplify-js';
 
 module.exports = (function () {
     var getUrl = ()=> {
-        
-        return '10.0.38.42';
         var host = "10.0.38.42"; // Initialize with the proxy addr
         if (window.location.host == "vpn.cnpem.br") { // If using WEB VPN
                 // Capture IPv4 addr
@@ -22,11 +20,10 @@ module.exports = (function () {
             host = window.location.host;
         }
 
-	if(host == "10.0.38.50"){
-	    host = "10.0.38.42";
-	    console.log("DEBUG SERVER. Setting host to 10.0.38.42");
-	}
-
+        if(host == "10.0.38.50"){
+            host = "10.0.38.42";
+            console.log("DEBUG SERVER. Setting host to 10.0.38.42");
+        }
         return host;
     }
 
