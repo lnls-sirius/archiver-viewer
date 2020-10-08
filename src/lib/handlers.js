@@ -102,7 +102,6 @@ module.exports = (function () {
         }
     }
 
-
     var handleQueryBefore = ()=>{ ui.enableLoading() }
     var handleQuerySuccess = (data, statusText) =>{
         let pv_list = [];
@@ -124,39 +123,37 @@ module.exports = (function () {
                 handleQueryComplete, handleQueryBefore);
         }
     }
+
     async function handleQuerySuccessRetrieval (data, statusText) {
         var validPVs = [];
         const promisses = data.map(archInterface.fetchMetadata);
-        await Promise.allSettled(promisses).then(
-                (results) => {
-                    results.forEach((result) => {
-                        if(result.status != 'fulfilled'){
-                            console.log("Promisse not fulfilled", result);
-                            return
-                        }
-                        let data = result.value;
-                        if(data.paused == 'false'){
-                            console.log('PV', data.pvName, 'is paused.')                                
-                            return;
-                        }
-                        console.log(data, data.scalar, data.scalar != 'true');
-                        if(data.scalar != 'true'){
-                            console.log("PV", data.pvName, " is not a scalar value.")
-                            return;
-                        }
-                        validPVs.push(data.pvName);
-                    });
+        await Promise.allSettled(promisses).then((results) => {
+            results.forEach((result) => {
+                if(result.status != 'fulfilled') {
+                    console.log("Promisse not fulfilled", result);
+                    return;
                 }
-            ).finally(function(){ console.log("Finally!");});
-        
-        // @todo: Check each metadata
-        /*let pv_list = [];
-        data.forEach(element => {
-           if(element.status=='Being archived'){
-            pv_list.push(element['pvName']);
-           }
-        });*/
-        ui.showSearchResults(validPVs, appendPVHandler);
+                try {
+                    let data = result.value;
+                    if(data.paused != 'false'){
+                        console.log('PV', data.pvName, 'is paused.');
+                        return;
+                    }
+                    console.log(data, data.scalar, data.scalar != 'true');
+                    if(data.scalar != 'true'){
+                        console.log("PV", data.pvName, " is not a scalar value.");
+                        return;
+                    }
+                    validPVs.push(data.pvName);
+                    console.log("Append pvName ", data.pvName);
+                } catch (error) {
+                    console.log("Failed to get metadata", error, result);
+                }
+            });
+        }).finally(function(){
+            console.log("Valid PVs", validPVs);
+            ui.showSearchResults(validPVs, appendPVHandler);
+        });
     }
     async function queryPVsRetrieval(e, val){
         if(e.which != KEY_ENTER)
