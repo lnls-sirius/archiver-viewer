@@ -124,6 +124,47 @@ module.exports = (function () {
                 handleQueryComplete, handleQueryBefore);
         }
     }
+    async function handleQuerySuccessRetrieval (data, statusText) {
+        var validPVs = [];
+        const promisses = data.map(archInterface.fetchMetadata);
+        await Promise.allSettled(promisses).then(
+                (results) => {
+                    results.forEach((result) => {
+                        if(result.status != 'fulfilled'){
+                            console.log("Promisse not fulfilled", result);
+                            return
+                        }
+                        let data = result.value;
+                        if(data.paused == 'false'){
+                            console.log('PV', data.pvName, 'is paused.')                                
+                            return;
+                        }
+                        console.log(data, data.scalar, data.scalar != 'true');
+                        if(data.scalar != 'true'){
+                            console.log("PV", data.pvName, " is not a scalar value.")
+                            return;
+                        }
+                        validPVs.push(data.pvName);
+                    });
+                }
+            ).finally(function(){ console.log("Finally!");});
+        
+        // @todo: Check each metadata
+        /*let pv_list = [];
+        data.forEach(element => {
+           if(element.status=='Being archived'){
+            pv_list.push(element['pvName']);
+           }
+        });*/
+        ui.showSearchResults(validPVs, appendPVHandler);
+    }
+    async function queryPVsRetrieval(e, val){
+        if(e.which != KEY_ENTER)
+            return;
+        await archInterface.query(val,
+                handleQuerySuccessRetrieval, handleQueryError,
+                handleQueryComplete, handleQueryBefore);
+    }
 
     var handleFetchDataError = (xmlHttpRequest, textStatus, errorThrown)=>{
         ui.toogleSearchWarning ("Connection failed with " + xmlHttpRequest + " -- " + textStatus + " -- " + errorThrown);
@@ -764,9 +805,8 @@ module.exports = (function () {
 
     return {
         handleFetchDataError:handleFetchDataError,
-
-	bodyCallback: bodyCallback,
-	tooltipColorHandler: tooltipColorHandler,
+    	bodyCallback: bodyCallback,
+    	tooltipColorHandler: tooltipColorHandler,
 
         onChangeDateHandler : onChangeDateHandler,
         updateTimeWindow: updateTimeWindow,
@@ -774,12 +814,13 @@ module.exports = (function () {
         backTimeWindow: backTimeWindow,
         forwTimeWindow: forwTimeWindow,
         queryPVs: queryPVs,
+        queryPVsRetrieval:queryPVsRetrieval,
         appendPVHandler: appendPVHandler,
         plotSelectedPVs: plotSelectedPVs,
         scrollChart: scrollChart,
         autoRefreshingHandler: autoRefreshingHandler,
         singleTipHandler: singleTipHandler,
-	dataClickHandler: dataClickHandler,
+    	dataClickHandler: dataClickHandler,
 
         startDragging: startDragging,
         doDragging: doDragging,

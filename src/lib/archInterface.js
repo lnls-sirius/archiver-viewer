@@ -8,6 +8,8 @@ import simplify from 'simplify-js';
 
 module.exports = (function () {
     var getUrl = ()=> {
+        
+        return '10.0.38.42';
         var host = "10.0.38.42"; // Initialize with the proxy addr
         if (window.location.host == "vpn.cnpem.br") { // If using WEB VPN
                 // Capture IPv4 addr
@@ -65,7 +67,7 @@ module.exports = (function () {
     /**
     * Gets the metadata associated with a PV.
     **/
-    async function fetchMetadata (pv, handleError) {
+    async function fetchMetadata(pv, handleError) {
         if (pv == undefined)
             return null;
 
@@ -80,13 +82,19 @@ module.exports = (function () {
             type: HTTPMethod,
             crossDomain: true,
             dataType: 'json',
-	    timeout: 0,
+	        timeout: 0,
             //async: false,
         })
 	.done(function(data, textStatus, jqXHR) {
                returnData = textStatus == "success" ? data : null;
             })
-        .fail(function (jqXHR, textStatus, errorThrown) { handleError(jqXHR, textStatus, errorThrown); });
+        .fail(function (jqXHR, textStatus, errorThrown) {
+            if(handleError){
+                handleError(jqXHR, textStatus, errorThrown);
+            } else {
+                console.log(jqXHR, textStatus, errorThrown);
+            }
+        });
 
 	return returnData;
     }
@@ -142,8 +150,7 @@ module.exports = (function () {
         var jsonurl = "https://" + bypassUrl + "/bypass?" +  url + '/mgmt/bpl/getPVStatus?pv=' + pvs + "&limit=4000",
             components = jsonurl.split('?'),
             querystring = components.length > 1 ? querystring = jsonurl.substring(components[0].length+1) : '',
-            HTTPMethod = jsonurl.length > 2048 ? 'POST' : 'GET',
-            returnData = null;
+            HTTPMethod = jsonurl.length > 2048 ? 'POST' : 'GET';
 
         await $.ajax({
             url: components[0],
@@ -158,19 +165,16 @@ module.exports = (function () {
             error: handleError,
             complete: handleComplete
         });
-
-        return returnData;
     }
     /**
     * Key event handler which looks for PVs in the archiver
     **/
-    var query = function (pvs) {
+    var query = function (pvs, handleSuccess, handleError, handleComplete, handleBefore) {
 
         var jsonurl = "http://" + url + '/retrieval/bpl/getMatchingPVs?pv=' + pvs + "&limit=4000",
             components = jsonurl.split('?'),
             querystring = components.length > 1 ? querystring = components[1] : '',
-            HTTPMethod = jsonurl.length > 2048 ? 'POST' : 'GET',
-            returnData = null;
+            HTTPMethod = jsonurl.length > 2048 ? 'POST' : 'GET';
 
         $.ajax({
             url: components[0],
@@ -178,23 +182,18 @@ module.exports = (function () {
             type: HTTPMethod,
             crossDomain: true,
             dataType: 'json',
-            async: false,
             timeout: 3000,
-            success: function(data, textStatus, jqXHR) {
-                returnData = textStatus == "success" ? data : null;
-            },
-            error: function(xmlHttpRequest, textStatus, errorThrown) {
-                console.log(xmlHttpRequest, textStatus, errorThrown);
-            }
+            beforeSend:handleBefore,
+            success: handleSuccess,
+            error: handleError,
+            complete: handleComplete
         });
-        return returnData;
     }
 
     return {
-
         url: function () { return url; },
         updateURL: function (u) { url = u },
-	bypassUrl: function() { return bypassUrl; },
+	    bypassUrl: function() { return bypassUrl; },
 
         parseData: parseData,
         fetchMetadata : fetchMetadata,

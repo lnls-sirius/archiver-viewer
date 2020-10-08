@@ -1,13 +1,9 @@
-version: "3"
-
+version: "3.7"
 services:
-  archiver-viewer:
-    deploy:
-      mode: replicated
-      replicas: 1
-    image: httpd:2.4.35
-    ports:
-      - "80:80"
+  viewer:
+    image: node
+    command: sleep infinity
+    network_mode: host
     volumes:
-      - "/home/carneirofc/archiver-viewer/dist:/usr/local/apache2/htdocs/archiver-viewer"
+      - '../.:/viewer'
 

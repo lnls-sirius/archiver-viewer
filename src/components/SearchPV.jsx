@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { queryPVs } from '../lib/handlers';
+import { queryPVs, queryPVsRetrieval } from '../lib/handlers';
 
 class SearchPV extends Component{
     constructor(props){
@@ -12,7 +12,7 @@ class SearchPV extends Component{
     }
 
     handleSubmit = (e)=>{
-        queryPVs(e, this.state.value);
+        queryPVsRetrieval(e, this.state.value);
     }
 
     render(){
