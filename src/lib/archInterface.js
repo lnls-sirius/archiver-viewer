@@ -29,6 +29,7 @@ module.exports = (function () {
 
     var url = getUrl();
     var bypassUrl = url + "/archiver-generic-backend";
+    var urlBeamLines = "http://archiver.cnpem.br";
     /**
     * Parses the data retrieved from the archiver in a way that it can be understood by the chart controller
     **/
@@ -64,14 +65,22 @@ module.exports = (function () {
     /**
     * Gets the metadata associated with a PV.
     **/
-    async function fetchMetadata(pv, handleError) {
-        if (pv == undefined)
+    async function fetchMetadata(pv, handleError, beamLines) {
+        if (pv == undefined){
             return null;
+        }
 
-        var jsonurl = "http://" + url + '/retrieval/bpl/getMetadata?pv=' + pv,
-            components = jsonurl.split('?'),
-            HTTPMethod = jsonurl.length > 2048 ? 'POST' : 'GET',
-            returnData = null;
+        var jsonurl;
+        if(beamLines){
+            jsonurl = urlBeamLines + '/retrieval/bpl/getMetadata?pv=' + pv;
+            console.log('Search Beam Lines archiver for PV', pv);
+        }else{
+            jsonurl = "http://" + url + '/retrieval/bpl/getMetadata?pv=' + pv;
+        }
+        
+        var    components = jsonurl.split('?');
+        var    HTTPMethod = jsonurl.length > 2048 ? 'POST' : 'GET';
+        var    returnData = null;
 
         await $.ajax ({
             url: components[0],

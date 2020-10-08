@@ -124,9 +124,11 @@ module.exports = (function () {
         }
     }
 
-    async function handleQuerySuccessRetrieval (data, statusText) {
+    async function handleGetValidPVs(pvList, beamLines){
         var validPVs = [];
-        const promisses = data.map(archInterface.fetchMetadata);
+        const promisses = pvList.map(
+           function(x) { return archInterface.fetchMetadata(x, null, beamLines); }
+        );
         await Promise.allSettled(promisses).then((results) => {
             results.forEach((result) => {
                 if(result.status != 'fulfilled') {
@@ -135,11 +137,13 @@ module.exports = (function () {
                 }
                 try {
                     let data = result.value;
+                    if (data == null){
+                        return;
+                    }
                     if(data.paused != 'false'){
                         console.log('PV', data.pvName, 'is paused.');
                         return;
                     }
-                    console.log(data, data.scalar, data.scalar != 'true');
                     if(data.scalar != 'true'){
                         console.log("PV", data.pvName, " is not a scalar value.");
                         return;
@@ -151,9 +155,25 @@ module.exports = (function () {
                 }
             });
         }).finally(function(){
-            console.log("Valid PVs", validPVs);
-            ui.showSearchResults(validPVs, appendPVHandler);
+            console.log("Valid PVs: ", validPVs.length);
         });
+        return validPVs;
+    }
+    async function handleQuerySuccessRetrieval (data, statusText) {
+        var validPVs = [];
+
+        // Check main archiver
+        await handleGetValidPVs(data).then((pvs)=>pvs.forEach(pv=>validPVs.push(pv)));
+
+        // Check Beam Lines archiver
+        var data2 = data.filter(function(item) {
+                return !validPVs.includes(item); 
+              }
+        );
+        await handleGetValidPVs(data2, true).then((pvs)=>pvs.forEach(pv=>validPVs.push(pv)));
+
+        // Display Matchs
+        ui.showSearchResults(validPVs, appendPVHandler);
     }
     async function queryPVsRetrieval(e, val){
         if(e.which != KEY_ENTER)

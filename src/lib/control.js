@@ -167,11 +167,17 @@ module.exports = (function () {
 
         // Asks for the PV's metadata
         var metadata = await archInterface.fetchMetadata(
-            pv, ()=>{ui.toogleSearchWarning("Connection failed with " + xmlHttpRequest + " -- " + textStatus + " -- " + errorThrown)});
+            pv, ()=>{ ui.toogleSearchWarning("Connection failed with " + xmlHttpRequest + " -- " + textStatus + " -- " + errorThrown) });
                 
         if(metadata == null){
-            console.log('No metadata for ', pv);
-            return -1;
+            // attempt beam lines (this is sub optimal, we should keep track of this somehow ...)
+            metadata = await archInterface.fetchMetadata(
+                pv, ()=>{ ui.toogleSearchWarning("Connection failed with " + xmlHttpRequest + " -- " + textStatus + " -- " + errorThrown)}, true);
+
+            if(metadata == null){
+                console.log('No metadata for ', pv);
+                return -1;
+            }
         }
         var bins = shouldOptimizeRequest(parseFloat(metadata["samplingPeriod"]), metadata["DBRType"]);
 
@@ -514,7 +520,7 @@ module.exports = (function () {
                 optimized = true;
             }
 
-            appendPV (pvs[i], optimized);
+            appendPV(pvs[i], optimized);
         }
 
 	var singleTipCookie = getCookie("singleTip");
@@ -641,16 +647,16 @@ module.exports = (function () {
         window_time: function () { return window_time; },
         timer: function () { return timer; },
         auto_enabled: function () { return auto_enabled; },
-	singleTip_enabled: function () { return singleTip_enabled; },
+	    singleTip_enabled: function () { return singleTip_enabled; },
         scrolling_enabled: function () { return scrolling_enabled; },
-	serverDate_enabled: function () { return serverDate_enabled; },
+	    serverDate_enabled: function () { return serverDate_enabled; },
         drag_flags: function () { return drag_flags; },
         zoom_flags: function () { return zoom_flags; },
         undo_stack: function () { return undo_stack; },
         redo_stack: function () { return redo_stack; },
 
         getWindowTime: function(){return window_time},
-	getDateNow: getDateNow,
+	    getDateNow: getDateNow,
 
         /* Setters */
         startTimer : function (t) { timer = t; },
@@ -663,9 +669,9 @@ module.exports = (function () {
         updateStartAndEnd: updateStartAndEnd,
 
         toggleAuto : function () { auto_enabled = !auto_enabled; },
-	toggleSingleTip: function () { singleTip_enabled = !singleTip_enabled },
+	    toggleSingleTip: function () { singleTip_enabled = !singleTip_enabled },
         disableAuto : function () { auto_enabled = false; },
-	disableServerDate : function () { serverDate_enabled = false; },
+	    disableServerDate : function () { serverDate_enabled = false; },
         enableAuto : function () { auto_enabled = true; },
 
         disableScrolling : function () { scrolling_enabled = false; },
@@ -691,7 +697,7 @@ module.exports = (function () {
         updateURL: updateURL,
         loadFromURL: loadFromURL,
         optimizePlot: optimizePlot,
-	removeDataset: removeDataset,
+	    removeDataset: removeDataset,
         hideAxis: hideAxis,
         optimizeHandler: optimizeHandler,
         removeHandler: removeHandler,
