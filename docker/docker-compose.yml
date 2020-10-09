@@ -3,7 +3,8 @@ services:
   viewer:
     image: node
     command: sleep infinity
-    network_mode: host
+    ports:
+      - 8080:8080
     volumes:
       - '../.:/viewer'
 
