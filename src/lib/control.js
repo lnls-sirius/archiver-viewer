@@ -68,39 +68,39 @@ module.exports = (function () {
 
     const originalGetPixelForValue = Chart.scaleService.constructors.linear.prototype.getPixelForValue;
     Chart.scaleService.constructors.linear.prototype.getPixelForValue = function(value) {
-  	const pixel = originalGetPixelForValue.call(this, value);
-  	return Math.min(2147483647, Math.max(-2147483647, pixel))
+        const pixel = originalGetPixelForValue.call(this, value);
+        return Math.min(2147483647, Math.max(-2147483647, pixel))
     }
 
     let parentEventHandler = Chart.Controller.prototype.eventHandler;
     Chart.Controller.prototype.eventHandler = function () {
-	// This is not a duplicate of the cursor positioner, this handler is called when a tooltip's datapoint index does not change.
-	let ret = parentEventHandler.apply(this, arguments);
-	let tooltipWidth = this.tooltip._model.width;
+        // This is not a duplicate of the cursor positioner, this handler is called when a tooltip's datapoint index does not change.
+        let ret = parentEventHandler.apply(this, arguments);
+        let tooltipWidth = this.tooltip._model.width;
         let tooltipHeight = this.tooltip._model.height;
-	
-	if(!singleTip_enabled){
-    	    let x = arguments[0].x;
-    	    let y = arguments[0].y;
-    	    this.clear();
-    	    this.draw();
-    	    let yScale = this.scales['y-axis-0'];
-    	    this.chart.ctx.beginPath();
-    	    this.chart.ctx.moveTo(x, yScale.getPixelForValue(yScale.max));
-    	    this.chart.ctx.strokeStyle = "#ff0000";
-    	    this.chart.ctx.lineTo(x, yScale.getPixelForValue(yScale.min));
-    	    this.chart.ctx.stroke();
-	}
+
+        if(!singleTip_enabled){
+            let x = arguments[0].x;
+            let y = arguments[0].y;
+            this.clear();
+            this.draw();
+            let yScale = this.scales['y-axis-0'];
+            this.chart.ctx.beginPath();
+            this.chart.ctx.moveTo(x, yScale.getPixelForValue(yScale.max));
+            this.chart.ctx.strokeStyle = "#ff0000";
+            this.chart.ctx.lineTo(x, yScale.getPixelForValue(yScale.min));
+            this.chart.ctx.stroke();
+        }
 
 	    this.tooltip.width = this.tooltip._model.width;
-	    this.tooltip.height = this.tooltip._model.height;	
+	    this.tooltip.height = this.tooltip._model.height;
 
 	    let coordinates = chartUtils.reboundTooltip(arguments[0].x, arguments[0].y, this.tooltip, 0.5);
-	
-            this.tooltip._model.x = coordinates.x;
+
+        this.tooltip._model.x = coordinates.x;
 	    this.tooltip._model.y = coordinates.y;
 
-    	    return ret;
+        return ret;
     };
 
     async function updateTimeWindow(window) {
@@ -137,9 +137,11 @@ module.exports = (function () {
 
             var now = await getDateNow();
 
-            if (start.getTime() + chartUtils.timeAxisPreferences[window_time].milliseconds <= now.getTime())
+            if (start.getTime() + chartUtils.timeAxisPreferences[window_time].milliseconds <= now.getTime()){
                 end = new Date(start.getTime() + chartUtils.timeAxisPreferences[window_time].milliseconds);
-            else end = now;
+            } else {
+                end = now;
+            }
         }
 
         optimizeAllGraphs ();
@@ -166,15 +168,16 @@ module.exports = (function () {
         }
 
         // Asks for the PV's metadata
-        var metadata = await archInterface.fetchMetadata(
-            pv, ()=>{ ui.toogleSearchWarning("Connection failed with " + xmlHttpRequest + " -- " + textStatus + " -- " + errorThrown) });
-                
+        var metadata = await archInterface.fetchMetadata(pv, null).catch(err=>console.log(err));
+        console.log('Control', metadata);
+
         if(metadata == null){
-            // attempt beam lines (this is sub optimal, we should keep track of this somehow ...)
-            metadata = await archInterface.fetchMetadata(
-                pv, ()=>{ ui.toogleSearchWarning("Connection failed with " + xmlHttpRequest + " -- " + textStatus + " -- " + errorThrown)}, true);
+            // @todo: attempt beam lines (this is sub optimal, we should keep track of this somehow ...)
+            metadata = await archInterface.fetchMetadata(pv, null, true).catch(err=>console.log(err));
+            console.log('Beamline', metadata);
 
             if(metadata == null){
+                ui.toogleSearchWarning("Faile to fetch metadata for pv " + pv);
                 console.log('No metadata for ', pv);
                 return -1;
             }
@@ -195,14 +198,15 @@ module.exports = (function () {
             handleDataAxisInfoTableUpdate();
         }
 
-	updateOptimizedWarning();
+        updateOptimizedWarning();
         updateURL();
 
         ui.updatePVInfoTable(chart.data.datasets, hideAxis, optimizeHandler, removeHandler);
 
-        if (!undo || undo == undefined)
+        if (!undo || undo == undefined){
             undo_stack.push ({action : STACK_ACTIONS.APPEND_PV, pv : pv});
-	ui.disableLoading();
+        }
+        ui.disableLoading();
     }
 
     /**
@@ -238,12 +242,12 @@ module.exports = (function () {
     **/
     async function updateStartAndEnd(date, updateHtml, undo) {
 	if(date === undefined){date = new Date();}
-	
+
         if (updateHtml == undefined || updateHtml == null)
             updateHtml = false;
 
 	var now = await getDateNow();
-	
+
         if (reference == REFERENCE.END) {
 
             if (!undo || undo == undefined)
@@ -274,7 +278,7 @@ module.exports = (function () {
             if (updateHtml) ui.updateDateComponents (start);
         }
 
-	ui.disableLoading();
+        ui.disableLoading();
     };
 
     var updateOptimizedWarning = function () {
@@ -328,8 +332,11 @@ module.exports = (function () {
 
             var bins = chartUtils.timeAxisPreferences[window_time].bins;
 
-            var fetchedData = await archInterface.fetchData (chart.data.datasets[pv_index].label, start, end, chart.data.datasets[pv_index].pv.optimized, bins, handlers.handleFetchDataError,
-		 ui.enableLoading);
+            var fetchedData = await archInterface.fetchData(
+                chart.data.datasets[pv_index].label,
+                start, end, chart.data.datasets[pv_index].pv.optimized, bins,
+                handlers.handleFetchDataError,
+                ui.enableLoading);
 
             if (fetchedData && fetchedData.length > 0)
                 Array.prototype.push.apply(chart.data.datasets[pv_index].data, improveData (archInterface.parseData(fetchedData[0].data)));
@@ -424,17 +431,18 @@ module.exports = (function () {
     * Updates all plots added so far. Resets informs if the user wants to reset the data in the dataset.
     **/
     async function updateAllPlots(reset, constantUpdate) {
-	if (reset == undefined)
-            reset = false;
+	if (reset == undefined){
+        reset = false;
+    }
 	updateOptimizedWarning();
 
-        for (var i = 0; i < chart.data.datasets.length; i++) {
+    for (var i = 0; i < chart.data.datasets.length; i++) {
 
-            if ((chart.data.datasets[i].pv.optimized && !constantUpdate) || reset)
-                chart.data.datasets[i].data.length = 0;
+        if ((chart.data.datasets[i].pv.optimized && !constantUpdate) || reset)
+            chart.data.datasets[i].data.length = 0;
 
-            await updatePlot(i);
-        }
+        await updatePlot(i);
+    }
 
 	ui.updatePVInfoTable(chart.data.datasets, hideAxis, optimizeHandler, removeHandler);
 
@@ -526,7 +534,7 @@ module.exports = (function () {
 	var singleTipCookie = getCookie("singleTip");
 
 	singleTip_enabled = singleTipCookie == 'true' || singleTipCookie == null;
-	
+
 	chartUtils.toggleTooltipBehavior(chart, singleTip_enabled);
 	$(".fa-list").css("color", singleTip_enabled ? "lightgrey" : "black"); //addClass does not work in a predictable way
 
@@ -535,49 +543,55 @@ module.exports = (function () {
 
     function getCookie(name) {
         var cookieArr = document.cookie.split(";");
-    
+
         for(var i = 0; i < cookieArr.length; i++) {
             var cookiePair = cookieArr[i].split("=");
             if(name == cookiePair[0].trim()) {
                 return decodeURIComponent(cookiePair[1]);
             }
         }
-    
+
         return null;
     }
 
     async function getDateNow() {
-    //console.log(archInterface.bypassUrl());
-    if(!serverDate_enabled){return new Date();}
-    if(new Date() - lastFetch < 0){lastFetch = new Date();} 
-    if(new Date() - lastFetch < 2000){return cachedDate;}
-    try {
-        const result = await $.ajax ({
-            url: "https://" + archInterface.bypassUrl() +"/date",
-	    timeout: 300,
-    	});
-	let currentTime = result === undefined ? new Date() : new Date(result);
+        if(!serverDate_enabled){
+            return new Date();
+        }
+        if(new Date() - lastFetch < 0){
+            lastFetch = new Date();
+        }
+        if(new Date() - lastFetch < 2000){
+            return cachedDate;
+        }
+        try {
+            const result = await $.ajax ({
+                url: "https://" + archInterface.bypassUrl() +"/date",
+                timeout: 300,
+            });
+            let currentTime = result === undefined ? new Date() : new Date(result);
 
-	cachedDate = currentTime;
-	lastFetch = new Date();
-	return currentTime;
-    } catch (e) { 
-	console.log("Date retrieval failed. Using local date.");
-	serverDate_enabled = false;
-	return new Date(); 
+            cachedDate = currentTime;
+            lastFetch = new Date();
+            return currentTime;
+        } catch (e) {
+            console.log("Date retrieval failed. Using local date.");
+            serverDate_enabled = false;
+            return new Date();
+        }
     }
-    }
 
-
-    var optimizePlot = function (datasetIndex, optimize) {
+    var optimizePlot = async function (datasetIndex, optimize) {
         chart.data.datasets[datasetIndex].pv.optimized = optimize;
-        
+
         chart.data.datasets[datasetIndex].data.length = 0;
 
-        updatePlot (datasetIndex);
-        
-        ui.disableLoading ();
-        updateURL ();
+        await updatePlot (datasetIndex).then(e=>{
+            ui.disableLoading ();
+            updateURL();
+            chart.update();
+            console.log("Plot update at index", datasetIndex);
+        }).catch(e => { console.log("Failed to update plot at index ",datasetIndex)});
     };
 
     var removeDataset = function (datasetIndex, undo) {
@@ -585,25 +599,25 @@ module.exports = (function () {
         chartUtils.yAxisUseCounter () [chart.data.datasets[datasetIndex].yAxisID]--;
         chartUtils.colorStack ().push (chart.data.datasets[datasetIndex].backgroundColor);
 
-        if (!undo || undo == undefined)
+        if (!undo || undo == undefined){
             undo_stack.push({action : STACK_ACTIONS.REMOVE_PV, pv : chart.data.datasets[datasetIndex].label, optimized : chart.data.datasets[datasetIndex].pv.optimized});
+        }
 
         if (chartUtils.yAxisUseCounter () [chart.data.datasets[datasetIndex].yAxisID] == 0) {
             delete chartUtils.yAxisUseCounter () [chart.data.datasets[datasetIndex].yAxisID];
             chart.scales[chart.data.datasets[datasetIndex].yAxisID].options.display = false;
             chartUtils.updateAxisPositionLeft (chart.scales[chart.data.datasets[datasetIndex].yAxisID].position == "left");
             delete chart.scales[chart.data.datasets[datasetIndex].yAxisID];
-	    for(var i = 1; i < chart.options.scales.yAxes.length; i++)
-	    {
-		if(chart.options.scales.yAxes[i].id == chart.data.datasets[datasetIndex].yAxisID)
-		{
-			chart.options.scales.yAxes.splice (i, 1);
-			break;
-		}
-	    }
+
+            for(var i = 1; i < chart.options.scales.yAxes.length; i++) {
+                if(chart.options.scales.yAxes[i].id == chart.data.datasets[datasetIndex].yAxisID) {
+                    chart.options.scales.yAxes.splice (i, 1);
+                    break;
+                }
+            }
         }
 
-	chart.data.datasets.splice (datasetIndex, 1);
+        chart.data.datasets.splice (datasetIndex, 1);
         chart.update(0);
         updateURL ();
         ui.updatePVInfoTable(chart.data.datasets, hideAxis, optimizeHandler, removeHandler);
@@ -615,8 +629,8 @@ module.exports = (function () {
         chart.update(0, false);
     };
 
-    var optimizeHandler = function (event) {
-        optimizePlot (event.data.datasetIndex, this.checked);
+    var optimizeHandler = async function (event) {
+        await optimizePlot (event.data.datasetIndex, this.checked);
     };
 
     var handleDataAxisInfoTableUpdate = ()=>{
@@ -624,8 +638,8 @@ module.exports = (function () {
             chartUtils.getAxesInUse(chart.options.scales.yAxes),
             (evt)=>{chartUtils.toggleAxisType(chart, evt.data.axisId, evt.target.checked);},
             (evt)=>{chartUtils.toggleAutoY(chart, evt.data.axisId, evt.currentTarget);},
-	    (evt)=>{chartUtils.changeYLimit(chart, evt.data.axisId, evt.currentTarget);},
-	);
+            (evt)=>{chartUtils.changeYLimit(chart, evt.data.axisId, evt.currentTarget);},
+        );
     }
 
     var removeHandler = function (event) {

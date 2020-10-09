@@ -296,7 +296,7 @@ module.exports = (function () {
                 row = $("<tr></tr>");
                 row.appendTo(table);
             }
-	    
+
             $('<td></td>')
                 .text('Chart Series: ' + series[i].id).appendTo(row);
 
@@ -322,7 +322,7 @@ module.exports = (function () {
                     "placeholder" : "Max",
 		    "value": isManual ? series[i].ticks.max : ''
                 })
-                .blur({"axisId" : series[i].id}, changeYLimitHandler)  
+                .blur({"axisId" : series[i].id}, changeYLimitHandler)
                 .appendTo(row);
 		if(!isManual)
 		{

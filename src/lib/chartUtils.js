@@ -242,7 +242,7 @@ module.exports = (function() {
 
     var toggleAutoY = (chart, axisId, autoFire) => {
     var table = $(autoFire).closest(".data_axis_table").find(":text");
-    
+
     for (let i = 1; i < chart.options.scales.yAxes.length; i++) {
         if (chart.options.scales.yAxes[i].id == axisId) {
 	    table = table.slice((i-1)*2,(i-1)*2+2);
@@ -401,7 +401,7 @@ module.exports = (function() {
                 metadata: metadata
             },
         });
-	
+
 	chart.update();
     };
 

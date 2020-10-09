@@ -18,7 +18,7 @@ module.exports = (function () {
 
         //var new_date = ui.getTimedate();
         var new_date = date;
-        
+
         await control.updateStartAndEnd(new_date, true);
 
         control.updateAllPlots(true);
@@ -50,7 +50,7 @@ module.exports = (function () {
                 ui.enableReference(control.references.END);
             }
 
-	    var now = await control.getDateNow();
+        var now = await control.getDateNow();
 
             await control.updateStartAndEnd(now, true);
 
@@ -131,6 +131,10 @@ module.exports = (function () {
         );
         await Promise.allSettled(promisses).then((results) => {
             results.forEach((result) => {
+		if(!result){
+			console.log(result);
+			return;
+		}
                 if(result.status != 'fulfilled') {
                     console.log("Promisse not fulfilled", result);
                     return;
@@ -167,7 +171,7 @@ module.exports = (function () {
 
         // Check Beam Lines archiver
         var data2 = data.filter(function(item) {
-                return !validPVs.includes(item); 
+                return !validPVs.includes(item);
               }
         );
         await handleGetValidPVs(data2, true).then((pvs)=>pvs.forEach(pv=>validPVs.push(pv)));
@@ -207,7 +211,7 @@ module.exports = (function () {
 
     var plotSelectedPVs = function (e) {
         var pvs = ui.selectedPVs ();
-        for (var i = 0; i < pvs.length; i++) { 
+        for (var i = 0; i < pvs.length; i++) {
             var pv_index = control.getPlotIndex(pvs [i]);
             if (pv_index == null){
                 control.appendPV(pvs [i]);
@@ -241,15 +245,15 @@ module.exports = (function () {
     };
 
     function singleTipHandler(e) {
-	$(".fa-list").css("color", control.singleTip_enabled() ? "black" : "lightgrey");
-	
-	control.toggleSingleTip();
-	document.cookie = 'singleTip='+control.singleTip_enabled()+'; SameSite=Strict'; // Concatenation necessary to fix issues with the web VPN
-	chartUtils.toggleTooltipBehavior(control.chart(), control.singleTip_enabled());
+    $(".fa-list").css("color", control.singleTip_enabled() ? "black" : "lightgrey");
+
+    control.toggleSingleTip();
+    document.cookie = 'singleTip='+control.singleTip_enabled()+'; SameSite=Strict'; // Concatenation necessary to fix issues with the web VPN
+    chartUtils.toggleTooltipBehavior(control.chart(), control.singleTip_enabled());
     }
 
     function closestDateValue(searchDate, dates) {
-	if(searchDate - dates[0] <= 0){
+    if(searchDate - dates[0] <= 0){
                return 0;
         } else if (searchDate - dates[dates.length-1] >= 0){
                return dates.length-1;
@@ -264,7 +268,7 @@ module.exports = (function () {
             middle = Math.floor((first+last)/2);
 
             if(dates[middle] ==  searchDate){
-                return middle; 
+                return middle;
             }
 
             if(first == middle) {
@@ -280,18 +284,18 @@ module.exports = (function () {
     };
 
     var tooltipColorHandler = function(tooltip) {
-	                if(tooltip.dataPoints != undefined && !control.singleTip_enabled()){
+                    if(tooltip.dataPoints != undefined && !control.singleTip_enabled()){
                         var i;
-			tooltip.labelColors = [];
-		        tooltip.labelTextColors = [];
+            tooltip.labelColors = [];
+                tooltip.labelTextColors = [];
                         for(i = 0; i < tooltip.dataPoints.length; i++){
                                 if(tooltip.dataPoints[i] !== undefined){
                                         tooltip.labelColors.push({
                                             backgroundColor: tooltip.dataPoints[i].backgroundColor || '#fff',
                                             borderColor: tooltip.dataPoints[i].borderColor || '#fff'
                                         });
-					tooltip.labelTextColors.push('#fff');
-				}
+                    tooltip.labelTextColors.push('#fff');
+                }
                             }
                         }
                 };
@@ -300,7 +304,7 @@ module.exports = (function () {
     * Handles tooltip item list correction and addition
     */
     var bodyCallback = function(labels, chart) {
-	if(control.singleTip_enabled() || labels[0] === undefined ){return;}
+    if(control.singleTip_enabled() || labels[0] === undefined ){return;}
         var drawnDatasets = labels.map(x => x.datasetIndex);
         var masterSet = labels[0].datasetIndex;
         var stringDate = labels[0].xLabel.substring(0,23);
@@ -318,10 +322,10 @@ module.exports = (function () {
                 var closest = closestDateValue(masterDate, chart.datasets[i].data.map(x => x.x));
 
                 if(chart.datasets[i].data[closest] === undefined || chart.datasets[i].data[closest] === undefined){
-		    return "Loading datasets...";
+            return "Loading datasets...";
                 }
 
-	        if(drawnDatasets.includes(i)){
+            if(drawnDatasets.includes(i)){
                     labels[index].yLabel = chart.datasets[i].data[closest].y;
                     labels[index].x = labels[0].x;
                     labels[index].y = chart.datasets[i].data[closest].y;
@@ -338,7 +342,7 @@ module.exports = (function () {
                     y: labels[0].y,
                     yLabel: chart.datasets[i].data[closest].y*1,
                     backgroundColor: chart.datasets[i].backgroundColor || '#fff',
-                    borderColor: chart.datasets[i].borderColor || '#fff'});          
+                    borderColor: chart.datasets[i].borderColor || '#fff'});
                 }
             }
         }
@@ -380,7 +384,7 @@ module.exports = (function () {
                     ui.enableReference(control.references.END);
                 }
 
-		var now = await control.getDateNow();
+        var now = await control.getDateNow();
 
                 await control.updateStartAndEnd(now, true, true);
 
@@ -443,8 +447,8 @@ module.exports = (function () {
     var startDragging = function (evt) {
 
         control.startDrag ();
-	
-	control.updateDragOffsetX (evt.offsetX);
+
+    control.updateDragOffsetX (evt.offsetX);
 
         control.updateDragEndTime (control.end ());
 
@@ -596,16 +600,16 @@ module.exports = (function () {
     };
 
     function s2ab(s) {
-	    if(typeof ArrayBuffer !== 'undefined') {
-		    var buf = new ArrayBuffer(s.length);
-		    var view = new Uint8Array(buf);
-		    for (var i=0; i!=s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
-		    return buf;
-	    } else {
-		    var buf = new Array(s.length);
-		    for (var i=0; i!=s.length; ++i) buf[i] = s.charCodeAt(i) & 0xFF;
-		    return buf;
-	    }
+        if(typeof ArrayBuffer !== 'undefined') {
+            var buf = new ArrayBuffer(s.length);
+            var view = new Uint8Array(buf);
+            for (var i=0; i!=s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
+            return buf;
+        } else {
+            var buf = new Array(s.length);
+            for (var i=0; i!=s.length; ++i) buf[i] = s.charCodeAt(i) & 0xFF;
+            return buf;
+        }
     }
 
     var exportAs = function (t) {
@@ -645,7 +649,7 @@ module.exports = (function () {
         // Write the stuff
         var wbout = XLSXwrite(book, {bookType:t, type: 'binary'});
         try {
-	        FileSaverSaveAs(new Blob([s2ab(wbout)],{type:"application/octet-stream"}), 'export.' + t);
+            FileSaverSaveAs(new Blob([s2ab(wbout)],{type:"application/octet-stream"}), 'export.' + t);
         } catch(e) { if(typeof console != 'undefined') console.log(e, wbout); }
 
         return wbout;
@@ -822,8 +826,8 @@ module.exports = (function () {
 
     return {
         handleFetchDataError:handleFetchDataError,
-    	bodyCallback: bodyCallback,
-    	tooltipColorHandler: tooltipColorHandler,
+        bodyCallback: bodyCallback,
+        tooltipColorHandler: tooltipColorHandler,
 
         onChangeDateHandler : onChangeDateHandler,
         updateTimeWindow: updateTimeWindow,
@@ -837,7 +841,7 @@ module.exports = (function () {
         scrollChart: scrollChart,
         autoRefreshingHandler: autoRefreshingHandler,
         singleTipHandler: singleTipHandler,
-    	dataClickHandler: dataClickHandler,
+        dataClickHandler: dataClickHandler,
 
         startDragging: startDragging,
         doDragging: doDragging,

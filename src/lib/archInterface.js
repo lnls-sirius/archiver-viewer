@@ -77,7 +77,7 @@ module.exports = (function () {
         }else{
             jsonurl = "http://" + url + '/retrieval/bpl/getMetadata?pv=' + pv;
         }
-        
+
         var    components = jsonurl.split('?');
         var    HTTPMethod = jsonurl.length > 2048 ? 'POST' : 'GET';
         var    returnData = null;
@@ -108,9 +108,10 @@ module.exports = (function () {
     /**
     * Requests data from the archiver.
     **/
-    async function fetchData (pv, from, to, isOptimized, bins, handleError, showLoading) {
-	if (from == undefined || to == undefined)
-            return null;
+    async function fetchData(pv, from, to, isOptimized, bins, handleError, showLoading) {
+        if (from == undefined || to == undefined){
+                return null;
+        }
 
         var jsonurl = "http://" + url + '/retrieval/data/getData.json?pv=' + pv + "&from=" + from.toJSON() + "&to=" + to.toJSON();
 
@@ -131,25 +132,25 @@ module.exports = (function () {
             type: HTTPMethod,
             crossDomain: true,
             dataType: 'text',
-	    beforeSend:showLoading,
-	    timeout: 0,
+            beforeSend:showLoading,
+            timeout: 0,
             //async: false,
         })
-	.done(function(data, textStatus, jqXHR) {
-                returnData = textStatus == "success" ? data : null;
-                if(returnData){
-                    try{
-                        returnData = returnData.replace(/(-?Infinity)/g, "\"$1\"");
-                        returnData = returnData.replace(/(NaN)/g, "\"$1\"");
-                        returnData = JSON.parse(returnData);
-                    }catch(err){
-                        console.log("Failed to parse data from request", components[0], err.message);
+        .done(function(data, textStatus, jqXHR) {
+                    returnData = textStatus == "success" ? data : null;
+                    if(returnData){
+                        try{
+                            returnData = returnData.replace(/(-?Infinity)/g, "\"$1\"");
+                            returnData = returnData.replace(/(NaN)/g, "\"$1\"");
+                            returnData = JSON.parse(returnData);
+                        }catch(err){
+                            console.log("Failed to parse data from request", components[0], err.message);
+                        }
                     }
-                }
-            })
-	.fail(function (jqXHR, textStatus, errorThrown) { handleError(jqXHR, textStatus, errorThrown); });
+                })
+        .fail(function (jqXHR, textStatus, errorThrown) { handleError(jqXHR, textStatus, errorThrown); });
 
-	return returnData;
+        return returnData;
     }
 
     async function getPVStatus(pvs, handleSuccess, handleError, handleComplete, handleBefore){
