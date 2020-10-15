@@ -69,8 +69,9 @@ module.exports = (function () {
 
         if (!control.auto_enabled()) {
             let date = control.start();
-            if (control.reference() == control.references.END)
+            if (control.reference() == control.references.END) {
                 date = control.end();
+            }
 
             await control.updateStartAndEnd(new Date(date.getTime() - chartUtils.timeAxisPreferences[control.window_time()].milliseconds), true);
 
@@ -88,8 +89,9 @@ module.exports = (function () {
 
         if (!control.auto_enabled()) {
             let date = control.start();
-            if (control.reference() == control.references.END)
+            if (control.reference() == control.references.END) {
                 date = control.end();
+            }
 
             await control.updateStartAndEnd(new Date(date.getTime() + chartUtils.timeAxisPreferences[control.window_time()].milliseconds), true);
 
@@ -166,8 +168,9 @@ module.exports = (function () {
         ui.showSearchResults(validPVs, appendPVHandler);
     }
     async function queryPVsRetrieval(e, val) {
-        if (e.which != KEY_ENTER)
+        if (e.which != KEY_ENTER) {
             return;
+        }
         await archInterface.query(val,
             handleQuerySuccessRetrieval, handleQueryError,
             handleQueryComplete, handleQueryBefore);
@@ -185,10 +188,11 @@ module.exports = (function () {
         const pv = e.target.innerText;
         const pv_index = control.getPlotIndex(pv);
 
-        if (pv_index == null)
+        if (pv_index == null) {
             control.appendPV(pv);
-        else
+        } else {
             control.updatePlot(pv_index);
+        }
 
         control.chart().update(0, false);
 
@@ -457,8 +461,9 @@ module.exports = (function () {
             const offset_x = control.drag_flags().x - evt.offsetX;
             let new_date = new Date(control.end().getTime() + offset_x * chartUtils.timeAxisPreferences[control.window_time()].milliseconds / control.chart().chart.width);
 
-            if (control.reference() == control.references.START)
+            if (control.reference() == control.references.START) {
                 new_date = new Date(control.start().getTime() + offset_x * chartUtils.timeAxisPreferences[control.window_time()].milliseconds / control.chart().chart.width);
+            }
 
             control.updateDragOffsetX(evt.offsetX);
 
@@ -518,8 +523,9 @@ module.exports = (function () {
 
                 // Chooses the x axis time scale
                 let i = 0;
-                while (control.end().getTime() - control.start().getTime() < chartUtils.timeAxisPreferences[i].milliseconds && i < chartUtils.timeIDs.SEG_30)
+                while (control.end().getTime() - control.start().getTime() < chartUtils.timeAxisPreferences[i].milliseconds && i < chartUtils.timeIDs.SEG_30) {
                     i++;
+                }
 
                 // ui.toogleWindowButton (undefined, control.window_time ());
 
@@ -556,10 +562,11 @@ module.exports = (function () {
 
         if (!control.auto_enabled()) {
 
-            if (control.zoom_flags().isZooming)
+            if (control.zoom_flags().isZooming) {
                 control.disableZoom();
-            else
+            } else {
                 control.enableZoom();
+            }
 
             ui.toggleZoomButton(control.zoom_flags().isZooming);
         }
@@ -573,26 +580,32 @@ module.exports = (function () {
         if (this.checked) {
             ui.updateDataTable(control.chart().data.datasets, control.start(), control.end());
             ui.showTable();
-        } else
+        } else {
             ui.resetTable();
+        }
     };
 
     function s2ab(s) {
         if (typeof ArrayBuffer !== "undefined") {
             var buf = new ArrayBuffer(s.length);
             const view = new Uint8Array(buf);
-            for (var i=0; i!=s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
+            for (var i=0; i!=s.length; ++i) {
+                view[i] = s.charCodeAt(i) & 0xFF;
+            }
             return buf;
         } else {
             var buf = new Array(s.length);
-            for (var i=0; i!=s.length; ++i) buf[i] = s.charCodeAt(i) & 0xFF;
+            for (var i=0; i!=s.length; ++i) {
+                buf[i] = s.charCodeAt(i) & 0xFF;
+            }
             return buf;
         }
     }
 
     const exportAs = function (t) {
-        if (control.auto_enabled())
+        if (control.auto_enabled()) {
             return undefined;
+        }
 
         const book = XLSXutils.book_new(), sheets = [];
 
@@ -629,7 +642,9 @@ module.exports = (function () {
         try {
             FileSaverSaveAs(new Blob([s2ab(wbout)], {type: "application/octet-stream"}), "export." + t);
         } catch (e) {
-            if (typeof console != "undefined") console.log(e, wbout);
+            if (typeof console != "undefined") {
+                console.log(e, wbout);
+            }
         }
 
         return wbout;

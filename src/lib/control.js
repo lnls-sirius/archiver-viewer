@@ -126,13 +126,13 @@ module.exports = (function () {
             }
 
 /*            ui.disable ($("#date span.auto"));*/
-        } else if (!auto_enabled)
+        } else if (!auto_enabled) {
             ui.enable($("#date span.auto"));
+        }
 
-        if (reference == REFERENCE.END)
+        if (reference == REFERENCE.END) {
             start = new Date(end.getTime() - chartUtils.timeAxisPreferences[window_time].milliseconds);
-
-        else if (reference == REFERENCE.START) {
+        } else if (reference == REFERENCE.START) {
 
             const now = await getDateNow();
 
@@ -207,8 +207,9 @@ module.exports = (function () {
     **/
     var shouldOptimizeRequest = function (samplingPeriod, type) {
 
-        if (type == "DBR_SCALAR_ENUM")
+        if (type == "DBR_SCALAR_ENUM") {
             return -1;
+        }
 
         /*
         var dataEstimative = chartUtils.timeAxisPreferences[window_time].milliseconds / (1000 * samplingPeriod);
@@ -217,8 +218,9 @@ module.exports = (function () {
             return chartUtils.timeAxisPreferences[window_time].bins;
         */
 
-        if (window_time < chartUtils.timeIDs.HOUR_2)
+        if (window_time < chartUtils.timeIDs.HOUR_2) {
             return chartUtils.timeAxisPreferences[window_time].bins;
+        }
 
         return -1;
     };
@@ -238,27 +240,34 @@ module.exports = (function () {
             date = new Date();
         }
 
-        if (updateHtml == undefined || updateHtml == null)
+        if (updateHtml == undefined || updateHtml == null) {
             updateHtml = false;
+        }
 
         const now = await getDateNow();
 
         if (reference == REFERENCE.END) {
 
-            if (!undo || undo == undefined)
+            if (!undo || undo == undefined) {
                 undo_stack.push({action: STACK_ACTIONS.CHANGE_END_TIME, end_time: end});
+            }
 
-            if (date.getTime() <= now.getTime())
+            if (date.getTime() <= now.getTime()) {
                 end = date;
-            else end = now;
+            } else {
+                end = now;
+            }
 
             start = new Date(end.getTime() - chartUtils.timeAxisPreferences[window_time].milliseconds);
 
-            if (updateHtml) ui.updateDateComponents(end);
+            if (updateHtml) {
+                ui.updateDateComponents(end);
+            }
         } else {
 
-            if (!undo || undo == undefined)
+            if (!undo || undo == undefined) {
                 undo_stack.push({action: STACK_ACTIONS.CHANGE_START_TIME, start_time: start});
+            }
 
             if (date.getTime() + chartUtils.timeAxisPreferences[window_time].milliseconds <= now.getTime()) {
                 start = date;
@@ -268,7 +277,9 @@ module.exports = (function () {
                 end = now;
             }
 
-            if (updateHtml) ui.updateDateComponents(start);
+            if (updateHtml) {
+                ui.updateDateComponents(start);
+            }
         }
 
         ui.disableLoading();
@@ -278,15 +289,17 @@ module.exports = (function () {
 
         let can_optimize = false;
 
-        for (let i = 0; i < chart.data.datasets.length; i++)
+        for (let i = 0; i < chart.data.datasets.length; i++) {
             can_optimize |= chart.data.datasets[i].pv.optimized;
+        }
 
         // Shows a pleasant warning that the request is fetching optimized data
         if ($("#obs").css("display") != "block") {
-            if (can_optimize)
+            if (can_optimize) {
                 ui.showWarning();
-            else
+            } else {
                 ui.hideWarning();
+            }
         }
     };
 
@@ -297,17 +310,19 @@ module.exports = (function () {
             const first = data[0],
                 last  = data[data.length - 1];
 
-            if (first.x.getTime() > start.getTime())
+            if (first.x.getTime() > start.getTime()) {
                 data.unshift({
                     x: start,
                     y: first.y
                 });
+            }
 
-            if (last.x.getTime() < end.getTime())
+            if (last.x.getTime() < end.getTime()) {
                 data.push({
                     x: end,
                     y: last.y
                 });
+            }
         }
 
         return data;
@@ -331,8 +346,9 @@ module.exports = (function () {
                 handlers.handleFetchDataError,
                 ui.enableLoading);
 
-            if (fetchedData && fetchedData.length > 0)
+            if (fetchedData && fetchedData.length > 0) {
                 Array.prototype.push.apply(chart.data.datasets[pv_index].data, improveData(archInterface.parseData(fetchedData[0].data)));
+            }
         } else {
 
             // Gets the time of the first and last element of the dataset
@@ -359,8 +375,9 @@ module.exports = (function () {
 
                         appendData.pop(); // remove last element, which is already in the dataset
 
-                        if (appendData.length > 0)
+                        if (appendData.length > 0) {
                             x.setUTCMilliseconds(appendData[appendData.length - 1].secs * 1e3 + appendData[appendData.length - 1].nanos * 1e-6);
+                        }
                     }
 
                     Array.prototype.unshift.apply(chart.data.datasets[pv_index].data, archInterface.parseData(appendData));
@@ -368,8 +385,9 @@ module.exports = (function () {
             }
             // We can remove unnecessary data from the beginning of the dataset to save memory and improve performance
             else {
-                while (chart.data.datasets[pv_index].data.length > 0 && chart.data.datasets[pv_index].data[0].x.getTime() < start.getTime())
+                while (chart.data.datasets[pv_index].data.length > 0 && chart.data.datasets[pv_index].data[0].x.getTime() < start.getTime()) {
                     chart.data.datasets[pv_index].data.shift();
+                }
             }
 
             // we need to append data to the end of the data set
@@ -390,8 +408,9 @@ module.exports = (function () {
 
                         appendData.shift();
 
-                        if (appendData.length > 0)
+                        if (appendData.length > 0) {
                             x.setUTCMilliseconds(appendData[0].secs * 1e3 + appendData[0].nanos * 1e-6);
+                        }
                     }
 
                     Array.prototype.push.apply(chart.data.datasets[pv_index].data, archInterface.parseData(appendData));
@@ -403,8 +422,9 @@ module.exports = (function () {
 
                 for (var i = chart.data.datasets[pv_index].data.length - 1;
                     chart.data.datasets[pv_index].data.length > 0 && chart.data.datasets[pv_index].data[i].x.getTime() > end.getTime();
-                    i--)
+                    i--) {
                     chart.data.datasets[pv_index].data.pop();
+                }
 
             }
 
@@ -431,8 +451,9 @@ module.exports = (function () {
 
         for (let i = 0; i < chart.data.datasets.length; i++) {
 
-            if ((chart.data.datasets[i].pv.optimized) || reset)
+            if ((chart.data.datasets[i].pv.optimized) || reset) {
                 chart.data.datasets[i].data.length = 0;
+            }
 
             await updatePlot(i);
         }
@@ -449,9 +470,11 @@ module.exports = (function () {
     const getPlotIndex = function (pv_name) {
 
         // Iterates over the dataset to check if a pv named pv_name exists
-        for (let i = 0; i < chart.data.datasets.length; i++)
-            if (chart.data.datasets[i].label == pv_name || chart.data.datasets[i].label == decodeURIComponent(pv_name))
+        for (let i = 0; i < chart.data.datasets.length; i++) {
+            if (chart.data.datasets[i].label == pv_name || chart.data.datasets[i].label == decodeURIComponent(pv_name)) {
                 return i;
+            }
+        }
 
         return null;
     };
@@ -461,10 +484,11 @@ module.exports = (function () {
         let searchString = "?";
 
         for (let i = 0; i < chart.data.datasets.length; i++) {
-            if (chart.data.datasets[i].pv.optimized)
+            if (chart.data.datasets[i].pv.optimized) {
                 searchString += "pv=optimized_" + chartUtils.timeAxisPreferences[window_time].bins + "(" + encodeURIComponent(chart.data.datasets[i].label) + ")&";
-            else
+            } else {
                 searchString += "pv=" + encodeURIComponent(chart.data.datasets[i].label) + "&";
+            }
         }
 
         searchString += "from=" + encodeURIComponent(start.toJSON()) + "&";
@@ -484,12 +508,13 @@ module.exports = (function () {
 
             for (var i = 0; i < search_paths.length; i++) {
 
-                if (search_paths[i].indexOf("pv=") != -1)
+                if (search_paths[i].indexOf("pv=") != -1) {
                     pvs.push(decodeURIComponent(search_paths[i].substr(search_paths[i].indexOf("=") + 1)));
-                else if (search_paths[i].indexOf("from=") != -1)
+                } else if (search_paths[i].indexOf("from=") != -1) {
                     urlStart = decodeURIComponent(search_paths[i].substr(search_paths[i].indexOf("=") + 1));
-                else if (search_paths[i].indexOf("to=") != -1)
+                } else if (search_paths[i].indexOf("to=") != -1) {
                     urlEnd = decodeURIComponent(search_paths[i].substr(search_paths[i].indexOf("=") + 1));
+                }
             }
         }
 
@@ -499,10 +524,12 @@ module.exports = (function () {
             end = new Date(urlEnd);
 
             window_time = 0;
-            while (end.getTime() - start.getTime() < chartUtils.timeAxisPreferences[window_time].milliseconds && window_time < chartUtils.timeIDs.SEG_30)
+            while (end.getTime() - start.getTime() < chartUtils.timeAxisPreferences[window_time].milliseconds && window_time < chartUtils.timeIDs.SEG_30) {
                 window_time++;
-        } else
+            }
+        } else {
             await updateStartAndEnd(new Date(), true);
+        }
 
         // ui.toogleWindowButton(window_time, undefined);
 

@@ -36,11 +36,13 @@ module.exports = (function () {
     const toogleWindowButton = function (toPush, toUnpush) {
 
         /* Untoggled pushed button */
-        if (toUnpush !== undefined)
+        if (toUnpush !== undefined) {
             $("#window_table tr").eq(0).find("td").eq(toUnpush)[0].className = "unpushed";
+        }
 
-        if (toPush !== undefined)
+        if (toPush !== undefined) {
             $("#window_table tr").eq(0).find("td").eq(toPush)[0].className = "pushed";
+        }
     };
 
     const enableLoading = function () {
@@ -125,10 +127,11 @@ module.exports = (function () {
             const tdCheckbox = $("<td></td>");
 
             checkboxes.push($("<input />").attr({"type": "checkbox", "checked": selectedPVs.indexOf(data[i]) > -1}).click({"name": data[i]}, function (event) {
-                if (this.checked)
+                if (this.checked) {
                     selectedPVs.push(event.data.name);
-                else
+                } else {
                     selectedPVs.splice(selectedPVs.indexOf(event.data.name), 1);
+                }
 
             }).appendTo(tdCheckbox));
 
@@ -146,17 +149,19 @@ module.exports = (function () {
     };
 
     const deselectedAllPVs = function (e) {
-        for (let i = 0; i < checkboxes.length; i++)
+        for (let i = 0; i < checkboxes.length; i++) {
             checkboxes[i].prop("checked", false).triggerHandler("click");
+        }
     };
 
     const showSearchResults = function (data) {
 
         if (data != null && data.length > 0) {
-            if (data.length > 1)
+            if (data.length > 1) {
                 $("#archived_PVs h2").text(data.length + " PVs have been found.");
-            else
+            } else {
                 $("#archived_PVs h2").text("1 PV has been found.");
+            }
 
             currentPage = 0;
             selectedPVs = [];
@@ -174,8 +179,9 @@ module.exports = (function () {
                 currentPage = currentPage - 1;
                 showSearchResultsAtPage(currentPage, event.data.pvs);
 
-                if (!currentPage)
+                if (!currentPage) {
                     $("#previous").hide();
+                }
 
                 $("#next").show();
             });
@@ -185,18 +191,21 @@ module.exports = (function () {
                 currentPage = currentPage + 1;
                 showSearchResultsAtPage(currentPage, event.data.pvs);
 
-                if ((currentPage + 1) * PV_MAX_ROW_PER_PAGE * PV_PER_ROW >= event.data.pvs.length)
+                if ((currentPage + 1) * PV_MAX_ROW_PER_PAGE * PV_PER_ROW >= event.data.pvs.length) {
                     $("#next").hide();
+                }
 
                 $("#previous").show();
             });
 
-            if (data.length <= PV_MAX_ROW_PER_PAGE * PV_PER_ROW)
+            if (data.length <= PV_MAX_ROW_PER_PAGE * PV_PER_ROW) {
                 $("#next").hide();
-            else
+            } else {
                 $("#next").show();
-        } else if (data != null)
+            }
+        } else if (data != null) {
             toogleSearchWarning("No PVs corresponding to the search string have been found.");
+        }
     };
 
     const hideSearchedPVs = function () {
@@ -206,10 +215,11 @@ module.exports = (function () {
     };
 
     const toggleZoomButton = function (enable) {
-        if (enable)
+        if (enable) {
             $("#date .zoom").css("background-color", "lightgrey");
-        else
+        } else {
             $("#date .zoom").css("background-color", "grey");
+        }
     };
 
     const hideZoomBox = function () {
@@ -228,8 +238,9 @@ module.exports = (function () {
 
     const updateAddress = function (searchString) {
         const newurl = window.location.pathname + searchString;
-        if (history.pushState)
+        if (history.pushState) {
             window.history.pushState({path: newurl}, "", newurl);
+        }
     };
 
     /**
@@ -287,8 +298,9 @@ module.exports = (function () {
         $("#data_axis .data_axis_table").remove();
         const table = $("<table></table>").addClass("data_axis_table");
 
-        if (series.length < 1)
+        if (series.length < 1) {
             return;
+        }
 
         // Draw a table containing each series in the chart.
         for (let i = 0; i < series.length; i++) {

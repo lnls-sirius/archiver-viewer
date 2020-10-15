@@ -224,8 +224,9 @@ module.exports = (function() {
     };
 
     const toggleAxisType = (chart, axisId, isLogarithmic)=>{
-        if (chart.options.scales.yAxes.length <= 1)
+        if (chart.options.scales.yAxes.length <= 1) {
             return;
+        }
 
         for (let i=1; i < chart.options.scales.yAxes.length; i++) {
             if (chart.options.scales.yAxes[i].id == axisId) {
@@ -268,8 +269,9 @@ module.exports = (function() {
     };
 
     const changeYLimit = (chart, axisId, limitInput)=>{
-        if (chart.options.scales.yAxes.length <= 1)
+        if (chart.options.scales.yAxes.length <= 1) {
             return;
+        }
 
         for (let i=1; i < chart.options.scales.yAxes.length; i++) {
             if (chart.options.scales.yAxes[i].id == axisId) {
@@ -318,8 +320,9 @@ module.exports = (function() {
         /* yAxisUseCounter[n_id] stands for the times this axis is used */
         yAxisUseCounter[n_id] = 1;
 
-        if (ticks_precision == undefined)
+        if (ticks_precision == undefined) {
             ticks_precision = 3;
+        }
 
         // Function which is called when the scale is being drawn.
         const ticks_cb = function(value) {
@@ -369,8 +372,9 @@ module.exports = (function() {
         // Parses the data fetched from the archiver the way that the chart's internal classes can plot
         const color = (colorStack.length > 0)?colorStack.pop():randomColorGenerator();
 
-        if (unit == undefined)
+        if (unit == undefined) {
             unit = pv_name;
+        }
 
         unit = unit.replace("?", "o");
 
@@ -412,8 +416,9 @@ module.exports = (function() {
         } else {
             metadata.hidden = true;
             yAxisUseCounter[metadata.yAxisID]--;
-            if (yAxisUseCounter[metadata.yAxisID] <= 0)
+            if (yAxisUseCounter[metadata.yAxisID] <= 0) {
                 chart.scales[metadata.yAxisID].options.display = false;
+            }
         }
     };
 
@@ -432,11 +437,13 @@ module.exports = (function() {
     * Edits tooltip's label before printing them in the screen.
     **/
     const labelCallback = function(label, chart) {
-        if (label.yLabel != 0 && Math.abs(label.yLabel) < Math.pow(10, -chart.datasets[label.datasetIndex].pv.precision))
+        if (label.yLabel != 0 && Math.abs(label.yLabel) < Math.pow(10, -chart.datasets[label.datasetIndex].pv.precision)) {
             return chart.datasets[label.datasetIndex].label + ": " + label.yLabel.toExponential(Math.min(3, chart.datasets[label.datasetIndex].pv.precision));
+        }
 
-        if (chart.datasets[label.datasetIndex].pv.precision > 4)
+        if (chart.datasets[label.datasetIndex].pv.precision > 4) {
             return chart.datasets[label.datasetIndex].label + ": " + label.yLabel.toExponential(3);
+        }
 
         return chart.datasets[label.datasetIndex].label + ": " +  label.yLabel.toFixed(chart.datasets[label.datasetIndex].pv.precision);
     };
