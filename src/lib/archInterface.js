@@ -34,7 +34,7 @@ module.exports = (function () {
         window.location.protocol + "//" + url,
         "http://archiver.cnpem.br",
         "http://10.0.38.42"
-    ]
+    ];
 
     /**
     * Parses the data retrieved from the archiver in a way that it can be understood by the chart controller
@@ -78,15 +78,15 @@ module.exports = (function () {
 
         let returnData = null;
         let errorCount = 0;
-        let errors = [];
+        const errors = [];
         for (const appliance of APPLIANCES) {
-            if(returnData != null) {
+            if (returnData != null) {
                 break;
             }
             const jsonurl = appliance + "/retrieval/bpl/getMetadata?pv=" + pv;
             const components = jsonurl.split("?");
             const HTTPMethod = jsonurl.length > 2048 ? "POST" : "GET";
-            let lastErrors = {jqXHR:null, textStatus:null, errorThrown:null};
+            const lastErrors = {jqXHR: null, textStatus: null, errorThrown: null};
 
             console.log("Search appliance", appliance, "for PV", pv);
             try {
@@ -110,7 +110,7 @@ module.exports = (function () {
                 errorCount ++;
             }
         }
-        if(errorCount == APPLIANCES.length){
+        if (errorCount == APPLIANCES.length) {
             if (handleError && errors.length > 0) {
                 handleError(errors[0].jqXHR, errors[0].textStatus, errors[0].errorThrown);
             } else {
@@ -129,8 +129,8 @@ module.exports = (function () {
         }
 
         const jsonurl = !isOptimized ?
-        GET_DATA_URL + "?pv=" + pv + "&from=" + from.toJSON() + "&to=" + to.toJSON():
-        GET_DATA_URL + "?pv=optimized_" + bins + "(" + pv + ")&from=" + from.toJSON() + "&to=" + to.toJSON();
+            GET_DATA_URL + "?pv=" + pv + "&from=" + from.toJSON() + "&to=" + to.toJSON():
+            GET_DATA_URL + "?pv=optimized_" + bins + "(" + pv + ")&from=" + from.toJSON() + "&to=" + to.toJSON();
 
 
         const components = jsonurl.split("?");
@@ -146,17 +146,17 @@ module.exports = (function () {
             beforeSend: showLoading,
             timeout: 0,
         }).done(function(data, textStatus, jqXHR) {
-                returnData = textStatus === "success" ? data : null;
-                if (returnData) {
-                    try {
-                        returnData = returnData.replace(/(-?Infinity)/g, "\"$1\"");
-                        returnData = returnData.replace(/(NaN)/g, "\"$1\"");
-                        returnData = JSON.parse(returnData);
-                    } catch (err) {
-                        console.log("Failed to parse data from request", components[0], err.message);
-                    }
+            returnData = textStatus === "success" ? data : null;
+            if (returnData) {
+                try {
+                    returnData = returnData.replace(/(-?Infinity)/g, "\"$1\"");
+                    returnData = returnData.replace(/(NaN)/g, "\"$1\"");
+                    returnData = JSON.parse(returnData);
+                } catch (err) {
+                    console.log("Failed to parse data from request", components[0], err.message);
                 }
-            })
+            }
+        })
             .fail(function (jqXHR, textStatus, errorThrown) {
                 handleError(jqXHR, textStatus, errorThrown);
             });
@@ -167,26 +167,26 @@ module.exports = (function () {
     /**
     * Key event handler which looks for PVs in the archiver
     **/
-    var query = function (pvs, handleSuccess, handleError, handleComplete, handleBefore) {
+    const query = function (pvs, handleSuccess, handleError, handleComplete, handleBefore) {
 
-        var jsonurl = "http://" + url + '/retrieval/bpl/getMatchingPVs?pv=' + pvs + "&limit=4000",
-            components = jsonurl.split('?'),
-            querystring = components.length > 1 ? querystring = components[1] : '',
-            HTTPMethod = jsonurl.length > 2048 ? 'POST' : 'GET';
+        var jsonurl = "http://" + url + "/retrieval/bpl/getMatchingPVs?pv=" + pvs + "&limit=4000",
+            components = jsonurl.split("?"),
+            querystring = components.length > 1 ? querystring = components[1] : "",
+            HTTPMethod = jsonurl.length > 2048 ? "POST" : "GET";
 
         $.ajax({
             url: components[0],
             data: querystring,
             type: HTTPMethod,
             crossDomain: true,
-            dataType: 'json',
+            dataType: "json",
             timeout: 3000,
-            beforeSend:handleBefore,
+            beforeSend: handleBefore,
             success: handleSuccess,
             error: handleError,
             complete: handleComplete
         });
-    }
+    };
 
     return {
         url: function () {

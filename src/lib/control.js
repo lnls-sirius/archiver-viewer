@@ -167,7 +167,7 @@ module.exports = (function () {
         }
 
         // Asks for the PV's metadata
-        let metadata = await archInterface.fetchMetadata(pv).catch(err=>console.log("Fetch metadata Exception", err));
+        const metadata = await archInterface.fetchMetadata(pv).catch(err=>console.log("Fetch metadata Exception", err));
         if (metadata == null) {
             ui.toogleSearchWarning("Failed to fetch metadata for pv " + pv);
             console.log("No metadata for ", pv);
@@ -420,7 +420,7 @@ module.exports = (function () {
     };
 
     /**
-    * Updates all plots added so far. 
+    * Updates all plots added so far.
     * @param resets: informs if the user wants to reset the data in the dataset.
     **/
     async function updateAllPlots(reset) {
@@ -431,7 +431,7 @@ module.exports = (function () {
 
         for (let i = 0; i < chart.data.datasets.length; i++) {
 
-            if ((chart.data.datasets[i].pv.optimized ) || reset)
+            if ((chart.data.datasets[i].pv.optimized) || reset)
                 chart.data.datasets[i].data.length = 0;
 
             await updatePlot(i);
