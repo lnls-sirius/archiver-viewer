@@ -1,22 +1,23 @@
 import React, { Component } from "react";
+import PropTypes from "prop-types";
 
 class SeriesInfo extends Component {
     constructor(props) {
         super();
 
         this.state = {
-            pvName:'PVName',
-            color:'#ff0000',
-            optimize:false,
-            logScale:false,
+            pvName: "PVName",
+            color: "#ff0000",
+            optimize: false,
+            logScale: false,
         };
 
     }
     flip = (e)=>{
-        this.setState({optimize:e.target.checked});
+        this.setState({optimize: e.target.checked});
     }
     color = (e)=>{
-        this.setState({color:e.target.value});
+        this.setState({color: e.target.value});
     }
 
     render() {
@@ -34,8 +35,11 @@ class SeriesInfo extends Component {
                 </label>
                 <button>X</button>
             </span>
-       );
+        );
     }
 
 }
+SeriesInfo.propTypes = {
+    optimize: PropTypes.bool.isRequired
+};
 export default SeriesInfo;

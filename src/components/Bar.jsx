@@ -1,20 +1,21 @@
 import React, { Component } from "react";
-import BarControl from './BarControl.jsx';
-import SearchPV from 'components/SearchPV.jsx';
-import Intervals from 'components/Intervals.jsx';
+import PropTypes from "prop-types";
+import BarControl from "./BarControl.jsx";
+import SearchPV from "components/SearchPV.jsx";
+import Intervals from "components/Intervals.jsx";
 
-import 'css/bar.css';
+import "css/bar.css";
 
-import labLogo1 from './../img/labLogo.png';
-import labLogo2 from './../img/labLogo2.png';
+import labLogo1 from "./../img/labLogo.png";
+import labLogo2 from "./../img/labLogo2.png";
 
-function Logo(props){
-        return <span className="header-logo">
-          <a>
+function Logo(props) {
+    return <span className="header-logo">
+        <a>
             <img src={labLogo1}/>
             <img src={labLogo2}/>
-          </a>
-        </span>
+        </a>
+    </span>;
 }
 
 class Bar extends Component {
@@ -24,7 +25,7 @@ class Bar extends Component {
 
     render() {
         return (
-           <div className='main-bar'>
+            <div className='main-bar'>
                 <span>
                     <Intervals
                         windowTime={this.props.data.windowTime}
@@ -41,4 +42,8 @@ class Bar extends Component {
         );
     }
 }
+Bar.propTypes = {
+    data: PropTypes.object.isRequired,
+    handlers: PropTypes.object.isRequired,
+};
 export default Bar;
