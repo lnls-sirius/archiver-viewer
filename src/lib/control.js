@@ -7,12 +7,13 @@
 /* require archInterface, chartUtils */
 
 /* Module dependencies */
-const ui = require("./ui.js");
-const chartUtils = require("./chartUtils.js");
-const archInterface = require("./archInterface.js");
-const handlers = require("./handlers.js");
+import archInterface from "./archInterface.js";
 
-module.exports = (function () {
+import ui from "./ui.js";
+import chartUtils from "./chartUtils.js";
+import handlers from "./handlers.js";
+
+const control = (function () {
 
     const DATA_VOLUME_MAX = 5000;
 
@@ -37,30 +38,30 @@ module.exports = (function () {
     /* start and end timedates */
     let start, end, reference = REFERENCE.END;
 
-    let window_time = chartUtils.timeIDs.MIN_10;
+    let windowTime = chartUtils.timeIDs.MIN10;
 
     let timer = null;
 
     /* Control flags */
-    let auto_enabled = false;
-    let singleTip_enabled = true;
-    let scrolling_enabled = true;
-    let serverDate_enabled = true;
+    let autoEnabled = false;
+    let singleTipEnabled = true;
+    let scrollingEnabled = true;
+    let serverDateEnabled = true;
 
     let cachedDate = new Date();
     let lastFetch = 0;
 
-    const drag_flags = {
-        drag_started: false,
+    const dragFlags = {
+        dragStarted: false,
         updateOnComplete: true,
     };
 
-    const zoom_flags = {
+    const zoomFlags = {
         isZooming: false,
         hasBegan: false,
     };
 
-    const undo_stack = [], redo_stack = [];
+    const undoStack = [], redoStack = [];
 
     const init = function (c) {
         chart = c;
@@ -79,7 +80,7 @@ module.exports = (function () {
         const tooltipWidth = this.tooltip._model.width;
         const tooltipHeight = this.tooltip._model.height;
 
-        if (!singleTip_enabled) {
+        if (!singleTipEnabled) {
             const x = arguments[0].x;
             const y = arguments[0].y;
             this.clear();
@@ -104,15 +105,15 @@ module.exports = (function () {
     };
 
     async function updateTimeWindow(window) {
-       // ui.toogleWindowButton (window, window_time);
+       // ui.toogleWindowButton (window, windowTime);
 
-        window_time = window;
+        windowTime = window;
 
-        if (window_time < chartUtils.timeIDs.MIN_30) {
+        if (windowTime < chartUtils.timeIDs.MIN_30) {
 
-            if (auto_enabled) {
+            if (autoEnabled) {
 
-                auto_enabled = false;
+                autoEnabled = false;
 
                 clearInterval(timer);
 /*
@@ -126,18 +127,18 @@ module.exports = (function () {
             }
 
 /*            ui.disable ($("#date span.auto"));*/
-        } else if (!auto_enabled) {
+        } else if (!autoEnabled) {
             ui.enable($("#date span.auto"));
         }
 
         if (reference == REFERENCE.END) {
-            start = new Date(end.getTime() - chartUtils.timeAxisPreferences[window_time].milliseconds);
+            start = new Date(end.getTime() - chartUtils.timeAxisPreferences[windowTime].milliseconds);
         } else if (reference == REFERENCE.START) {
 
             const now = await getDateNow();
 
-            if (start.getTime() + chartUtils.timeAxisPreferences[window_time].milliseconds <= now.getTime()) {
-                end = new Date(start.getTime() + chartUtils.timeAxisPreferences[window_time].milliseconds);
+            if (start.getTime() + chartUtils.timeAxisPreferences[windowTime].milliseconds <= now.getTime()) {
+                end = new Date(start.getTime() + chartUtils.timeAxisPreferences[windowTime].milliseconds);
             } else {
                 end = now;
             }
@@ -146,7 +147,7 @@ module.exports = (function () {
         optimizeAllGraphs();
         updateAllPlots(true);
         updateURL();
-        chartUtils.updateTimeAxis(chart, chartUtils.timeAxisPreferences[window_time].unit, chartUtils.timeAxisPreferences[window_time].unitStepSize, start, end);
+        chartUtils.updateTimeAxis(chart, chartUtils.timeAxisPreferences[windowTime].unit, chartUtils.timeAxisPreferences[windowTime].unitStepSize, start, end);
 
         ui.disableLoading();
 
@@ -179,7 +180,7 @@ module.exports = (function () {
         if (optimized == false) {
             bins = -1;
         } else if (optimized && bins == -1) {
-            bins = chartUtils.timeAxisPreferences[window_time].bins;
+            bins = chartUtils.timeAxisPreferences[windowTime].bins;
         }
         const data = await archInterface.fetchData(
             pv, start, end, bins < 0 ? false : true, bins, handlers.handleFetchDataError, ui.enableLoading);
@@ -197,7 +198,7 @@ module.exports = (function () {
         ui.updatePVInfoTable(chart.data.datasets, hideAxis, optimizeHandler, removeHandler);
 
         if (!undo || undo == undefined) {
-            undo_stack.push({action: STACK_ACTIONS.APPEND_PV, pv: pv});
+            undoStack.push({action: STACK_ACTIONS.APPEND_PV, pv: pv});
         }
         ui.disableLoading();
     }
@@ -212,14 +213,14 @@ module.exports = (function () {
         }
 
         /*
-        var dataEstimative = chartUtils.timeAxisPreferences[window_time].milliseconds / (1000 * samplingPeriod);
+        var dataEstimative = chartUtils.timeAxisPreferences[windowTime].milliseconds / (1000 * samplingPeriod);
 
         if (dataEstimative > DATA_VOLUME_MAX)
-            return chartUtils.timeAxisPreferences[window_time].bins;
+            return chartUtils.timeAxisPreferences[windowTime].bins;
         */
 
-        if (window_time < chartUtils.timeIDs.HOUR_2) {
-            return chartUtils.timeAxisPreferences[window_time].bins;
+        if (windowTime < chartUtils.timeIDs.HOUR2) {
+            return chartUtils.timeAxisPreferences[windowTime].bins;
         }
 
         return -1;
@@ -249,7 +250,7 @@ module.exports = (function () {
         if (reference == REFERENCE.END) {
 
             if (!undo || undo == undefined) {
-                undo_stack.push({action: STACK_ACTIONS.CHANGE_END_TIME, end_time: end});
+                undoStack.push({action: STACK_ACTIONS.CHANGE_END_TIME, endTime: end});
             }
 
             if (date.getTime() <= now.getTime()) {
@@ -258,7 +259,7 @@ module.exports = (function () {
                 end = now;
             }
 
-            start = new Date(end.getTime() - chartUtils.timeAxisPreferences[window_time].milliseconds);
+            start = new Date(end.getTime() - chartUtils.timeAxisPreferences[windowTime].milliseconds);
 
             if (updateHtml) {
                 ui.updateDateComponents(end);
@@ -266,14 +267,14 @@ module.exports = (function () {
         } else {
 
             if (!undo || undo == undefined) {
-                undo_stack.push({action: STACK_ACTIONS.CHANGE_START_TIME, start_time: start});
+                undoStack.push({action: STACK_ACTIONS.CHANGE_START_TIME, startTime: start});
             }
 
-            if (date.getTime() + chartUtils.timeAxisPreferences[window_time].milliseconds <= now.getTime()) {
+            if (date.getTime() + chartUtils.timeAxisPreferences[windowTime].milliseconds <= now.getTime()) {
                 start = date;
-                end = new Date(date.getTime() + chartUtils.timeAxisPreferences[window_time].milliseconds);
+                end = new Date(date.getTime() + chartUtils.timeAxisPreferences[windowTime].milliseconds);
             } else {
-                start = new Date(now.getTime() - chartUtils.timeAxisPreferences[window_time].milliseconds);
+                start = new Date(now.getTime() - chartUtils.timeAxisPreferences[windowTime].milliseconds);
                 end = now;
             }
 
@@ -287,15 +288,15 @@ module.exports = (function () {
 
     var updateOptimizedWarning = function () {
 
-        let can_optimize = false;
+        let canOptimize = false;
 
         for (let i = 0; i < chart.data.datasets.length; i++) {
-            can_optimize |= chart.data.datasets[i].pv.optimized;
+            canOptimize |= chart.data.datasets[i].pv.optimized;
         }
 
         // Shows a pleasant warning that the request is fetching optimized data
         if ($("#obs").css("display") != "block") {
-            if (can_optimize) {
+            if (canOptimize) {
                 ui.showWarning();
             } else {
                 ui.hideWarning();
@@ -329,39 +330,39 @@ module.exports = (function () {
     };
 
     /**
-    * Updates a plot of index pv_index.
+    * Updates a plot of index pvIndex.
     **/
-    async function updatePlot(pv_index) {
+    async function updatePlot(pvIndex) {
     // If the dataset is already empty, no verification is needed. All optimized request must be pass this condition.
-        if (chart.data.datasets[pv_index].data.length == 0) {
+        if (chart.data.datasets[pvIndex].data.length == 0) {
 
-            // var bins = shouldOptimizeRequest(chart.data.datasets[pv_index].pv.samplingPeriod, chart.data.datasets[pv_index].pv.type);
-            // chart.data.datasets[pv_index].pv.optimized = bins < 0 ? false : true;
+            // var bins = shouldOptimizeRequest(chart.data.datasets[pvIndex].pv.samplingPeriod, chart.data.datasets[pvIndex].pv.type);
+            // chart.data.datasets[pvIndex].pv.optimized = bins < 0 ? false : true;
 
-            const bins = chartUtils.timeAxisPreferences[window_time].bins;
+            const bins = chartUtils.timeAxisPreferences[windowTime].bins;
 
             const fetchedData = await archInterface.fetchData(
-                chart.data.datasets[pv_index].label,
-                start, end, chart.data.datasets[pv_index].pv.optimized, bins,
+                chart.data.datasets[pvIndex].label,
+                start, end, chart.data.datasets[pvIndex].pv.optimized, bins,
                 handlers.handleFetchDataError,
                 ui.enableLoading);
 
             if (fetchedData && fetchedData.length > 0) {
-                Array.prototype.push.apply(chart.data.datasets[pv_index].data, improveData(archInterface.parseData(fetchedData[0].data)));
+                Array.prototype.push.apply(chart.data.datasets[pvIndex].data, improveData(archInterface.parseData(fetchedData[0].data)));
             }
         } else {
 
             // Gets the time of the first and last element of the dataset
-            const first = chart.data.datasets[pv_index].data[0].x,
-                last  = chart.data.datasets[pv_index].data[chart.data.datasets[pv_index].data.length - 1].x;
+            const first = chart.data.datasets[pvIndex].data[0].x,
+                last  = chart.data.datasets[pvIndex].data[chart.data.datasets[pvIndex].data.length - 1].x;
 
-            // chart.data.datasets[pv_index].pv.optimized = false;
+            // chart.data.datasets[pvIndex].pv.optimized = false;
 
             // we need to append data to the beginning of the data set
             if (first.getTime() > start.getTime()) {
 
                 // Fetches data from the start to the first measure's time
-                var appendData = await archInterface.fetchData(chart.data.datasets[pv_index].label, start, first, false, handlers.handleFetchDataError, ui.enableLoading);
+                var appendData = await archInterface.fetchData(chart.data.datasets[pvIndex].label, start, first, false, handlers.handleFetchDataError, ui.enableLoading);
 
                 // Appends new data into the dataset
                 if (appendData.length > 0) {
@@ -380,13 +381,13 @@ module.exports = (function () {
                         }
                     }
 
-                    Array.prototype.unshift.apply(chart.data.datasets[pv_index].data, archInterface.parseData(appendData));
+                    Array.prototype.unshift.apply(chart.data.datasets[pvIndex].data, archInterface.parseData(appendData));
                 }
             }
             // We can remove unnecessary data from the beginning of the dataset to save memory and improve performance
             else {
-                while (chart.data.datasets[pv_index].data.length > 0 && chart.data.datasets[pv_index].data[0].x.getTime() < start.getTime()) {
-                    chart.data.datasets[pv_index].data.shift();
+                while (chart.data.datasets[pvIndex].data.length > 0 && chart.data.datasets[pvIndex].data[0].x.getTime() < start.getTime()) {
+                    chart.data.datasets[pvIndex].data.shift();
                 }
             }
 
@@ -394,7 +395,7 @@ module.exports = (function () {
             if (last.getTime() < end.getTime()) {
 
                 // Fetches data from the last measure's time to the end
-                var appendData = await archInterface.fetchData(chart.data.datasets[pv_index].label, last, end, false, handlers.handleFetchDataError, ui.enableLoading);
+                var appendData = await archInterface.fetchData(chart.data.datasets[pvIndex].label, last, end, false, handlers.handleFetchDataError, ui.enableLoading);
 
                 // Appends new data into the dataset
                 if (appendData.length > 0) {
@@ -413,22 +414,22 @@ module.exports = (function () {
                         }
                     }
 
-                    Array.prototype.push.apply(chart.data.datasets[pv_index].data, archInterface.parseData(appendData));
+                    Array.prototype.push.apply(chart.data.datasets[pvIndex].data, archInterface.parseData(appendData));
                 }
             }
             // We can remove unnecessary data from the end of the dataset to save memory and improve performance
             else {
-                var i = chart.data.datasets[pv_index].data.length - 1;
+                var i = chart.data.datasets[pvIndex].data.length - 1;
 
-                for (var i = chart.data.datasets[pv_index].data.length - 1;
-                    chart.data.datasets[pv_index].data.length > 0 && chart.data.datasets[pv_index].data[i].x.getTime() > end.getTime();
+                for (var i = chart.data.datasets[pvIndex].data.length - 1;
+                    chart.data.datasets[pvIndex].data.length > 0 && chart.data.datasets[pvIndex].data[i].x.getTime() > end.getTime();
                     i--) {
-                    chart.data.datasets[pv_index].data.pop();
+                    chart.data.datasets[pvIndex].data.pop();
                 }
 
             }
 
-            await improveData(chart.data.datasets[pv_index].data);
+            await improveData(chart.data.datasets[pvIndex].data);
         }
     }
 
@@ -467,11 +468,11 @@ module.exports = (function () {
     /**
     * Checks if a PV is already plotted.
     **/
-    const getPlotIndex = function (pv_name) {
+    const getPlotIndex = function (pvName) {
 
-        // Iterates over the dataset to check if a pv named pv_name exists
+        // Iterates over the dataset to check if a pv named pvName exists
         for (let i = 0; i < chart.data.datasets.length; i++) {
-            if (chart.data.datasets[i].label == pv_name || chart.data.datasets[i].label == decodeURIComponent(pv_name)) {
+            if (chart.data.datasets[i].label == pvName || chart.data.datasets[i].label == decodeURIComponent(pvName)) {
                 return i;
             }
         }
@@ -485,7 +486,7 @@ module.exports = (function () {
 
         for (let i = 0; i < chart.data.datasets.length; i++) {
             if (chart.data.datasets[i].pv.optimized) {
-                searchString += "pv=optimized_" + chartUtils.timeAxisPreferences[window_time].bins + "(" + encodeURIComponent(chart.data.datasets[i].label) + ")&";
+                searchString += "pv=optimized_" + chartUtils.timeAxisPreferences[windowTime].bins + "(" + encodeURIComponent(chart.data.datasets[i].label) + ")&";
             } else {
                 searchString += "pv=" + encodeURIComponent(chart.data.datasets[i].label) + "&";
             }
@@ -504,16 +505,16 @@ module.exports = (function () {
 
         if (searchPath != "") {
 
-            const search_paths = searchPath.split("&");
+            const searchPaths = searchPath.split("&");
 
-            for (var i = 0; i < search_paths.length; i++) {
+            for (var i = 0; i < searchPaths.length; i++) {
 
-                if (search_paths[i].indexOf("pv=") != -1) {
-                    pvs.push(decodeURIComponent(search_paths[i].substr(search_paths[i].indexOf("=") + 1)));
-                } else if (search_paths[i].indexOf("from=") != -1) {
-                    urlStart = decodeURIComponent(search_paths[i].substr(search_paths[i].indexOf("=") + 1));
-                } else if (search_paths[i].indexOf("to=") != -1) {
-                    urlEnd = decodeURIComponent(search_paths[i].substr(search_paths[i].indexOf("=") + 1));
+                if (searchPaths[i].indexOf("pv=") != -1) {
+                    pvs.push(decodeURIComponent(searchPaths[i].substr(searchPaths[i].indexOf("=") + 1)));
+                } else if (searchPaths[i].indexOf("from=") != -1) {
+                    urlStart = decodeURIComponent(searchPaths[i].substr(searchPaths[i].indexOf("=") + 1));
+                } else if (searchPaths[i].indexOf("to=") != -1) {
+                    urlEnd = decodeURIComponent(searchPaths[i].substr(searchPaths[i].indexOf("=") + 1));
                 }
             }
         }
@@ -523,19 +524,19 @@ module.exports = (function () {
             start = new Date(urlStart);
             end = new Date(urlEnd);
 
-            window_time = 0;
-            while (end.getTime() - start.getTime() < chartUtils.timeAxisPreferences[window_time].milliseconds && window_time < chartUtils.timeIDs.SEG_30) {
-                window_time++;
+            windowTime = 0;
+            while (end.getTime() - start.getTime() < chartUtils.timeAxisPreferences[windowTime].milliseconds && windowTime < chartUtils.timeIDs.SEG_30) {
+                windowTime++;
             }
         } else {
             await updateStartAndEnd(new Date(), true);
         }
 
-        // ui.toogleWindowButton(window_time, undefined);
+        // ui.toogleWindowButton(windowTime, undefined);
 
         ui.updateDateComponents(end);
 
-        chartUtils.updateTimeAxis(chart, chartUtils.timeAxisPreferences[window_time].unit, chartUtils.timeAxisPreferences[window_time].unitStepSize, start, end);
+        chartUtils.updateTimeAxis(chart, chartUtils.timeAxisPreferences[windowTime].unit, chartUtils.timeAxisPreferences[windowTime].unitStepSize, start, end);
 
         for (var i = 0; i < pvs.length; i++) {
 
@@ -552,10 +553,10 @@ module.exports = (function () {
 
         const singleTipCookie = getCookie("singleTip");
 
-        singleTip_enabled = singleTipCookie == "true" || singleTipCookie == null;
+        singleTipEnabled = singleTipCookie == "true" || singleTipCookie == null;
 
-        chartUtils.toggleTooltipBehavior(chart, singleTip_enabled);
-        $(".fa-list").css("color", singleTip_enabled ? "lightgrey" : "black"); // addClass does not work in a predictable way
+        chartUtils.toggleTooltipBehavior(chart, singleTipEnabled);
+        $(".fa-list").css("color", singleTipEnabled ? "lightgrey" : "black"); // addClass does not work in a predictable way
 
         chart.update(0, false);
     }
@@ -574,7 +575,7 @@ module.exports = (function () {
     }
 
     async function getDateNow() {
-        if (!serverDate_enabled) {
+        if (!serverDateEnabled) {
             return new Date();
         }
         if (new Date() - lastFetch < 0) {
@@ -595,7 +596,7 @@ module.exports = (function () {
             return currentTime;
         } catch (e) {
             console.log("Date retrieval failed. Using local date.");
-            serverDate_enabled = false;
+            serverDateEnabled = false;
             return new Date();
         }
     }
@@ -621,7 +622,7 @@ module.exports = (function () {
         chartUtils.colorStack().push(chart.data.datasets[datasetIndex].backgroundColor);
 
         if (!undo || undo == undefined) {
-            undo_stack.push({action: STACK_ACTIONS.REMOVE_PV, pv: chart.data.datasets[datasetIndex].label, optimized: chart.data.datasets[datasetIndex].pv.optimized});
+            undoStack.push({action: STACK_ACTIONS.REMOVE_PV, pv: chart.data.datasets[datasetIndex].label, optimized: chart.data.datasets[datasetIndex].pv.optimized});
         }
 
         if (chartUtils.yAxisUseCounter()[chart.data.datasets[datasetIndex].yAxisID] == 0) {
@@ -693,39 +694,39 @@ module.exports = (function () {
         reference: function () {
             return reference;
         },
-        window_time: function () {
-            return window_time;
+        windowTime: function () {
+            return windowTime;
         },
         timer: function () {
             return timer;
         },
-        auto_enabled: function () {
-            return auto_enabled;
+        autoEnabled: function () {
+            return autoEnabled;
         },
-        singleTip_enabled: function () {
-            return singleTip_enabled;
+        singleTipEnabled: function () {
+            return singleTipEnabled;
         },
-        scrolling_enabled: function () {
-            return scrolling_enabled;
+        scrollingEnabled: function () {
+            return scrollingEnabled;
         },
-        serverDate_enabled: function () {
-            return serverDate_enabled;
+        serverDateEnabled: function () {
+            return serverDateEnabled;
         },
-        drag_flags: function () {
-            return drag_flags;
+        dragFlags: function () {
+            return dragFlags;
         },
-        zoom_flags: function () {
-            return zoom_flags;
+        zoomFlags: function () {
+            return zoomFlags;
         },
-        undo_stack: function () {
-            return undo_stack;
+        undoStack: function () {
+            return undoStack;
         },
-        redo_stack: function () {
-            return redo_stack;
+        redoStack: function () {
+            return redoStack;
         },
 
         getWindowTime: function() {
-            return window_time;
+            return windowTime;
         },
         getDateNow: getDateNow,
 
@@ -736,7 +737,7 @@ module.exports = (function () {
 
         updateTimeWindow: updateTimeWindow,
         updateTimeWindowOnly: function (t) {
-            window_time = t;
+            windowTime = t;
         },
         updateStartTime: function (s) {
             start = s;
@@ -750,46 +751,46 @@ module.exports = (function () {
         updateStartAndEnd: updateStartAndEnd,
 
         toggleAuto: function () {
-            auto_enabled = !auto_enabled;
+            autoEnabled = !autoEnabled;
         },
         toggleSingleTip: function () {
-            singleTip_enabled = !singleTip_enabled;
+            singleTipEnabled = !singleTipEnabled;
         },
         disableAuto: function () {
-            auto_enabled = false;
+            autoEnabled = false;
         },
         disableServerDate: function () {
-            serverDate_enabled = false;
+            serverDateEnabled = false;
         },
         enableAuto: function () {
-            auto_enabled = true;
+            autoEnabled = true;
         },
 
         disableScrolling: function () {
-            scrolling_enabled = false;
+            scrollingEnabled = false;
         },
         enableScrolling: function () {
-            scrolling_enabled = true;
+            scrollingEnabled = true;
         },
 
         startDrag: function () {
-            drag_flags.drag_started = true;
+            dragFlags.dragStarted = true;
         },
         stopDrag: function () {
-            drag_flags.drag_started = false;
+            dragFlags.dragStarted = false;
         },
         updateDragEndTime: function (t) {
-            drag_flags.end_time = t;
+            dragFlags.endTime = t;
         },
         updateDragOffsetX: function (x) {
-            drag_flags.x = x;
+            dragFlags.x = x;
         },
 
         enableZoom: function () {
-            zoom_flags.isZooming = true;
+            zoomFlags.isZooming = true;
         },
         disableZoom: function () {
-            zoom_flags.isZooming = false;
+            zoomFlags.isZooming = false;
         },
 
         init: init,
@@ -811,3 +812,4 @@ module.exports = (function () {
     };
 
 })();
+export default control;

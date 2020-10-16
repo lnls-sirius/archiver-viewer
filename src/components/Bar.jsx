@@ -2,9 +2,11 @@ import React, { Component } from "react";
 import BarControl from './BarControl.jsx';
 import SearchPV from 'components/SearchPV.jsx';
 import Intervals from 'components/Intervals.jsx';
+
 import 'css/bar.css';
+
 import labLogo1 from './../img/labLogo.png';
- import labLogo2 from './../img/labLogo2.png';
+import labLogo2 from './../img/labLogo2.png';
 
 function Logo(props){
         return <span className="header-logo">

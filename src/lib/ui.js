@@ -1,4 +1,4 @@
-module.exports = (function () {
+const ui  = (function () {
 
     const PV_PER_ROW = 4;
     const PV_PER_ROW_DATA_TABLE = 8;
@@ -274,8 +274,8 @@ module.exports = (function () {
 
                     count++;
 
-                    $("<td></td>").attr("class", "pv_time").text(pvData[j].x.toLocaleDateString() + " " + pvData[j].x.toLocaleTimeString()).appendTo(row);
-                    $("<td></td>").attr("class", "pv_value").text(pvData[j].y.toFixed(datasets[i].pv.precision)).appendTo(row);
+                    $("<td></td>").attr("class", "pvTime").text(pvData[j].x.toLocaleDateString() + " " + pvData[j].x.toLocaleTimeString()).appendTo(row);
+                    $("<td></td>").attr("class", "pvValue").text(pvData[j].y.toFixed(datasets[i].pv.precision)).appendTo(row);
                 }
             }
 
@@ -489,3 +489,4 @@ module.exports = (function () {
     };
 
 })();
+export default ui;

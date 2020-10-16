@@ -2,41 +2,40 @@ import React, {Component} from "react";
 import Bar from "./components/Bar.jsx";
 import Chart from "./components/Chart.jsx";
 
-import {updateTimeWindow, scrollChart} from './lib/handlers';
-import { hideSearchedPVs } from './lib/ui';
-import {getWindowTime} from './lib/control';
+import handlers from "./lib/handlers";
+import ui from "./lib/ui";
+import control from "./lib/control";
 
 
-class App extends Component{
-    constructor(props){
+class App extends Component {
+    constructor(props) {
         super(props);
         this.state = {
-            windowTime:getWindowTime()            
+            windowTime: control.getWindowTime()
         };
     }
 
     handleUpdateWindowTime = (windowTimeId)=>{
-        updateTimeWindow(windowTimeId);
-        this.setState({windowTime:getWindowTime()});
+        handlers.updateTimeWindow(windowTimeId);
+        this.setState({windowTime: control.getWindowTime()});
     }
 
     handleScrollChart = (e) => {
-        e.preventDefault();
-        scrollChart(e);
-        this.setState({windowTime:getWindowTime()});
+        handlers.scrollChart(e);
+        this.setState({windowTime: control.getWindowTime()});
     }
 
-    render(){
+    render() {
         return (
-            <div onClick={hideSearchedPVs}>
-                <Bar 
+            <div onClick={ui.hideSearchedPVs}>
+                <Bar
                     handlers={{
-                        handleScrollChart:this.handleScrollChart,
-                        handleUpdateWindowTime:this.handleUpdateWindowTime,
-                        handleWheel:this.handleScrollChart
+                        handleScrollChart: this.handleScrollChart,
+                        handleUpdateWindowTime: this.handleUpdateWindowTime,
+                        handleWheel: this.handleScrollChart
                     }}
-                    data={{windowTime:this.state.windowTime}}/>
-                <Chart handlers={{handleWheel:this.handleScrollChart}}/>
+                    data={{windowTime: this.state.windowTime}}/>
+                <Chart handlers={{handleWheel: this.handleScrollChart}}/>
             </div>
         );
     }

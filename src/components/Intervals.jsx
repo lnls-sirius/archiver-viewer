@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { timeAxisPreferences } from '../lib/chartUtils';
+import chartUtils from '../lib/chartUtils';
 
 import '../css/bar.css';
 
@@ -18,7 +18,7 @@ class Intervals extends Component {
 
     render(){    
         return <span onWheel={this.props.handleWheel}>
-            {timeAxisPreferences.map((val, idx)=> 
+            {chartUtils.timeAxisPreferences.map((val, idx)=> 
             <button
                 onClick={(e)=>{this.props.handleUpdateWindowTime(val['id'])}} 
                 key={idx} className={this.renderButtonClass(val['id'])}>{val['text']}

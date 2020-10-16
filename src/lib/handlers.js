@@ -1,12 +1,12 @@
 import {utils as XLSXutils, write as XLSXwrite} from "xlsx";
 import { saveAs as FileSaverSaveAs} from "file-saver";
 
-const ui = require("./ui.js");
-const chartUtils = require("./chartUtils.js");
-const archInterface = require("./archInterface.js");
-const control = require("./control.js");
+import archInterface from "./archInterface.js";
+import ui from "./ui.js";
+import chartUtils from "./chartUtils.js";
+import control  from "./control.js";
 
-module.exports = (function () {
+const handlers = (function () {
 
     const KEY_ENTER = 13;
     const REFRESH_INTERVAL = 5;
@@ -16,15 +16,14 @@ module.exports = (function () {
     **/
     async function onChangeDateHandler(date) {
 
-        // var new_date = ui.getTimedate();
-        const new_date = date;
+        const newDate = date;
 
-        await control.updateStartAndEnd(new_date, true);
+        await control.updateStartAndEnd(newDate, true);
 
         control.updateAllPlots(true);
         control.updateURL();
 
-        chartUtils.updateTimeAxis(control.chart(), chartUtils.timeAxisPreferences[control.window_time()].unit, chartUtils.timeAxisPreferences[control.window_time()].unitStepSize, control.start(), control.end());
+        chartUtils.updateTimeAxis(control.chart(), chartUtils.timeAxisPreferences[control.windowTime()].unit, chartUtils.timeAxisPreferences[control.windowTime()].unitStepSize, control.start(), control.end());
     }
 
     /**
@@ -34,7 +33,7 @@ module.exports = (function () {
     * Chooses whether the next request for the archiver will be optimized (to reduce the big amount of data) or raw.
     **/
     const updateTimeWindow = function (timeId) {
-        control.undo_stack().push({action: control.stackActions.CHANGE_WINDOW_TIME, window: control.window_time()});
+        control.undoStack().push({action: control.stackActions.CHANGE_WINDOW_TIME, window: control.windowTime()});
         control.updateTimeWindow(timeId);
     };
 
@@ -43,7 +42,7 @@ module.exports = (function () {
     **/
     async function updateEndNow(button) {
 
-        if (!control.auto_enabled()) {
+        if (!control.autoEnabled()) {
             if (control.reference() == control.references.START) {
 
                 control.updateTimeReference(control.references.END);
@@ -54,7 +53,7 @@ module.exports = (function () {
 
             await control.updateStartAndEnd(now, true);
 
-            chartUtils.updateTimeAxis(control.chart(), chartUtils.timeAxisPreferences[control.window_time()].unit, chartUtils.timeAxisPreferences[control.window_time()].unitStepSize, control.start(), control.end());
+            chartUtils.updateTimeAxis(control.chart(), chartUtils.timeAxisPreferences[control.windowTime()].unit, chartUtils.timeAxisPreferences[control.windowTime()].unitStepSize, control.start(), control.end());
 
             control.updateAllPlots(true);
             control.updateURL();
@@ -67,15 +66,15 @@ module.exports = (function () {
     **/
     async function backTimeWindow(button) {
 
-        if (!control.auto_enabled()) {
+        if (!control.autoEnabled()) {
             let date = control.start();
             if (control.reference() == control.references.END) {
                 date = control.end();
             }
 
-            await control.updateStartAndEnd(new Date(date.getTime() - chartUtils.timeAxisPreferences[control.window_time()].milliseconds), true);
+            await control.updateStartAndEnd(new Date(date.getTime() - chartUtils.timeAxisPreferences[control.windowTime()].milliseconds), true);
 
-            chartUtils.updateTimeAxis(control.chart(), chartUtils.timeAxisPreferences[control.window_time()].unit, chartUtils.timeAxisPreferences[control.window_time()].unitStepSize, control.start(), control.end());
+            chartUtils.updateTimeAxis(control.chart(), chartUtils.timeAxisPreferences[control.windowTime()].unit, chartUtils.timeAxisPreferences[control.windowTime()].unitStepSize, control.start(), control.end());
 
             control.updateAllPlots(true);
             control.updateURL();
@@ -87,15 +86,15 @@ module.exports = (function () {
     **/
     async function forwTimeWindow(button) {
 
-        if (!control.auto_enabled()) {
+        if (!control.autoEnabled()) {
             let date = control.start();
             if (control.reference() == control.references.END) {
                 date = control.end();
             }
 
-            await control.updateStartAndEnd(new Date(date.getTime() + chartUtils.timeAxisPreferences[control.window_time()].milliseconds), true);
+            await control.updateStartAndEnd(new Date(date.getTime() + chartUtils.timeAxisPreferences[control.windowTime()].milliseconds), true);
 
-            chartUtils.updateTimeAxis(control.chart(), chartUtils.timeAxisPreferences[control.window_time()].unit, chartUtils.timeAxisPreferences[control.window_time()].unitStepSize, control.start(), control.end());
+            chartUtils.updateTimeAxis(control.chart(), chartUtils.timeAxisPreferences[control.windowTime()].unit, chartUtils.timeAxisPreferences[control.windowTime()].unitStepSize, control.start(), control.end());
 
             control.updateAllPlots(true);
             control.updateURL();
@@ -183,15 +182,15 @@ module.exports = (function () {
     /**
     * Event handler which is called when the user clicks over a PV to append it
     **/
-    var appendPVHandler = function (e) {
+    const appendPVHandler = function (e) {
 
         const pv = e.target.innerText;
-        const pv_index = control.getPlotIndex(pv);
+        const pvIndex = control.getPlotIndex(pv);
 
-        if (pv_index == null) {
+        if (pvIndex == null) {
             control.appendPV(pv);
         } else {
-            control.updatePlot(pv_index);
+            control.updatePlot(pvIndex);
         }
 
         control.chart().update(0, false);
@@ -202,11 +201,11 @@ module.exports = (function () {
     const plotSelectedPVs = function (e) {
         const pvs = ui.selectedPVs();
         for (let i = 0; i < pvs.length; i++) {
-            const pv_index = control.getPlotIndex(pvs[i]);
-            if (pv_index == null) {
+            const pvIndex = control.getPlotIndex(pvs[i]);
+            if (pvIndex == null) {
                 control.appendPV(pvs[i]);
             } else {
-                control.updatePlot(pv_index);
+                control.updatePlot(pvIndex);
             }
         }
 
@@ -221,12 +220,12 @@ module.exports = (function () {
     **/
 
     const scrollChart = function (evt) {
-        if (control.scrolling_enabled()) {
+        if (control.scrollingEnabled()) {
             ui.enableLoading();
             control.disableScrolling();
-            const window_time_new = evt.deltaY > 0 ? Math.max(control.window_time() - 1, 0) : Math.min(control.window_time() + 1, chartUtils.timeIDs.SEG_30);
-            if (window_time_new != control.window_time()) {
-                control.updateTimeWindow(window_time_new);
+            const windowTimeNew = evt.deltaY > 0 ? Math.max(control.windowTime() - 1, 0) : Math.min(control.windowTime() + 1, chartUtils.timeIDs.SEG_30);
+            if (windowTimeNew != control.windowTime()) {
+                control.updateTimeWindow(windowTimeNew);
             }
             ui.disableLoading();
             control.enableScrolling();
@@ -234,11 +233,11 @@ module.exports = (function () {
     };
 
     function singleTipHandler(e) {
-        $(".fa-list").css("color", control.singleTip_enabled() ? "black" : "lightgrey");
+        $(".fa-list").css("color", control.singleTipEnabled() ? "black" : "lightgrey");
 
         control.toggleSingleTip();
-        document.cookie = "singleTip="+control.singleTip_enabled()+"; SameSite=Strict"; // Concatenation necessary to fix issues with the web VPN
-        chartUtils.toggleTooltipBehavior(control.chart(), control.singleTip_enabled());
+        document.cookie = "singleTip="+control.singleTipEnabled()+"; SameSite=Strict"; // Concatenation necessary to fix issues with the web VPN
+        chartUtils.toggleTooltipBehavior(control.chart(), control.singleTipEnabled());
     }
 
     function closestDateValue(searchDate, dates) {
@@ -248,7 +247,6 @@ module.exports = (function () {
             return dates.length-1;
         }
 
-        let i;
         let first = 0;
         let last = dates.length -1;
         let middle;
@@ -273,7 +271,7 @@ module.exports = (function () {
     }
 
     const tooltipColorHandler = function(tooltip) {
-        if (tooltip.dataPoints != undefined && !control.singleTip_enabled()) {
+        if (tooltip.dataPoints != undefined && !control.singleTipEnabled()) {
             let i;
             tooltip.labelColors = [];
             tooltip.labelTextColors = [];
@@ -293,7 +291,7 @@ module.exports = (function () {
     * Handles tooltip item list correction and addition
     */
     const bodyCallback = function(labels, chart) {
-        if (control.singleTip_enabled() || labels[0] === undefined) {
+        if (control.singleTipEnabled() || labels[0] === undefined) {
             return;
         }
         const drawnDatasets = labels.map(x => x.datasetIndex);
@@ -350,7 +348,7 @@ module.exports = (function () {
     **/
     async function autoRefreshingHandler(e) {
 
-        if (control.auto_enabled()) {
+        if (control.autoEnabled()) {
 
             $(this).css("background-color", "grey");
 
@@ -375,7 +373,7 @@ module.exports = (function () {
 
                 await control.updateStartAndEnd(now, true, true);
 
-                chartUtils.updateTimeAxis(control.chart(), chartUtils.timeAxisPreferences[control.window_time()].unit, chartUtils.timeAxisPreferences[control.window_time()].unitStepSize, control.start(), control.end());
+                chartUtils.updateTimeAxis(control.chart(), chartUtils.timeAxisPreferences[control.windowTime()].unit, chartUtils.timeAxisPreferences[control.windowTime()].unitStepSize, control.start(), control.end());
 
                 control.updateURL();
                 await control.updateAllPlots(false);
@@ -400,18 +398,18 @@ module.exports = (function () {
     **/
     async function dataClickHandler(evt) {
 
-        if (!control.drag_flags().drag_started && !control.auto_enabled()) {
+        if (!control.dragFlags().dragStarted && !control.autoEnabled()) {
 
             const event = control.chart().getElementsAtEvent(evt);
 
             if (event != undefined && event.length > 0) {
 
-                const event_data = control.chart().data.datasets[event[0]._datasetIndex].data[event[0]._index].x;
-                const middle_data = new Date(event_data.getTime() + chartUtils.timeAxisPreferences[control.window_time()].milliseconds / 2);
+                const eventData = control.chart().data.datasets[event[0].DatasetIndex].data[event[0].Index].x;
+                const middleData = new Date(eventData.getTime() + chartUtils.timeAxisPreferences[control.windowTime()].milliseconds / 2);
 
-                await control.updateStartAndEnd(middle_data, true);
+                await control.updateStartAndEnd(middleData, true);
 
-                chartUtils.updateTimeAxis(control.chart(), chartUtils.timeAxisPreferences[control.window_time()].unit, chartUtils.timeAxisPreferences[control.window_time()].unitStepSize, control.start(), control.end());
+                chartUtils.updateTimeAxis(control.chart(), chartUtils.timeAxisPreferences[control.windowTime()].unit, chartUtils.timeAxisPreferences[control.windowTime()].unitStepSize, control.start(), control.end());
 
                 control.updateAllPlots(true);
 
@@ -438,17 +436,17 @@ module.exports = (function () {
 
         control.updateDragEndTime(control.end());
 
-        if (control.zoom_flags().isZooming) {
+        if (control.zoomFlags().isZooming) {
 
-            control.zoom_flags().begin_x = evt.clientX;
-            control.zoom_flags().begin_y = evt.clientY;
+            control.zoomFlags().beginX = evt.clientX;
+            control.zoomFlags().beginY = evt.clientY;
 
-            control.zoom_flags().hasBegan = true;
+            control.zoomFlags().hasBegan = true;
 
             $("#canvas_area span.selection_box").css("display", "block");
 
             // Computes zoom initial time
-            control.zoom_flags().time_1 = new Date(control.start().getTime() + evt.offsetX * chartUtils.timeAxisPreferences[control.window_time()].milliseconds / control.chart().chart.width);
+            control.zoomFlags().time1 = new Date(control.start().getTime() + evt.offsetX * chartUtils.timeAxisPreferences[control.windowTime()].milliseconds / control.chart().chart.width);
         }
     };
 
@@ -456,22 +454,22 @@ module.exports = (function () {
     * Handles a dragging event in the chart and updates the chart drawing area.
     **/
     async function doDragging(evt) {
-        if (!control.zoom_flags().isZooming && !control.auto_enabled() && control.drag_flags().drag_started) {
+        if (!control.zoomFlags().isZooming && !control.autoEnabled() && control.dragFlags().dragStarted) {
 
-            const offset_x = control.drag_flags().x - evt.offsetX;
-            let new_date = new Date(control.end().getTime() + offset_x * chartUtils.timeAxisPreferences[control.window_time()].milliseconds / control.chart().chart.width);
+            const offsetX = control.dragFlags().x - evt.offsetX;
+            let newDate = new Date(control.end().getTime() + offsetX * chartUtils.timeAxisPreferences[control.windowTime()].milliseconds / control.chart().chart.width);
 
             if (control.reference() == control.references.START) {
-                new_date = new Date(control.start().getTime() + offset_x * chartUtils.timeAxisPreferences[control.window_time()].milliseconds / control.chart().chart.width);
+                newDate = new Date(control.start().getTime() + offsetX * chartUtils.timeAxisPreferences[control.windowTime()].milliseconds / control.chart().chart.width);
             }
 
             control.updateDragOffsetX(evt.offsetX);
 
-            await control.updateStartAndEnd(new_date, true, true);
+            await control.updateStartAndEnd(newDate, true, true);
 
-            chartUtils.updateTimeAxis(control.chart(), chartUtils.timeAxisPreferences[control.window_time()].unit, chartUtils.timeAxisPreferences[control.window_time()].unitStepSize, control.start(), control.end());
+            chartUtils.updateTimeAxis(control.chart(), chartUtils.timeAxisPreferences[control.windowTime()].unit, chartUtils.timeAxisPreferences[control.windowTime()].unitStepSize, control.start(), control.end());
 
-            if (!control.drag_flags().updateOnComplete) {
+            if (!control.dragFlags().updateOnComplete) {
 
                 control.updateAllPlots(true);
                 control.updateURL();
@@ -481,11 +479,11 @@ module.exports = (function () {
         }
 
         // Draws zoom rectangle indicating the area in which this operation will applied
-        if (control.zoom_flags().isZooming && control.zoom_flags().hasBegan) {
+        if (control.zoomFlags().isZooming && control.zoomFlags().hasBegan) {
 
             // x,y,w,h = o retângulo entre os vértices
-            const x = Math.min(control.zoom_flags().begin_x, evt.clientX);
-            const w = Math.abs(control.zoom_flags().begin_x - evt.clientX);
+            const x = Math.min(control.zoomFlags().beginX, evt.clientX);
+            const w = Math.abs(control.zoomFlags().beginX - evt.clientX);
 
             ui.drawZoomBox(x, w, control.chart().chart.height);
         }
@@ -496,29 +494,29 @@ module.exports = (function () {
     **/
     async function stopDragging(evt) {
 
-        if (control.drag_flags().drag_started && control.drag_flags().updateOnComplete) {
+        if (control.dragFlags().dragStarted && control.dragFlags().updateOnComplete) {
             control.updateAllPlots(true);
             control.updateURL();
             control.chart().update(0, false);
 
-            control.undo_stack().push({action: control.stackActions.CHANGE_END_TIME, end_time: control.drag_flags().end_time});
+            control.undoStack().push({action: control.stackActions.CHANGE_END_TIME, endTime: control.dragFlags().endTime});
         }
 
         // Finishes zoom and updates the chart
-        if (control.zoom_flags().isZooming && control.zoom_flags().hasBegan) {
-            control.zoom_flags().time_2 = new Date(control.start().getTime() + evt.offsetX * chartUtils.timeAxisPreferences[control.window_time()].milliseconds / control.chart().chart.width);
+        if (control.zoomFlags().isZooming && control.zoomFlags().hasBegan) {
+            control.zoomFlags().time2 = new Date(control.start().getTime() + evt.offsetX * chartUtils.timeAxisPreferences[control.windowTime()].milliseconds / control.chart().chart.width);
 
-            if (control.zoom_flags().time_1 != undefined && control.zoom_flags().time_2 != undefined) {
+            if (control.zoomFlags().time1 != undefined && control.zoomFlags().time2 != undefined) {
 
-                control.undo_stack().push({action: control.stackActions.ZOOM, start_time: control.start(), end_time: control.end(), window_time: control.window_time()});
+                control.undoStack().push({action: control.stackActions.ZOOM, startTime: control.start(), endTime: control.end(), windowTime: control.windowTime()});
 
                 // Checks which zoom times should be used as start time or end time
-                if (control.zoom_flags().time_1.getTime() < control.zoom_flags().time_2.getTime()) {
-                    control.updateStartTime(control.zoom_flags().time_1);
-                    control.updateEndTime(control.zoom_flags().time_2);
+                if (control.zoomFlags().time1.getTime() < control.zoomFlags().time2.getTime()) {
+                    control.updateStartTime(control.zoomFlags().time1);
+                    control.updateEndTime(control.zoomFlags().time2);
                 } else {
-                    control.updateStartTime(control.zoom_flags().time_2);
-                    control.updateEndTime(control.zoom_flags().time_1);
+                    control.updateStartTime(control.zoomFlags().time2);
+                    control.updateEndTime(control.zoomFlags().time1);
                 }
 
                 // Chooses the x axis time scale
@@ -527,7 +525,7 @@ module.exports = (function () {
                     i++;
                 }
 
-                // ui.toogleWindowButton (undefined, control.window_time ());
+                // ui.toogleWindowButton (undefined, control.windowTime ());
 
                 control.updateTimeWindowOnly(i);
 
@@ -551,7 +549,7 @@ module.exports = (function () {
         }
 
         control.stopDrag();
-        control.zoom_flags().hasBegan = false;
+        control.zoomFlags().hasBegan = false;
         control.disableZoom();
     }
 
@@ -560,15 +558,15 @@ module.exports = (function () {
     **/
     const zoomClickHandler = function (event) {
 
-        if (!control.auto_enabled()) {
+        if (!control.autoEnabled()) {
 
-            if (control.zoom_flags().isZooming) {
+            if (control.zoomFlags().isZooming) {
                 control.disableZoom();
             } else {
                 control.enableZoom();
             }
 
-            ui.toggleZoomButton(control.zoom_flags().isZooming);
+            ui.toggleZoomButton(control.zoomFlags().isZooming);
         }
     };
 
@@ -587,15 +585,15 @@ module.exports = (function () {
 
     function s2ab(s) {
         if (typeof ArrayBuffer !== "undefined") {
-            var buf = new ArrayBuffer(s.length);
+            const buf = new ArrayBuffer(s.length);
             const view = new Uint8Array(buf);
-            for (var i=0; i!=s.length; ++i) {
+            for (let i=0; i!=s.length; ++i) {
                 view[i] = s.charCodeAt(i) & 0xFF;
             }
             return buf;
         } else {
-            var buf = new Array(s.length);
-            for (var i=0; i!=s.length; ++i) {
+            const buf = new Array(s.length);
+            for (let i=0; i!=s.length; ++i) {
                 buf[i] = s.charCodeAt(i) & 0xFF;
             }
             return buf;
@@ -603,11 +601,11 @@ module.exports = (function () {
     }
 
     const exportAs = function (t) {
-        if (control.auto_enabled()) {
+        if (control.autoEnabled()) {
             return undefined;
         }
 
-        const book = XLSXutils.book_new(), sheets = [];
+        const book = XLSXutils.bookNew(), sheets = [];
 
         const sheetInfo = [];
         for (let i = 0; i < control.chart().data.datasets.length; i++) {
@@ -615,7 +613,7 @@ module.exports = (function () {
             const pvName = dataset.label;
             const metadata = dataset.pv.metadata;
 
-            const data_array = control.chart().data.datasets[i].data.map(function(data) {
+            const dataArray = control.chart().data.datasets[i].data.map(function(data) {
                 return {
                     x: data.x.toLocaleString("br-BR") + "." + data.x.getMilliseconds(),
                     y: data.y,
@@ -631,7 +629,7 @@ module.exports = (function () {
                 "PV Name": pvName,
                 ...metadata
             });
-            XLSXutils.book_append_sheet(book, XLSXutils.json_to_sheet(data_array), sheetName);
+            XLSXutils.book_append_sheet(book, XLSXutils.json_to_sheet(dataArray), sheetName);
         }
 
         // Sheet containing PV information.
@@ -651,65 +649,65 @@ module.exports = (function () {
     };
 
     async function undoHandler() {
-        if (control.undo_stack().length > 0 && !control.auto_enabled()) {
+        if (control.undoStack().length > 0 && !control.autoEnabled()) {
 
-            const undo = control.undo_stack().pop();
+            const undo = control.undoStack().pop();
 
             switch (undo.action) {
 
                 case control.stackActions.REMOVE_PV:
 
-                    control.redo_stack().push({action: control.stackActions.REMOVE_PV, pv: undo.pv});
+                    control.redoStack().push({action: control.stackActions.REMOVE_PV, pv: undo.pv});
                     control.appendPV(undo.pv, undo.optimized, true);
                     break;
 
-                case control.stackActions.APPEND_PV:
+                case control.stackActions.APPEND_PV: {
+                    const index = control.getPlotIndex(undo.pv);
 
-                    var index = control.getPlotIndex(undo.pv);
-
-                    control.redo_stack().push({action: control.stackActions.APPEND_PV, pv: undo.pv, optimized: control.chart().data.datasets[index].pv.optimized});
+                    control.redoStack().push({action: control.stackActions.APPEND_PV, pv: undo.pv, optimized: control.chart().data.datasets[index].pv.optimized});
                     control.removeDataset(index, true);
                     break;
 
+                }
                 case control.stackActions.CHANGE_WINDOW_TIME:
 
-                    control.redo_stack().push({action: control.stackActions.CHANGE_WINDOW_TIME, window: control.window_time()});
+                    control.redoStack().push({action: control.stackActions.CHANGE_WINDOW_TIME, window: control.windowTime()});
                     control.updateTimeWindow(undo.window);
                     break;
 
                 case control.stackActions.CHANGE_END_TIME:
 
-                    control.redo_stack().push({action: control.stackActions.CHANGE_END_TIME, end_time: control.end()});
+                    control.redoStack().push({action: control.stackActions.CHANGE_END_TIME, endTime: control.end()});
 
                     control.updateTimeReference(control.references.END);
 
-                    await control.updateStartAndEnd(undo.end_time, true, true);
+                    await control.updateStartAndEnd(undo.endTime, true, true);
 
                     // does not change the time window, only updates all plots
-                    control.updateTimeWindow(control.window_time());
+                    control.updateTimeWindow(control.windowTime());
 
                     break;
 
                 case control.stackActions.CHANGE_START_TIME:
 
-                    control.redo_stack().push({action: control.stackActions.CHANGE_START_TIME, start_time: control.start()});
+                    control.redoStack().push({action: control.stackActions.CHANGE_START_TIME, startTime: control.start()});
 
                     control.updateTimeReference(control.references.START);
 
-                    await control.updateStartAndEnd(undo.start_time, true, true);
+                    await control.updateStartAndEnd(undo.startTime, true, true);
 
                     // does not change the time window, only updates all plots
-                    control.updateTimeWindow(control.window_time());
+                    control.updateTimeWindow(control.windowTime());
 
                     break;
 
                 case control.stackActions.ZOOM:
 
-                    control.redo_stack().push({action: control.stackActions.ZOOM, start_time: control.start(), end_time: control.end(), window_time: control.window_time()});
+                    control.redoStack().push({action: control.stackActions.ZOOM, startTime: control.start(), endTime: control.end(), windowTime: control.windowTime()});
 
-                    await control.updateStartAndEnd(undo.end_time, true, true);
+                    await control.updateStartAndEnd(undo.endTime, true, true);
 
-                    control.updateTimeWindow(undo.window_time);
+                    control.updateTimeWindow(undo.windowTime);
 
                     control.chart().update(0, false);
 
@@ -722,9 +720,9 @@ module.exports = (function () {
 
     async function redoHandler() {
 
-        if (control.redo_stack().length > 0 && !control.auto_enabled()) {
+        if (control.redoStack().length > 0 && !control.autoEnabled()) {
 
-            const redo = control.redo_stack().pop();
+            const redo = control.redoStack().pop();
 
             switch (redo.action) {
 
@@ -749,11 +747,11 @@ module.exports = (function () {
 
                     control.updateTimeReference(control.references.START);
 
-                    await control.updateStartAndEnd(redo.start_time, true);
+                    await control.updateStartAndEnd(redo.startTime, true);
                     control.updateAllPlots(true);
                     control.updateURL();
 
-                    chartUtils.updateTimeAxis(control.chart(), chartUtils.timeAxisPreferences[control.window_time()].unit, chartUtils.timeAxisPreferences[control.window_time()].unitStepSize, control.start(), control.end());
+                    chartUtils.updateTimeAxis(control.chart(), chartUtils.timeAxisPreferences[control.windowTime()].unit, chartUtils.timeAxisPreferences[control.windowTime()].unitStepSize, control.start(), control.end());
 
                     control.chart().update(0, false);
 
@@ -767,11 +765,11 @@ module.exports = (function () {
 
                     control.updateTimeReference(control.references.END);
 
-                    await control.updateStartAndEnd(redo.end_time, true);
+                    await control.updateStartAndEnd(redo.endTime, true);
                     control.updateAllPlots(true);
                     control.updateURL();
 
-                    chartUtils.updateTimeAxis(control.chart(), chartUtils.timeAxisPreferences[control.window_time()].unit, chartUtils.timeAxisPreferences[control.window_time()].unitStepSize, control.start(), control.end());
+                    chartUtils.updateTimeAxis(control.chart(), chartUtils.timeAxisPreferences[control.windowTime()].unit, chartUtils.timeAxisPreferences[control.windowTime()].unitStepSize, control.start(), control.end());
 
                     control.chart().update(0, false);
 
@@ -781,13 +779,13 @@ module.exports = (function () {
 
                 case control.stackActions.ZOOM:
 
-                    // ui.toogleWindowButton (undefined, control.window_time ());
+                    // ui.toogleWindowButton (undefined, control.windowTime ());
 
                     // Updates the chart attributes
-                    await control.updateStartTime(redo.start_time);
-                    control.updateEndTime(redo.end_time);
+                    await control.updateStartTime(redo.startTime);
+                    control.updateEndTime(redo.endTime);
 
-                    chartUtils.updateTimeAxis(control.chart(), chartUtils.timeAxisPreferences[redo.window_time].unit, chartUtils.timeAxisPreferences[redo.window_time].unitStepSize, control.start(), control.end());
+                    chartUtils.updateTimeAxis(control.chart(), chartUtils.timeAxisPreferences[redo.windowTime].unit, chartUtils.timeAxisPreferences[redo.windowTime].unitStepSize, control.start(), control.end());
 
                     control.optimizeAllGraphs();
                     control.updateAllPlots(true);
@@ -849,3 +847,4 @@ module.exports = (function () {
     };
 
 })();
+export default handlers;

@@ -2,11 +2,9 @@ import React, {Component} from 'react';
 import DatePicker from 'react-datepicker';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBackward, faForward, faUndo, faRedo, faFileExcel, faCircle, faSearchPlus, faCarSide, faList} from '@fortawesome/free-solid-svg-icons';
-import { exportAs, undoHandler, redoHandler, onChangeDateHandler, updateEndNow,
-        backTimeWindow, forwTimeWindow, zoomClickHandler, autoRefreshingHandler, 
-        updateReferenceTime, singleTipHandler } from '../lib/handlers';
 
-import {zoom_flags, auto_enabled, singleTip_enabled} from '../lib/control';
+import handlers from '../lib/handlers';
+import control  from '../lib/control';
 
 import "react-datepicker/dist/react-datepicker.css";
 import "../css/bar.css";
@@ -24,31 +22,31 @@ class BarControl extends Component {
     }
 
     handleZoom = (e)=>{
-        zoomClickHandler();
-        this.setState({zoom:zoom_flags().isZooming});
+        handlers.zoomClickHandler();
+        this.setState({zoom:control.zoomFlags().isZooming});
     }
 
     handleAuto = ()=>{
-        autoRefreshingHandler();
+        handlers.autoRefreshingHandler();
         this.setState({
-            auto:auto_enabled(),
-            zoom:zoom_flags().isZooming});
+            auto:control.autoEnabled(),
+            zoom:control.zoomFlags().isZooming});
     }
 
     handleTooltip = ()=>{
-	singleTipHandler();
+	handlers.singleTipHandler();
 	this.setState({
-	    singleTip:singleTip_enabled()});
+	    singleTip:control.singleTipEnabled()});
     }
 
     handleDateChange = (e)=>{
-        onChangeDateHandler(e);
+        handlers.onChangeDateHandler(e);
         this.setState({startDate:e});
     }
 
     handleTimeRefChange = (e)=>{
         console.log(e.target.value);
-        updateReferenceTime(e.target.value == this.END);
+        handlers.updateReferenceTime(e.target.value == this.END);
     }
 
     render(){
@@ -67,14 +65,14 @@ class BarControl extends Component {
                 dateFormat="dd/MM/yy h:mm aa"
                 maxDate={new Date()}
                 />
-            <FontAwesomeIcon icon={faBackward}   title="Backward" className='header-controls' onClick={()=>{backTimeWindow()}}/>
-            <FontAwesomeIcon icon={faCircle}     title="Now" className='header-controls' onClick={()=>{updateEndNow()}}/>
-            <FontAwesomeIcon icon={faForward}    title="Forward" className='header-controls' onClick={()=>{forwTimeWindow()}}/>
-            <FontAwesomeIcon icon={faUndo}       title="Undo action" className='header-controls' onClick={()=>undoHandler()}/>
-            <FontAwesomeIcon icon={faRedo}       title="Redo action" className='header-controls'  onClick={()=>redoHandler()}/>
+            <FontAwesomeIcon icon={faBackward}   title="Backward" className='header-controls' onClick={()=>{handlers.backTimeWindow()}}/>
+            <FontAwesomeIcon icon={faCircle}     title="Now" className='header-controls' onClick={()=>{handlers.updateEndNow()}}/>
+            <FontAwesomeIcon icon={faForward}    title="Forward" className='header-controls' onClick={()=>{handlers.forwTimeWindow()}}/>
+            <FontAwesomeIcon icon={faUndo}       title="Undo action" className='header-controls' onClick={()=>handlers.undoHandler()}/>
+            <FontAwesomeIcon icon={faRedo}       title="Redo action" className='header-controls'  onClick={()=>handlers.redoHandler()}/>
             <FontAwesomeIcon icon={faCarSide}    title="Auto scroll" onClick={this.handleAuto} className={(this.state.auto)?'header-controls active':'header-controls'}/>
             <FontAwesomeIcon icon={faSearchPlus} title="Zoom" onClick={this.handleZoom} className={(this.state.zoom)?'header-controls active':'header-controls'}/>
-            <FontAwesomeIcon icon={faFileExcel}  title="Export as xlsx" className='header-controls' onClick={()=>{exportAs("xlsx")}}/>
+            <FontAwesomeIcon icon={faFileExcel}  title="Export as xlsx" className='header-controls' onClick={()=>{handlers.exportAs("xlsx")}}/>
 	    <FontAwesomeIcon icon={faList}  	 title="Show all in tooltip" onClick={this.handleTooltip} className={(this.state.singleTip)?'header-controls active':'header-controls'}/>
       </span>
     }

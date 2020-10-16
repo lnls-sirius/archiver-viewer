@@ -8,11 +8,11 @@
 import "jquery-browserify";
 import "chart.js";
 
-import * as chartUtils from "./lib/chartUtils";
-import * as handlers from "./lib/handlers";
-import * as control from "./lib/control";
-import * as archInterface from "./lib/archInterface";
-import * as ui from "./lib/ui";
+import chartUtils from "./lib/chartUtils";
+import handlers from "./lib/handlers";
+import control from "./lib/control";
+import archInterface from "./lib/archInterface";
+import ui from "./lib/ui";
 
 import "./css/archiver.css";
 

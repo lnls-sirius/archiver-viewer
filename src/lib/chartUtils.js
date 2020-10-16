@@ -1,25 +1,25 @@
 /** ***** Chart control functions *******/
-module.exports = (function() {
+const chartUtils = (function() {
 
     const TIME_AXIS_ID = "x-axis-0";
     const TIME_AXIS_INDEX = 0;
     const TIME_IDS = {
         YEAR: 0,
         MONTH: 1,
-        WEEK_2: 2,
-        WEEK_1: 3,
-        DAY_25: 4,
-        DAY_1: 5,
-        HOUR_18: 6,
-        HOUR_12: 7,
+        WEEK2: 2,
+        WEEK1: 3,
+        DAY25: 4,
+        DAY1: 5,
+        HOUR18: 6,
+        HOUR12: 7,
         HOUR_8: 8,
         HOUR_4: 9,
-        HOUR_2: 10,
-        HOUR_1: 11,
+        HOUR2: 10,
+        HOUR1: 11,
         MIN_30: 12,
-        MIN_10: 13,
+        MIN10: 13,
         MIN_5: 14,
-        MIN_1: 15,
+        MIN1: 15,
         SEG_30: 16
     };
     const TIME_AXIS_PREFERENCES = [
@@ -48,7 +48,7 @@ module.exports = (function() {
             milliseconds:  2 * 7 * 24 * 3600 * 1000,
             optimized: true,
             bins: 800,
-            id: TIME_IDS.WEEK_2
+            id: TIME_IDS.WEEK2
         },
         { // 1 week
             text: "1w",
@@ -57,7 +57,7 @@ module.exports = (function() {
             milliseconds:  7 * 24 * 3600 * 1000,
             optimized: true,
             bins: 800,
-            id: TIME_IDS.WEEK_1
+            id: TIME_IDS.WEEK1
         },
         { // 2.5 days
             text: "2.5d",
@@ -66,7 +66,7 @@ module.exports = (function() {
             milliseconds:  2.5 * 24 * 3600 * 1000,
             optimized: true,
             bins: 800,
-            id: TIME_IDS.DAY_25
+            id: TIME_IDS.DAY25
         },
         { // 1 day
             text: "1d",
@@ -75,7 +75,7 @@ module.exports = (function() {
             milliseconds:  24 * 3600 * 1000,
             optimized: true,
             bins: 800,
-            id: TIME_IDS.DAY_1
+            id: TIME_IDS.DAY1
         },
         { // 18 hours
             text: "18h",
@@ -84,7 +84,7 @@ module.exports = (function() {
             milliseconds:  18 * 3600 * 1000,
             optimized: true,
             bins: 800,
-            id: TIME_IDS.HOUR_18
+            id: TIME_IDS.HOUR18
         },
         { // 12 hours
             text: "12h",
@@ -93,7 +93,7 @@ module.exports = (function() {
             milliseconds:  12 * 3600 * 1000,
             optimized: true,
             bins: 800,
-            id: TIME_IDS.HOUR_12
+            id: TIME_IDS.HOUR12
         },
         { // 8 hours
             text: "8h",
@@ -120,7 +120,7 @@ module.exports = (function() {
             milliseconds:  2 * 3600 * 1000,
             optimized: true,
             bins: 400,
-            id: TIME_IDS.HOUR_2
+            id: TIME_IDS.HOUR2
         },
         { // 1 hour
             text: "1h",
@@ -129,7 +129,7 @@ module.exports = (function() {
             milliseconds:  3600 * 1000,
             optimized: false,
             bins: 200,
-            id: TIME_IDS.HOUR_1
+            id: TIME_IDS.HOUR1
         },
         { // 30 minutes
             text: "30m",
@@ -147,7 +147,7 @@ module.exports = (function() {
             milliseconds: 10 * 60 * 1000,
             optimized: false,
             bins: 50,
-            id: TIME_IDS.MIN_10
+            id: TIME_IDS.MIN10
         },
         { // 5 minutes
             text: "5m",
@@ -165,7 +165,7 @@ module.exports = (function() {
             milliseconds: 60 * 1000,
             optimized: false,
             bins: 50,
-            id: TIME_IDS.MIN_1
+            id: TIME_IDS.MIN1
         },
         { // 30 seconds
             text: "30s",
@@ -310,42 +310,42 @@ module.exports = (function() {
     };
 
     /** Adds a new vertical axis to the chart. */
-    const appendDataAxis = function(chart, n_id, ticks_precision) {
-        if (n_id in yAxisUseCounter) {
+    const appendDataAxis = function(chart, nId, ticksPrecision) {
+        if (nId in yAxisUseCounter) {
             /* Increments the number of times this axis is used by a PV. */
-            yAxisUseCounter[n_id]++;
+            yAxisUseCounter[nId]++;
             return ;
         }
 
-        /* yAxisUseCounter[n_id] stands for the times this axis is used */
-        yAxisUseCounter[n_id] = 1;
+        /* yAxisUseCounter[nId] stands for the times this axis is used */
+        yAxisUseCounter[nId] = 1;
 
-        if (ticks_precision == undefined) {
-            ticks_precision = 3;
+        if (ticksPrecision == undefined) {
+            ticksPrecision = 3;
         }
 
         // Function which is called when the scale is being drawn.
-        const ticks_cb = function(value) {
+        const ticksCallback = function(value) {
 
-            if (value != 0 && Math.abs(value) < Math.pow(10, -ticks_precision)) {
-                return value.toExponential(ticks_precision);
+            if (value != 0 && Math.abs(value) < Math.pow(10, -ticksPrecision)) {
+                return value.toExponential(ticksPrecision);
             }
-            /* ticks_precision stands for the number of decimal cases shown by the plot in the vertical axis */
-            if (ticks_precision > 4) {
+            /* ticksPrecision stands for the number of decimal cases shown by the plot in the vertical axis */
+            if (ticksPrecision > 4) {
                 return value.toExponential(3);
             }
-            return value.toFixed(ticks_precision);
+            return value.toFixed(ticksPrecision);
         };
         // @todo: Add back vertical border dash
         // borderDash = [5, 5 * Object.keys(yAxisUseCounter).length];
         chart.options.scales.yAxes.push(
             {
-                id: n_id,
+                id: nId,
                 type: "linear",
                 display: true,
                 position: axisPositionLeft ? "left" : "right",
                 ticks: {
-                    callback: ticks_cb,
+                    callback: ticksCallback,
                     minor: {
                         display: true,
                         padding: 0,
@@ -354,7 +354,7 @@ module.exports = (function() {
                 },
                 scaleLabel: {
                     display: true,
-                    labelString: n_id
+                    labelString: nId
                 }
             }
         );
@@ -364,7 +364,7 @@ module.exports = (function() {
 
     const appendDataset = function(chart, data, bins, precision, metadata) {
         const samplingPeriod = parseFloat(metadata.samplingPeriod);
-        const pv_name = metadata.pvName;
+        const pvName = metadata.pvName;
         const desc = metadata.DESC;
         const type = metadata.DBRType;
         let unit = (metadata.EGU != "" || metadata.EGU == undefined) ? metadata.EGU : metadata.pvName;
@@ -373,7 +373,7 @@ module.exports = (function() {
         const color = (colorStack.length > 0)?colorStack.pop():randomColorGenerator();
 
         if (unit == undefined) {
-            unit = pv_name;
+            unit = pvName;
         }
 
         unit = unit.replace("?", "o");
@@ -383,7 +383,7 @@ module.exports = (function() {
 
         // Pushes it into the chart
         chart.data.datasets.push({
-            label: pv_name,
+            label: pvName,
             xAxisID: TIME_AXIS_ID,
             yAxisID: unit,
             borderWidth: 1.5,
@@ -535,3 +535,4 @@ module.exports = (function() {
     };
 
 })();
+export default chartUtils;

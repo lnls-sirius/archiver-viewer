@@ -3,10 +3,9 @@
 * The following functions communicate with the /retrieval appliance and
 * fetch data from the archiver.
 **/
-
 import simplify from "simplify-js";
 
-module.exports = (function () {
+const archInterface = (function () {
     const getUrl = ()=> {
         let host = "10.0.38.42";
         if (window.location.host === "vpn.cnpem.br") { // If using WEB VPN
@@ -206,3 +205,5 @@ module.exports = (function () {
     };
 
 })();
+
+export default archInterface;
