@@ -2,7 +2,8 @@ version: "3.7"
 services:
   viewer:
     image: node
-    command: sleep infinity
+    working_dir: /viewer
+    command: npm start
     ports:
       - 8080:8080
     volumes:
