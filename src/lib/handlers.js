@@ -605,7 +605,8 @@ const handlers = (function () {
             return undefined;
         }
 
-        const book = XLSXutils.bookNew(), sheets = [];
+        const book = XLSXutils.book_new();
+        const sheets = [];
 
         const sheetInfo = [];
         for (let i = 0; i < control.chart().data.datasets.length; i++) {

@@ -237,7 +237,7 @@ const control = (function () {
     * to the time window size. Updates HTML elements in the case updateHtml is true.
     **/
     async function updateStartAndEnd(date, updateHtml, undo) {
-        if (date === undefined) {
+        if (date === undefined || date === null) {
             date = new Date();
         }
 
