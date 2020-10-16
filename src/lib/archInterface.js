@@ -10,7 +10,7 @@ const archInterface = (function () {
         let host = "10.0.38.42";
         if (window.location.host === "vpn.cnpem.br") { // If using WEB VPN
             // Capture IPv4 address
-            const ipRegExp = /(?<=https?\/)((?:(?:2(?:[0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9])\.){3}(?:(?:2([0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9])))(?=\/)/;
+            const ipRegExp = /https?\/((?:(?:2(?:[0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9])\.){3}(?:(?:2([0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9])))\//;
             const match = ipRegExp.exec(window.location.href);
             if (match && match.length > 1) {
                 host = match[1];
