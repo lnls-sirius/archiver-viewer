@@ -229,7 +229,7 @@ const chartUtils = (function() {
         }
 
         for (let i=1; i < chart.options.scales.yAxes.length; i++) {
-            if (chart.options.scales.yAxes[i].id == axisId) {
+            if (chart.options.scales.yAxes[i].id === axisId) {
                 if (isLogarithmic) {
                     chart.options.scales.yAxes[i].type = "logarithmic";
             // chart.options.scales.yAxes[i].ticks.maxTicksLimit = 25;
@@ -245,7 +245,7 @@ const chartUtils = (function() {
         let table = $(autoFire).closest(".data_axis_table").find(":text");
 
         for (let i = 1; i < chart.options.scales.yAxes.length; i++) {
-            if (chart.options.scales.yAxes[i].id == axisId) {
+            if (chart.options.scales.yAxes[i].id === axisId) {
                 table = table.slice((i-1)*2, (i-1)*2+2);
                 table.toggle();
                 if (autoFire.checked) {
@@ -274,7 +274,7 @@ const chartUtils = (function() {
         }
 
         for (let i=1; i < chart.options.scales.yAxes.length; i++) {
-            if (chart.options.scales.yAxes[i].id == axisId) {
+            if (chart.options.scales.yAxes[i].id === axisId) {
                 const limit = parseFloat(limitInput.value);
                 if ($(limitInput).attr("placeholder") === "Max") {
                     if (!isNaN(limit)) {
@@ -320,14 +320,14 @@ const chartUtils = (function() {
         /* yAxisUseCounter[nId] stands for the times this axis is used */
         yAxisUseCounter[nId] = 1;
 
-        if (ticksPrecision == undefined) {
+        if (ticksPrecision === undefined) {
             ticksPrecision = 3;
         }
 
         // Function which is called when the scale is being drawn.
         const ticksCallback = function(value) {
 
-            if (value != 0 && Math.abs(value) < Math.pow(10, -ticksPrecision)) {
+            if (value !== 0 && Math.abs(value) < Math.pow(10, -ticksPrecision)) {
                 return value.toExponential(ticksPrecision);
             }
             /* ticksPrecision stands for the number of decimal cases shown by the plot in the vertical axis */
@@ -367,16 +367,16 @@ const chartUtils = (function() {
         const pvName = metadata.pvName;
         const desc = metadata.DESC;
         const type = metadata.DBRType;
-        let unit = (metadata.EGU != "" || metadata.EGU == undefined) ? metadata.EGU : metadata.pvName;
+        let unit = (metadata.EGU !== "" || metadata.EGU === undefined) ? metadata.EGU : metadata.pvName;
 
         // Parses the data fetched from the archiver the way that the chart's internal classes can plot
         const color = (colorStack.length > 0)?colorStack.pop():randomColorGenerator();
 
-        if (unit == undefined) {
+        if (unit === undefined) {
             unit = pvName;
         }
-
         unit = unit.replace("?", "o");
+        // @todo: Normalize unit (EGU field)
 
         // Adds a new vertical axis if no other with the same unit exists
         appendDataAxis(chart, unit, precision);
@@ -437,7 +437,7 @@ const chartUtils = (function() {
     * Edits tooltip's label before printing them in the screen.
     **/
     const labelCallback = function(label, chart) {
-        if (label.yLabel != 0 && Math.abs(label.yLabel) < Math.pow(10, -chart.datasets[label.datasetIndex].pv.precision)) {
+        if (label.yLabel !== 0 && Math.abs(label.yLabel) < Math.pow(10, -chart.datasets[label.datasetIndex].pv.precision)) {
             return chart.datasets[label.datasetIndex].label + ": " + label.yLabel.toExponential(Math.min(3, chart.datasets[label.datasetIndex].pv.precision));
         }
 

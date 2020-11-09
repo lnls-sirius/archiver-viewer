@@ -43,7 +43,7 @@ const handlers = (function () {
     async function updateEndNow(button) {
 
         if (!control.autoEnabled()) {
-            if (control.reference() == control.references.START) {
+            if (control.reference() === control.references.START) {
 
                 control.updateTimeReference(control.references.END);
                 ui.enableReference(control.references.END);
@@ -68,7 +68,7 @@ const handlers = (function () {
 
         if (!control.autoEnabled()) {
             let date = control.start();
-            if (control.reference() == control.references.END) {
+            if (control.reference() === control.references.END) {
                 date = control.end();
             }
 
@@ -88,7 +88,7 @@ const handlers = (function () {
 
         if (!control.autoEnabled()) {
             let date = control.start();
-            if (control.reference() == control.references.END) {
+            if (control.reference() === control.references.END) {
                 date = control.end();
             }
 
@@ -128,7 +128,7 @@ const handlers = (function () {
                     console.log(result);
                     return;
                 }
-                if (result.status != "fulfilled") {
+                if (result.status !== "fulfilled") {
                     console.log("Promisse not fulfilled", result);
                     return;
                 }
@@ -137,11 +137,11 @@ const handlers = (function () {
                     if (data == null) {
                         return;
                     }
-                    if (data.paused != "false") {
+                    if (data.paused !== "false") {
                         console.log("PV", data.pvName, "is paused.");
                         return;
                     }
-                    if (data.scalar != "true") {
+                    if (data.scalar !== "true") {
                         console.log("PV", data.pvName, " is not a scalar value.");
                         return;
                     }
@@ -167,7 +167,7 @@ const handlers = (function () {
         ui.showSearchResults(validPVs, appendPVHandler);
     }
     async function queryPVsRetrieval(e, val) {
-        if (e.which != KEY_ENTER) {
+        if (e.which !== KEY_ENTER) {
             return;
         }
         await archInterface.query(val,
@@ -224,7 +224,7 @@ const handlers = (function () {
             ui.enableLoading();
             control.disableScrolling();
             const windowTimeNew = evt.deltaY > 0 ? Math.max(control.windowTime() - 1, 0) : Math.min(control.windowTime() + 1, chartUtils.timeIDs.SEG_30);
-            if (windowTimeNew != control.windowTime()) {
+            if (windowTimeNew !== control.windowTime()) {
                 control.updateTimeWindow(windowTimeNew);
             }
             ui.disableLoading();
@@ -254,11 +254,11 @@ const handlers = (function () {
         while (first <= last) {
             middle = Math.floor((first+last)/2);
 
-            if (dates[middle] ==  searchDate) {
+            if (dates[middle] ===  searchDate) {
                 return middle;
             }
 
-            if (first == middle) {
+            if (first === middle) {
                 return first < searchDate ? first : first-1;
             }
 
@@ -271,7 +271,7 @@ const handlers = (function () {
     }
 
     const tooltipColorHandler = function(tooltip) {
-        if (tooltip.dataPoints != undefined && !control.singleTipEnabled()) {
+        if (tooltip.dataPoints !== undefined && !control.singleTipEnabled()) {
             let i;
             tooltip.labelColors = [];
             tooltip.labelTextColors = [];
@@ -305,7 +305,7 @@ const handlers = (function () {
         let index = 1;
 
         for (let i = 0; i < chart.datasets.length; i++) {
-            if (i != masterSet) {
+            if (i !== masterSet) {
                 const closest = closestDateValue(masterDate, chart.datasets[i].data.map(x => x.x));
 
                 if (chart.datasets[i].data[closest] === undefined || chart.datasets[i].data[closest] === undefined) {
@@ -364,7 +364,7 @@ const handlers = (function () {
 
         } else {
             control.startTimer(setInterval(async function () {
-                if (control.reference() == control.references.START) {
+                if (control.reference() === control.references.START) {
                     control.updateTimeReference(control.references.END);
                     ui.enableReference(control.references.END);
                 }
@@ -402,7 +402,7 @@ const handlers = (function () {
 
             const event = control.chart().getElementsAtEvent(evt);
 
-            if (event != undefined && event.length > 0) {
+            if (event !== undefined && event.length > 0) {
 
                 const eventData = control.chart().data.datasets[event[0].DatasetIndex].data[event[0].Index].x;
                 const middleData = new Date(eventData.getTime() + chartUtils.timeAxisPreferences[control.windowTime()].milliseconds / 2);
@@ -459,7 +459,7 @@ const handlers = (function () {
             const offsetX = control.dragFlags().x - evt.offsetX;
             let newDate = new Date(control.end().getTime() + offsetX * chartUtils.timeAxisPreferences[control.windowTime()].milliseconds / control.chart().chart.width);
 
-            if (control.reference() == control.references.START) {
+            if (control.reference() === control.references.START) {
                 newDate = new Date(control.start().getTime() + offsetX * chartUtils.timeAxisPreferences[control.windowTime()].milliseconds / control.chart().chart.width);
             }
 
@@ -506,7 +506,7 @@ const handlers = (function () {
         if (control.zoomFlags().isZooming && control.zoomFlags().hasBegan) {
             control.zoomFlags().time2 = new Date(control.start().getTime() + evt.offsetX * chartUtils.timeAxisPreferences[control.windowTime()].milliseconds / control.chart().chart.width);
 
-            if (control.zoomFlags().time1 != undefined && control.zoomFlags().time2 != undefined) {
+            if (control.zoomFlags().time1 !== undefined && control.zoomFlags().time2 !== undefined) {
 
                 control.undoStack().push({action: control.stackActions.ZOOM, startTime: control.start(), endTime: control.end(), windowTime: control.windowTime()});
 
@@ -537,7 +537,7 @@ const handlers = (function () {
                 control.updateAllPlots(true);
                 control.updateURL();
 
-                ui.updateDateComponents(control.reference() == control.references.END ? control.end() : control.start());
+                ui.updateDateComponents(control.reference() === control.references.END ? control.end() : control.start());
 
                 // Redraws the chart
                 control.chart().update(0, false);
@@ -587,13 +587,13 @@ const handlers = (function () {
         if (typeof ArrayBuffer !== "undefined") {
             const buf = new ArrayBuffer(s.length);
             const view = new Uint8Array(buf);
-            for (let i=0; i!=s.length; ++i) {
+            for (let i=0; i !== s.length; ++i) {
                 view[i] = s.charCodeAt(i) & 0xFF;
             }
             return buf;
         } else {
             const buf = new Array(s.length);
-            for (let i=0; i!=s.length; ++i) {
+            for (let i=0; i !== s.length; ++i) {
                 buf[i] = s.charCodeAt(i) & 0xFF;
             }
             return buf;
@@ -606,7 +606,7 @@ const handlers = (function () {
         }
 
         const book = XLSXutils.book_new();
-        const sheets = [];
+        // const sheets = [];
 
         const sheetInfo = [];
         for (let i = 0; i < control.chart().data.datasets.length; i++) {

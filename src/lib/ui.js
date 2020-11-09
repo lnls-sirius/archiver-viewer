@@ -1,3 +1,4 @@
+/* eslint-disable radix */
 const ui  = (function () {
 
     const PV_PER_ROW = 4;

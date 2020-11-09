@@ -32,7 +32,6 @@ const archInterface = (function () {
     const APPLIANCES = [
         window.location.protocol + "//" + url,
         "http://archiver.cnpem.br",
-        "http://10.0.38.42"
     ];
 
     /**
@@ -109,7 +108,7 @@ const archInterface = (function () {
                 errorCount ++;
             }
         }
-        if (errorCount == APPLIANCES.length) {
+        if (errorCount === APPLIANCES.length) {
             if (handleError && errors.length > 0) {
                 handleError(errors[0].jqXHR, errors[0].textStatus, errors[0].errorThrown);
             } else {
@@ -168,10 +167,10 @@ const archInterface = (function () {
     **/
     const query = function (pvs, handleSuccess, handleError, handleComplete, handleBefore) {
 
-        var jsonurl = "http://" + url + "/retrieval/bpl/getMatchingPVs?pv=" + pvs + "&limit=4000",
-            components = jsonurl.split("?"),
-            querystring = components.length > 1 ? querystring = components[1] : "",
-            HTTPMethod = jsonurl.length > 2048 ? "POST" : "GET";
+        const jsonurl = "http://" + url + "/retrieval/bpl/getMatchingPVs?pv=" + pvs + "&limit=4000";
+        const components = jsonurl.split("?");
+        const querystring = components.length > 1 ? components[1] : "";
+        const HTTPMethod = jsonurl.length > 2048 ? "POST" : "GET";
 
         $.ajax({
             url: components[0],
