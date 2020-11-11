@@ -1,0 +1,13 @@
+version: "3"
+
+services:
+  archiver-viewer:
+    deploy:
+      mode: replicated
+      replicas: 1
+    image: httpd:2.4.35
+    ports:
+      - "8080:80"
+    volumes:
+      - "/home/controle/archiver-viewer:/usr/local/apache2/htdocs/archiver-viewer-beta"
+

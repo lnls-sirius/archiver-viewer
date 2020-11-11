@@ -1,6 +1,4 @@
-
-
-var ui = (function () {
+module.exports = (function () {
 
     const PV_PER_ROW = 4;
     const PV_PER_ROW_DATA_TABLE = 8;
@@ -8,6 +6,7 @@ var ui = (function () {
     const PV_PER_ROW_INFO = 4;
 
     var current_page = 0;
+    var selectedPVs = [];
 
     /* Miscellaneous functions  */
     function pad_with_zeroes(number, length) {
@@ -26,9 +25,9 @@ var ui = (function () {
             month = ("0" + (date.getMonth() + 1)).slice(-2);
 
         $("#day").val(date.getFullYear() + "-" + month + "-" + day);
-        $("#hour").val(pad_with_zeroes(date.getHours(), 2))
-        $("#minute").val(pad_with_zeroes(date.getMinutes(), 2))
-        $("#second").val(pad_with_zeroes(date.getSeconds(), 2))
+        $("#hour").val(pad_with_zeroes(date.getHours(), 2));
+        $("#minute").val(pad_with_zeroes(date.getMinutes(), 2));
+        $("#second").val(pad_with_zeroes(date.getSeconds(), 2));
     };
 
     var toogleWindowButton = function (toPush, toUnpush) {
@@ -42,7 +41,6 @@ var ui = (function () {
     };
 
     var enableLoading = function (){
-
         $("#date .loading").show();
     };
 
@@ -94,61 +92,88 @@ var ui = (function () {
 
         $("#warning h4").text (warning);
 
-        ui.showSearchWarning ();
+        showSearchWarning ();
 
         var timer = setInterval(function () {
 
-            ui.hideSearchWarning ();
+            hideSearchWarning ();
             clearInterval (timer);
 
         }, 5000);
 
     };
 
-    var showSearchResultsAtPage = function (index, data, eventHandler) {
+    var checkboxes = [];
+
+    var showSearchResultsAtPage = function (index, data) {
 
         $("#table_PVs tr").remove();
+
+        checkboxes = []
 
         var i;
         for (i = index * PV_MAX_ROW_PER_PAGE * PV_PER_ROW; i < data.length && i < ((index + 1) * PV_MAX_ROW_PER_PAGE * PV_PER_ROW); i++) {
 
             var row;
             if (!( (i - index * PV_MAX_ROW_PER_PAGE * PV_PER_ROW) % PV_PER_ROW )) {
-
-                row = $("<tr></tr>")
+                row = $("<tr></tr>");
                 row.appendTo($("#table_PVs"));
             }
 
-            $('<td></td>').attr('id', 'pv' + i).text(data[i]).appendTo(row);
-            $('#pv' + i).unbind().click(eventHandler);
+            var tdCheckbox = $('<td></td>');
+
+            checkboxes.push ($('<input />').attr({"type" : "checkbox", "checked" : selectedPVs.indexOf (data[i]) > -1}).click({"name" : data[i]}, function (event) {
+                if (this.checked)
+                  selectedPVs.push (event.data.name)
+                else
+                  selectedPVs.splice (selectedPVs.indexOf (event.data.name), 1);
+
+            }).appendTo (tdCheckbox));
+
+            $('<label></label>').text(data[i]).appendTo (tdCheckbox);
+
+            tdCheckbox.appendTo (row);
         }
     };
 
-    var showSearchResults = function (data, eventHandler) {
+    var selectedAllPVs = function (e) {
+
+        for (var i = 0; i < checkboxes.length; i++) {
+            checkboxes [i].prop('checked', true).triggerHandler("click");
+        }
+    }
+
+    var deselectedAllPVs = function (e) {
+        for (var i = 0; i < checkboxes.length; i++)
+          checkboxes [i].prop('checked', false).triggerHandler("click");
+    }
+
+    var showSearchResults = function (data) {
 
         if (data != null && data.length > 0) {
 
             if (data.length > 1)
                 $("#archived_PVs h2").text(data.length + " PVs have been found.");
-            else 
+            else
                 $("#archived_PVs h2").text("1 PV has been found.");
-            
-            ui.current_page = 0;
 
-            ui.showSearchResultsAtPage (0, data, eventHandler);
+            current_page = 0;
+            selectedPVs = [];
 
-            $(document.body).children().css('opacity', '0.3');
-            $("#archived_PVs").show();
-            $("#archived_PVs").css('opacity', '1.0');
+            showSearchResultsAtPage (0, data);
+
+            $(document.body).children().css ('opacity', '0.3');
+            $("#archived_PVs").show ();
+            $("#archived_PVs").css ('opacity', '1.0');
 
             $("#previous").hide();
 
             $("#previous").unbind().click ({pvs: data}, function (event) {
 
-                ui.current_page = ui.current_page - 1;
-                ui.showSearchResultsAtPage (ui.current_page, event.data.pvs);
+                current_page = current_page - 1;
+                showSearchResultsAtPage (current_page, event.data.pvs);
 
-                if (!ui.current_page)
+                if (!current_page)
                     $("#previous").hide();
 
                 $("#next").show();
@@ -156,10 +181,10 @@ var ui = (function () {
 
             $("#next").unbind().click ({pvs: data}, function (event) {
 
-                ui.current_page = ui.current_page + 1;
-                ui.showSearchResultsAtPage (ui.current_page, event.data.pvs);
+                current_page = current_page + 1;
+                showSearchResultsAtPage (current_page, event.data.pvs);
 
-                if ((ui.current_page + 1) * PV_MAX_ROW_PER_PAGE * PV_PER_ROW >= event.data.pvs.length )
+                if ((current_page + 1) * PV_MAX_ROW_PER_PAGE * PV_PER_ROW >= event.data.pvs.length )
                     $("#next").hide();
 
                 $("#previous").show();
@@ -171,7 +196,7 @@ var ui = (function () {
                 $("#next").show();
         }
         else if (data != null)
-            ui.toogleSearchWarning ("No PVs corresponding to the search string have been found.");
+            toogleSearchWarning ("No PVs corresponding to the search string have been found.");
     };
 
     var hideSearchedPVs = function () {
@@ -183,19 +208,17 @@ var ui = (function () {
     var refreshScreen = function (event) {
 
         if (event.target.id != 'archived_PVs' && !$('#archived_PVs').find(event.target).length)
-            ui.hideSearchedPVs();
+            hideSearchedPVs();
     }
 
     var toggleZoomButton = function (enable) {
-
         if (enable)
             $("#date .zoom").css('background-color',"lightgrey");
         else
-            $("#date .zoom").css('background-color',"white"); 
+            $("#date .zoom").css('background-color',"grey");
     }
 
     var hideZoomBox = function () {
-
         $("#canvas_area span.selection_box").hide();
         $("#canvas_area span.selection_box").css("width", 0);
         $("#canvas_area span.selection_box").css("height", 0);
@@ -210,9 +233,7 @@ var ui = (function () {
     };
 
     var updateAddress = function (searchString) {
-
         var newurl = window.location.pathname + searchString;
-        
         if (history.pushState)
             window.history.pushState({path:newurl}, '', newurl);
     };
@@ -237,9 +258,7 @@ var ui = (function () {
             $('#data_table_area').append($('<h2></h2>').text(datasets[i].label));
 
             for (var j = 0; j < pv_data.length; j++) {
-
                 var row;
-
                 if ((pv_data[j].x.getTime() >= start.getTime()) &&
                     (pv_data[j].x.getTime() <= end.getTime())) {
 
@@ -269,67 +288,122 @@ var ui = (function () {
         $('#data_table_area .data_table').hide();
     };
 
-    var updatePVInfoTable = function (datasets, legendHandler, optimizeHandler, removeHandler) {
+    var updateDataAxisInfoTable = (series, toggleChartAxisTypeHandler) =>{
+        let row;
+        $('#data_axis .data_axis_table').remove();
+        let table = $('<table></table>').addClass('data_axis_table');
 
+        if(series.length < 1)
+            return
+
+        // Draw a table containing each series in the chart.
+        for(let i = 0; i < series.length; i++){
+
+            if (!(i % PV_PER_ROW_INFO)) {
+                row = $("<tr></tr>");
+                row.appendTo(table);
+            }
+            $('<td></td>')
+                .text('Chart Series: ' + series[i].id).appendTo(row);
+
+            let tdIsLogarithmic = $('<td></td>');
+            let chkBoxBase = $('<label></label>');
+
+            let chk = $('<input />')
+                .attr({
+                    "type" : "checkbox",
+                    "checked" : series[i].type != 'linear'
+                })
+                .click({"axisId" : series[i].id}, toggleChartAxisTypeHandler)
+                .appendTo(chkBoxBase);
+
+            let chkText = $('<span></span>')
+                .attr('class', 'tooltip')
+                .text('isLogarithmic?');
+            let chkTooltip = $('<label></label>')
+                .attr('class', 'tooltiptext')
+                .text('Check it if you want this axis to be displayed in a logarithmic scale.')
+                .appendTo(chkText);
+
+            chkText.appendTo(chkBoxBase);
+            chkBoxBase.appendTo(tdIsLogarithmic);
+            tdIsLogarithmic.appendTo(row);
+        }
+        $('#data_axis').append(table);
+    }
+    var updatePVInfoTable = function (datasets, legendHandler, optimizeHandler, removeHandler) {
+        var row;
         // Remove all data before rewriting
         $("#data_pv_info .pv_info_table").remove();
-
         var table = $('<table></table>').addClass('pv_info_table');
-
         // Draws a table for each variable chosen by the user
         for (var i = 0; i < datasets.length; i++){
 
             if (!(i % PV_PER_ROW_INFO)) {
-                row = $("<tr></tr>")
+                row = $("<tr></tr>");
                 row.appendTo(table);
             }
 
             $('<td></td>').css({"background-color": datasets[i].backgroundColor, "width": "30px", "cursor" : "pointer"}).click({"datasetIndex" : i}, legendHandler).appendTo(row);
-
             $('<td></td>').text(datasets[i].label).appendTo(row);
 
             var tdOptimized = $('<td></td>');
+                $('<input />')
+                    .attr({"type" : "checkbox", "checked" : datasets[i].pv.optimized, "disabled" : datasets[i].pv.type == "DBR_SCALAR_ENUM"}).click({"datasetIndex" : i}, optimizeHandler).appendTo (tdOptimized);
 
-            $('<input />').attr({"type" : "checkbox", "checked" : datasets[i].pv.optimized, "disabled" : datasets[i].pv.type == "DBR_SCALAR_ENUM"}).click({"datasetIndex" : i}, optimizeHandler).appendTo (tdOptimized);
-
-            $('<label></label>:').text("Optimize?").appendTo (tdOptimized);
-
+            var div = $('<label></label>')
+                .attr('class', 'tooltip')
+                .text('Optimize?');
+            $('<span></span>')
+                .attr('class', 'tooltiptext')
+                .text('Uncheck it if you want raw data sent from the server.')
+                .appendTo(div);
+            div.appendTo (tdOptimized);
             tdOptimized.appendTo(row);
 
             var tdRemove = $('<td></td>');
-
-            tdRemove.css({"cursor" : "pointer"}).text("Remove").click ({"datasetIndex" : i}, removeHandler);
-
-            tdRemove.appendTo (row);
+            tdRemove
+                .css({"cursor" : "pointer"})
+                .text("Remove")
+                .click ({"datasetIndex" : i}, removeHandler);
+            tdRemove.appendTo(row);
         }
 
         $('#data_pv_info').append(table);
     };
 
     var showSearchWarning = function (){
-
         $("#warning").fadeIn();
     };
 
     var hideSearchWarning = function (){
-
         $("#warning").fadeOut();
     };
 
     var disable = function (button) {
-
         button.addClass("disabled");
         button.css({"background-color" : "lightblue", "cursor" : "default", "pointerEvents" : "none"});
-    }
+    };
 
     var enable = function (button) {
-
         button.removeClass("disabled");
-        button.css({"background-color" : "white", "cursor" : "pointer", "pointerEvents" : "auto"});
-    }
-    
+        button.css({"background-color" : "grey", "cursor" : "pointer", "pointerEvents" : "auto"});
+    };
+
+    var isEndSelected = function () {
+        return ($('#date .type').find(":selected").text() == "END");
+    };
+
+    var enableReference = function (i) {
+        $('#date .type>option:eq(' + (1 - i) + ')').prop('selected', false);
+        $('#date .type>option:eq(' + i + ')').prop('selected', true);
+    };
+
     return {
 
+        selectedPVs: function () { return selectedPVs; },
+
+        updateDataAxisInfoTable : updateDataAxisInfoTable,
         updateDateComponents : updateDateComponents,
         toogleWindowButton: toogleWindowButton,
         enableLoading: enableLoading,
@@ -356,6 +430,10 @@ var ui = (function () {
         toogleSearchWarning: toogleSearchWarning,
         disable: disable,
         enable: enable,
+        isEndSelected: isEndSelected,
+        enableReference: enableReference,
+        selectedAllPVs: selectedAllPVs,
+        deselectedAllPVs: deselectedAllPVs,
     };
 
-}) ();
+})();

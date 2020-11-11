@@ -4,28 +4,41 @@
 * fetch data from the archiver.
 **/
 
-var archInterface = (function () {
+import * as ui from './ui';
+import simplify from 'simplify-js';
 
-    const ARCHIVER_URL = "http://10.0.4.57:11998";
+module.exports = (function () {
+
+    var url = "https://10.0.38.42";
 
     /**
     * Parses the data retrieved from the archiver in a way that it can be understood by the chart controller
     **/
-    var parseData = function (data) {
-
-        var parsedData = [];
-
-        for (var i = 0; i < data.length; i++) {
-
-            var timedate = new Date(data[i].secs * 1e3 + data[i].nanos * 1e-6);
-
+    var parseData = function (data, optimize = false, tolerance = 0.001, highRes = false) {
+        let parsedData = [];
+        for (let i = 0; i < data.length; i++) {
+            let timedate = new Date(data[i].secs * 1e3 + data[i].nanos * 1e-6);
             if (!isNaN(timedate.getTime())) {
-
-                parsedData.push({
-                    x : timedate,
-                    y : data[i].val.length > 0 ? data[i].val[0] : data[i].val
-                });
+                parsedData.push(
+                    (optimize ? {
+                        timedate : timedate,
+                        x : i,
+                        y : data[i].val.length > 0 ? data[i].val[0] : data[i].val
+                    }:{
+                        x : timedate,
+                        y : data[i].val.length > 0 ? data[i].val[0] : data[i].val
+                    })
+                );
             }
+        }
+
+        if(optimize){
+            let result = simplify(parsedData, tolerance, highRes);
+            for(let i=0; i < result.length; i++){
+                result[i].x = result[i].timedate;
+            }
+            console.log(parsedData.length, result.length);
+            return result;
         }
         return parsedData;
     }
@@ -38,7 +51,7 @@ var archInterface = (function () {
         if (pv == undefined)
             return null;
 
-        var jsonurl = archInterface.url + '/retrieval/bpl/getMetadata?pv=' + pv,
+        var jsonurl = url + '/retrieval/bpl/getMetadata?pv=' + pv,
             components = jsonurl.split('?'),
             HTTPMethod = jsonurl.length > 2048 ? 'POST' : 'GET',
             returnData = null;
@@ -47,6 +60,7 @@ var archInterface = (function () {
             url: components[0],
             data: components[1],
             type: HTTPMethod,
+            crossDomain: true,
             dataType: 'json',
             async: false,
             success: function(data, textStatus, jqXHR) {
@@ -68,13 +82,13 @@ var archInterface = (function () {
         if (from == undefined || to == undefined)
             return null;
 
-        var jsonurl = archInterface.url + '/retrieval/data/getData.json?pv=' + pv + "&from=" + from.toJSON() + "&to=" + to.toJSON();
+        var jsonurl = url + '/retrieval/data/getData.json?pv=' + pv + "&from=" + from.toJSON() + "&to=" + to.toJSON();
 
         if (isOptimized) {
             /*if (bins == undefined)
                 bins = TIME_AXIS_PREFERENCES[global_settings.window_time].bins;
             */
-            jsonurl = archInterface.url + '/retrieval/data/getData.json?pv=optimized_' + bins + '(' + pv + ")&from=" + from.toJSON() + "&to=" + to.toJSON();
+            jsonurl = url + '/retrieval/data/getData.json?pv=optimized_' + bins + '(' + pv + ")&from=" + from.toJSON() + "&to=" + to.toJSON();
         }
 
         var components = jsonurl.split('?'),
@@ -85,16 +99,27 @@ var archInterface = (function () {
             url: components[0],
             data: components[1],
             type: HTTPMethod,
-            dataType: 'json',
+            crossDomain: true,
+            dataType: 'text',
             async: false,
             success: function(data, textStatus, jqXHR) {
                 returnData = textStatus == "success" ? data : null;
+                if(returnData){
+                    try{
+                        returnData = returnData.replace(/(-?Infinity)/g, "\"$1\"");
+                        returnData = returnData.replace(/(NaN)/g, "\"$1\"");
+                        returnData = JSON.parse(returnData);
+                    }catch(err){
+                        ui.toogleSearchWarning ("Failed to parse data from request " + components[0] + ". " + err.message);
+                        console.log(components[0], err.message);
+                    }
+                }
             },
             error: function(xmlHttpRequest, textStatus, errorThrown) {
                 ui.toogleSearchWarning ("Connection failed with " + xmlHttpRequest + " -- " + textStatus + " -- " + errorThrown);
+                console.log(components[0], textStatus, errorThrown);
             }
         });
-
         return returnData;
     }
 
@@ -102,9 +127,9 @@ var archInterface = (function () {
     /**
     * Key event handler which looks for PVs in the archiver
     **/
-    var query = function (pvs) {  
+    var query = function (pvs) {
 
-        var jsonurl = archInterface.url + '/retrieval/bpl/getMatchingPVs?pv=' + pvs + "&limit=4000",
+        var jsonurl = url + '/retrieval/bpl/getMatchingPVs?pv=' + pvs + "&limit=4000",
             components = jsonurl.split('?'),
             querystring = components.length > 1 ? querystring = components[1] : '',
             HTTPMethod = jsonurl.length > 2048 ? 'POST' : 'GET',
@@ -114,6 +139,7 @@ var archInterface = (function () {
             url: components[0],
             data: querystring,
             type: HTTPMethod,
+            crossDomain: true,
             dataType: 'json',
             async: false,
             timeout: 3000,
@@ -129,11 +155,14 @@ var archInterface = (function () {
     }
 
     return {
-        url: ARCHIVER_URL,
+
+        url: function () { return url; },
+        updateURL: function (u) { url = u },
+
         parseData: parseData,
         fetchMetadata : fetchMetadata,
         fetchData: fetchData,
         query: query,
     }
 
-}) ();
+})();
