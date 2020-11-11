@@ -231,13 +231,73 @@ module.exports = (function() {
             if(chart.options.scales.yAxes[i].id == axisId){
                 if(isLogarithmic){
                     chart.options.scales.yAxes[i].type = 'logarithmic';
-                    chart.update();
-                }else {
+		    //chart.options.scales.yAxes[i].ticks.maxTicksLimit = 25;
+                }else{
                     chart.options.scales.yAxes[i].type = 'linear';
-                    chart.update();
                 }
+                chart.update();
             }
         }
+    }
+
+    var toggleAutoY = (chart, axisId, autoFire) => {
+    var table = $(autoFire).closest(".data_axis_table").find(":text");
+    
+    for (let i = 1; i < chart.options.scales.yAxes.length; i++) {
+        if (chart.options.scales.yAxes[i].id == axisId) {
+	    table = table.slice((i-1)*2,(i-1)*2+2);
+	    table.toggle();
+            if (autoFire.checked) {
+                for (let j = 0; j < table.length; j++) {
+                    var limit = parseFloat(table[j].value);
+                    if (!isNaN(limit)) {
+                        if ($(table[j]).attr("placeholder") === "Max") {
+                            chart.options.scales.yAxes[i].ticks.max = limit;
+                        } else {
+                            chart.options.scales.yAxes[i].ticks.min = limit;
+                        }
+                    }
+                }
+          } else {
+        delete chart.options.scales.yAxes[i].ticks.max;
+        delete chart.options.scales.yAxes[i].ticks.min;
+ 	}
+    }
+    }
+    chart.update();
+    }
+
+    var changeYLimit = (chart, axisId, limitInput )=>{
+	if(chart.options.scales.yAxes.length <= 1)
+            return;
+
+        for(let i=1; i < chart.options.scales.yAxes.length; i++){
+            if(chart.options.scales.yAxes[i].id == axisId){
+		var limit = parseFloat(limitInput.value);
+		if($(limitInput).attr("placeholder") === "Max")
+		{
+		    if(!isNaN(limit))
+		    {
+                        chart.options.scales.yAxes[i].ticks.max =  limit;
+		    }
+		    else
+		    {
+			delete chart.options.scales.yAxes[i].ticks.max;
+		    }
+		} else {
+		    if(!isNaN(limit))
+                    {
+			chart.options.scales.yAxes[i].ticks.min =  limit;
+		    }
+		    else
+                    {
+                        delete chart.options.scales.yAxes[i].ticks.min;
+                    }
+
+		}
+            }
+        }
+	chart.update();
     }
 
     var getAxesInUse = (axes)=> {
@@ -254,8 +314,7 @@ module.exports = (function() {
 
     /** Adds a new vertical axis to the chart. */
     var appendDataAxis = function(chart, n_id, ticks_precision) {
-
-        if(n_id in yAxisUseCounter) {
+	if(n_id in yAxisUseCounter) {
             /* Increments the number of times this axis is used by a PV. */
             yAxisUseCounter[n_id]++;
             return ;
@@ -332,7 +391,7 @@ module.exports = (function() {
             pointRadius : 0,
             backgroundColor : color,
             borderColor: color,
-            pv: {
+	    pv: {
                 precision: precision,
                 type: type,
                 samplingPeriod: samplingPeriod,
@@ -342,7 +401,8 @@ module.exports = (function() {
                 metadata: metadata
             },
         });
-        chart.update();
+	
+	chart.update();
     };
 
     var hidesAxis = function(metadata, chart) {
@@ -356,7 +416,6 @@ module.exports = (function() {
             if(yAxisUseCounter[metadata.yAxisID] <= 0)
                 chart.scales[metadata.yAxisID].options.display = false;
         }
-
     }
 
     /**
@@ -380,10 +439,59 @@ module.exports = (function() {
         if(chart.datasets[label.datasetIndex].pv.precision > 4)
             return chart.datasets[label.datasetIndex].label + ": " + label.yLabel.toExponential(3);
 
-        return chart.datasets[label.datasetIndex].label + ": " +  label.yLabel.toFixed(chart.datasets[label.datasetIndex].pv.precision);
+	return chart.datasets[label.datasetIndex].label + ": " +  label.yLabel.toFixed(chart.datasets[label.datasetIndex].pv.precision);
     };
 
-    return {
+    var toggleTooltipBehavior = function (chart, isOld) {
+	if(isOld) {
+	    chart.options.tooltips.position = "nearest";
+	    chart.options.tooltips.mode = "nearest";
+	    chart.options.tooltips.caretSize = 5;
+	    delete chart.options.tooltips.yAlign;
+	    delete chart.options.tooltips.xAlign;
+	    delete chart.options.tooltips.axis;
+	    chart.options.elements.point.hoverRadius = 5;
+	} else {
+	    chart.options.tooltips.position = "cursor";
+	    chart.options.tooltips.mode = "nearest";
+	    chart.options.tooltips.caretSize = 0;
+	    chart.options.tooltips.yAlign = "no-transform";
+	    chart.options.tooltips.xAlign = "no-transform";
+	    chart.options.tooltips.axis = 'x';
+	    chart.options.elements.point.hoverRadius = 0;
+	}
+
+	chart.update();
+    }
+
+    var reboundTooltip = function (x, y, tooltip, factor) {
+        let tooltipWidth = tooltip.width;
+        let tooltipHeight = tooltip.height;
+        let coordinates = {x:0, y:y};
+
+        if(x > tooltip._chart.width - (tooltipWidth + 10)) {
+            coordinates.x = x - tooltipWidth - 5;
+        } else {
+            coordinates.x = x + 5;
+        }
+
+        /*if(y > tooltip._chart.height - (tooltipHeight + 10)) {
+            coordinates.y = y + tooltipHeight - 5;
+        } else {
+            coordinates.y = y - tooltipHeight*factor + 5;
+        }*/
+	coordinates.y = y - tooltipHeight*factor + 5;
+
+        return coordinates;
+    };
+
+    Chart.Tooltip.positioners.cursor = function(chartElements, coordinates) {
+	// This exists to override default Chartjs behavior. It does not cause the whole tooltip element to be rerendered.
+	// As yAlign and xAlign properties are set to 'no-transform', we have to give an absolute position for the tooltip, this occurs in conjunction with the eventHandler in control.js.
+	return reboundTooltip(coordinates.x, coordinates.y, this, 0);
+     };
+
+         return {
 
         /* const references */
         timeAxisID: TIME_AXIS_ID,
@@ -397,15 +505,19 @@ module.exports = (function() {
         axisPositionLeft: function() { return axisPositionLeft; },
 
         /* Setters */
+	toggleTooltipBehavior: toggleTooltipBehavior,
         updateAxisPositionLeft: function(a) { axisPositionLeft = a; } ,
-        toggleAxisType:toggleAxisType,
+        toggleAxisType: toggleAxisType,
+	toggleAutoY: toggleAutoY,
+	changeYLimit: changeYLimit,
         updateTimeAxis: updateTimeAxis,
         appendDataAxis: appendDataAxis,
         appendDataset: appendDataset,
         hidesAxis: hidesAxis,
         legendCallback: legendCallback,
         labelCallback: labelCallback,
-        randomColorGenerator: randomColorGenerator
+	reboundTooltip: reboundTooltip,
+	randomColorGenerator: randomColorGenerator
     };
 
 })();

@@ -1,5 +1,5 @@
 body {
-      font-family: Dejavu Sans;
+      font-family: Arial;
       text-align: center;
 }
 
@@ -15,7 +15,7 @@ button {
     display: inline-block;
 
     font-size: 12px;
-    font-family: Dejavu Sans;
+    font-family: Arial;
     text-align: center;
 }
 button:hover {
@@ -53,7 +53,7 @@ select{
     margin: 0px;
 }
 .dataset-info button{
-      font-family: Dejavu Sans;
+      font-family: Arial;
       text-align: center;
       font-size: 12px;
       font-weight: bold;
@@ -358,6 +358,24 @@ select{
       width: 100%;
 }
 
+.footer-box:last-child {
+      margin-right: 30px;
+}
+
+.footer-box-wrapper {
+      display: block;
+}
+
+.footer-box {
+      display: inline-block;
+      width: 138px;
+}
+
+.footer-input {
+      width: 150px;
+      height: 35px;
+}
+
 #archived_PVs table tr td {
       padding: 15px 5px 15px 5px;
       height: 50px;
@@ -576,3 +594,72 @@ select{
       visibility: visible;
       opacity: 1;
 }
+
+.lds-ellipsis {
+  display: none;
+  position: absolute;
+  bottom: 90px;
+  text-align: center;
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+
+.lds-ellipsis div {
+  position: absolute;
+  top: 33px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #0099ff;
+  animation-timing-function: cubic-bezier(0, 1, 1, 0);
+}
+
+.lds-ellipsis div:nth-child(1) {
+  left: 8px;
+  animation: lds-ellipsis1 0.6s infinite;
+}
+
+.lds-ellipsis div:nth-child(2) {
+  left: 8px;
+  animation: lds-ellipsis2 0.6s infinite;
+}
+
+.lds-ellipsis div:nth-child(3) {
+  left: 32px;
+  animation: lds-ellipsis2 0.6s infinite;
+}
+
+.lds-ellipsis div:nth-child(4) {
+  left: 56px;
+  animation: lds-ellipsis3 0.6s infinite;
+}
+
+@keyframes lds-ellipsis1 {
+  0% {
+    transform: scale(0);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes lds-ellipsis3 {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(0);
+  }
+}
+
+@keyframes lds-ellipsis2 {
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(24px, 0);
+  }
+}
+
+

@@ -7,9 +7,29 @@
 import simplify from 'simplify-js';
 
 module.exports = (function () {
+    var getUrl = ()=> {
+        var host = "10.0.38.42"; // Initialize with the proxy addr
+        if (window.location.host == "vpn.cnpem.br") { // If using WEB VPN
+                // Capture IPv4 addr
+                var ipRegExp = /(?<=https?\/)((?:(?:2(?:[0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9])\.){3}(?:(?:2([0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9])))(?=\/)/;
+                var match = ipRegExp.exec(window.location.href);
+                if(match && match.length > 1){
+                    host = match[1];
+                }
+        } else {
+            host = window.location.host;
+        }
 
-    var url = "https://10.0.38.42";
+	if(host == "10.0.38.50"){
+	    host = "10.0.38.42";
+	    console.log("DEBUG SERVER. Setting host to 10.0.38.42");
+	}
 
+        return host;
+    }
+
+    var url = getUrl();
+    var bypassUrl = url + "/archiver-generic-backend";
     /**
     * Parses the data retrieved from the archiver in a way that it can be understood by the chart controller
     **/
@@ -45,61 +65,63 @@ module.exports = (function () {
     /**
     * Gets the metadata associated with a PV.
     **/
-    var fetchMetadata = function (pv, handleError) {
-
+    async function fetchMetadata (pv, handleError) {
         if (pv == undefined)
             return null;
 
-        var jsonurl = url + '/retrieval/bpl/getMetadata?pv=' + pv,
+        var jsonurl = "http://" + url + '/retrieval/bpl/getMetadata?pv=' + pv,
             components = jsonurl.split('?'),
             HTTPMethod = jsonurl.length > 2048 ? 'POST' : 'GET',
             returnData = null;
 
-        $.ajax ({
+        await $.ajax ({
             url: components[0],
             data: components[1],
             type: HTTPMethod,
             crossDomain: true,
             dataType: 'json',
-            async: false,
-            success: function(data, textStatus, jqXHR) {
-                returnData = textStatus == "success" ? data : null;
-            },
-            error:handleError
-        });
+	    timeout: 0,
+            //async: false,
+        })
+	.done(function(data, textStatus, jqXHR) {
+               returnData = textStatus == "success" ? data : null;
+            })
+        .fail(function (jqXHR, textStatus, errorThrown) { handleError(jqXHR, textStatus, errorThrown); });
 
-        return returnData;
+	return returnData;
     }
 
     /**
     * Requests data from the archiver.
     **/
-    var fetchData = function (pv, from, to, isOptimized, bins, handleError) {
-
-        if (from == undefined || to == undefined)
+    async function fetchData (pv, from, to, isOptimized, bins, handleError, showLoading) {
+	if (from == undefined || to == undefined)
             return null;
 
-        var jsonurl = url + '/retrieval/data/getData.json?pv=' + pv + "&from=" + from.toJSON() + "&to=" + to.toJSON();
+        var jsonurl = "http://" + url + '/retrieval/data/getData.json?pv=' + pv + "&from=" + from.toJSON() + "&to=" + to.toJSON();
 
         if (isOptimized) {
             /*if (bins == undefined)
                 bins = TIME_AXIS_PREFERENCES[global_settings.window_time].bins;
             */
-            jsonurl = url + '/retrieval/data/getData.json?pv=optimized_' + bins + '(' + pv + ")&from=" + from.toJSON() + "&to=" + to.toJSON();
+            jsonurl = "http://" + url + '/retrieval/data/getData.json?pv=optimized_' + bins + '(' + pv + ")&from=" + from.toJSON() + "&to=" + to.toJSON();
         }
 
         var components = jsonurl.split('?'),
             HTTPMethod = jsonurl.length > 2048 ? 'POST' : 'GET',
             returnData = null;
 
-        $.ajax ({
+        await $.ajax ({
             url: components[0],
             data: components[1],
             type: HTTPMethod,
             crossDomain: true,
             dataType: 'text',
-            async: false,
-            success: function(data, textStatus, jqXHR) {
+	    beforeSend:showLoading,
+	    timeout: 0,
+            //async: false,
+        })
+	.done(function(data, textStatus, jqXHR) {
                 returnData = textStatus == "success" ? data : null;
                 if(returnData){
                     try{
@@ -110,33 +132,33 @@ module.exports = (function () {
                         console.log("Failed to parse data from request", components[0], err.message);
                     }
                 }
-            },
-            error: handleError
-        });
-        return returnData;
+            })
+	.fail(function (jqXHR, textStatus, errorThrown) { handleError(jqXHR, textStatus, errorThrown); });
+
+	return returnData;
     }
 
-    var getPVStatus = function(pvs, handleSuccess, handleError, handleComplete, handleBefore){
-
-        var jsonurl = url + '/mgmt/bpl/getPVStatus?pv=' + pvs + "&limit=4000",
+    async function getPVStatus(pvs, handleSuccess, handleError, handleComplete, handleBefore){
+        var jsonurl = "https://" + bypassUrl + "/bypass?" +  url + '/mgmt/bpl/getPVStatus?pv=' + pvs + "&limit=4000",
             components = jsonurl.split('?'),
-            querystring = components.length > 1 ? querystring = components[1] : '',
+            querystring = components.length > 1 ? querystring = jsonurl.substring(components[0].length+1) : '',
             HTTPMethod = jsonurl.length > 2048 ? 'POST' : 'GET',
             returnData = null;
 
-        $.ajax({
+        await $.ajax({
             url: components[0],
             data: querystring,
             type: HTTPMethod,
             dataType: 'json',
             crossDomain: true,
-            async: false,
-            timeout: 3000,
+            //async: false,
+            timeout: 0,
             beforeSend:handleBefore,
             success: handleSuccess,
             error: handleError,
             complete: handleComplete
         });
+
         return returnData;
     }
     /**
@@ -144,7 +166,7 @@ module.exports = (function () {
     **/
     var query = function (pvs) {
 
-        var jsonurl = url + '/retrieval/bpl/getMatchingPVs?pv=' + pvs + "&limit=4000",
+        var jsonurl = "http://" + url + '/retrieval/bpl/getMatchingPVs?pv=' + pvs + "&limit=4000",
             components = jsonurl.split('?'),
             querystring = components.length > 1 ? querystring = components[1] : '',
             HTTPMethod = jsonurl.length > 2048 ? 'POST' : 'GET',
@@ -172,12 +194,13 @@ module.exports = (function () {
 
         url: function () { return url; },
         updateURL: function (u) { url = u },
+	bypassUrl: function() { return bypassUrl; },
 
         parseData: parseData,
         fetchMetadata : fetchMetadata,
         fetchData: fetchData,
         query: query,
         getPVStatus: getPVStatus
-    }
+	}
 
 })();

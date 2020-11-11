@@ -16,7 +16,7 @@ class SearchPV extends Component{
     }
 
     render(){
-       return <input type="text"  placeholder="Search ..." value={this.state.value} onChange={this.handleChange} onKeyDown={this.handleSubmit}/>
+       return <input class="search-input" type="text"  placeholder="Search ..." value={this.state.value} onChange={this.handleChange} onKeyDown={this.handleSubmit}/>
     }
 }
 export default SearchPV;

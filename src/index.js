@@ -38,55 +38,82 @@ $("#close").on('click', ui.hideSearchedPVs);
 /**
 * Instantiates a new chart and global structures
 **/
-$(document).ready(function () {
+$(document).ready(function () { 
     let options = {
+	    showLine: true,
+	    spanGaps: true,
             responsiveAnimationDuration: 0,
             responsive: true,
             maintainAspectRatio: false,
             animation: { duration: 0 },
             elements: {
-                line:{
+		point:{
+		    hoverRadius: 0
+		},
+		line:{
                     tension:0 // disable belzier curves
                 }
             },
             tooltips: {
                 mode: 'nearest',
-                intersect: false,
-                cornerRadius: 5,
-                callbacks: { label: chartUtils.labelCallback },
+		axis: 'x',
+		intersect: false,
+		custom: handlers.tooltipColorHandler,
+	        cornerRadius: 5,
+		caretSize: 0,
+		yAlign: 'no-transform',
+		xAlign: 'no-transform',
+		position: 'cursor',
+                callbacks: { label: chartUtils.labelCallback, beforeBody: handlers.bodyCallback },
             },
             hover: {
                 mode: 'nearest',
-                intersect: false,
-                animationDuration: 0,
+		position: 'nearest',
+		intersect: false,
+	        animationDuration: 0,
             },
             title: { display: false },
             scales: {
+                B: {
+                    display: false,
+                    min: 0,
+                    max: 10
+                },
                 xAxes: [{
                     // Common x axis
+		    offset: true,
                     id: chartUtils.timeAxisID,
                     type: 'time',
-                    distribution: 'series',
+                    distribution: 'linear',
                     time: {
                         unit: 'minute',
                         unitStepSize: 5,
                         displayFormats: {
-                            minute: 'DD/MM/YYYY HH:mm:ss'
+                           	second: 'HH:mm:ss',
+	    			minute: 'HH:mm',
+				hour: 'HH:ss',
+				day: 'MMM D hh:mm',
+				month: 'MMM YYYY'
                         },
-                        tooltipFormat: 'ddd MMM DD YYYY HH:mm:ss.SSS ZZ',
+                        tooltipFormat: 'ddd MMM DD YYYY HH:mm:ss.S ZZ',
                     },
                     ticks: {
-                        autoSkip : true,
+			source: "auto",
+                        autoSkip: true,
                         autoSkipPadding: 5,
+			maxRotation: 0,
+			minRotation: 0,
+			stepSize: 1,
+			//maxTicksLimit: 15
                     }
                 }],
-                yAxes: [{
+		yAxes: [{
                     // Useless YAxis
                     type: "linear",
                     display: false,
                     position: "left",
-                    id: "y-axis-0"
-                }],
+                    id: "y-axis-0",
+	        }],
             },
             legend : {
                 display: false,
@@ -95,7 +122,7 @@ $(document).ready(function () {
         };
 
     control.init (new Chart($("#archiver_viewer"), {
-        type: 'line',
+        type: "line",
         data: [],
         options: options
     }));

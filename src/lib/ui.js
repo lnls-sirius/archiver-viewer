@@ -20,6 +20,7 @@ module.exports = (function () {
     }
 
     var updateDateComponents = function (date) {
+	if(date === undefined){date = new Date();}
 
         var day   = ("0" + date.getDate()).slice(-2),
             month = ("0" + (date.getMonth() + 1)).slice(-2);
@@ -41,17 +42,16 @@ module.exports = (function () {
     };
 
     var enableLoading = function (){
-        $("#date .loading").show();
+        $('.lds-ellipsis').css("display", "inline-block");
     };
 
     var disableLoading = function (){
-
-        $("#date .loading").hide();
+        $('.lds-ellipsis').css("display", "none");
     };
 
     var showWarning = function (){
 
-        $("#obs").fadeIn();
+        $("#obs").fadeIn().delay(5000).fadeOut();
     };
 
     var hideWarning = function (){
@@ -281,7 +281,7 @@ module.exports = (function () {
         $('#data_table_area .data_table').hide();
     };
 
-    var updateDataAxisInfoTable = (series, toggleChartAxisTypeHandler) =>{
+        var updateDataAxisInfoTable = (series, toggleChartAxisTypeHandler, toggleAutoYHandler, changeYLimitHandler) =>{
         let row;
         $('#data_axis .data_axis_table').remove();
         let table = $('<table></table>').addClass('data_axis_table');
@@ -296,11 +296,58 @@ module.exports = (function () {
                 row = $("<tr></tr>");
                 row.appendTo(table);
             }
+	    
             $('<td></td>')
                 .text('Chart Series: ' + series[i].id).appendTo(row);
 
-            let tdIsLogarithmic = $('<td></td>');
+	    let wrapper = $('<div class="footer-box-wrapper"></div>');
+            let tdIsLogarithmic = $('<td class="footer-box"></td>');
             let chkBoxBase = $('<label></label>');
+	    let isManual = !isNaN(series[i].ticks.max) || !isNaN(series[i].ticks.min);
+
+	    let intervalMin = $('<input />')
+                .attr({
+		    "class" : "footer-input",
+                    "type" : "text",
+                    "placeholder" : "Min",
+		    "value": isManual ? series[i].ticks.min : ''
+                })
+                .blur({"axisId" : series[i].id}, changeYLimitHandler)
+                .appendTo(row);
+
+            let intervalMax = $('<input />')
+                .attr({
+		    "class" : "footer-input",
+                    "type" : "text",
+                    "placeholder" : "Max",
+		    "value": isManual ? series[i].ticks.max : ''
+                })
+                .blur({"axisId" : series[i].id}, changeYLimitHandler)  
+                .appendTo(row);
+		if(!isManual)
+		{
+		intervalMax.hide();
+		intervalMin.hide();
+		}
+
+	    let chkAutoY = $('<input />')
+                .attr({
+                    "type" : "checkbox",
+                    "checked" : isManual
+                })
+                .click({"axisId" : series[i].id}, toggleAutoYHandler)
+                .appendTo(chkBoxBase);
+
+            let chkAutoYText = $('<span></span>')
+                .attr("class", "tooltip")
+                .text("Manual Y Limit")
+                .appendTo(chkBoxBase);
+
+            chkBoxBase.appendTo(tdIsLogarithmic);
+            tdIsLogarithmic.appendTo(wrapper);
+
+	    tdIsLogarithmic = $('<td class="footer-box"></td>');
+	    chkBoxBase = $('<label></label>');
 
             let chk = $('<input />')
                 .attr({
@@ -312,18 +359,17 @@ module.exports = (function () {
 
             let chkText = $('<span></span>')
                 .attr('class', 'tooltip')
-                .text('isLogarithmic?');
-            let chkTooltip = $('<label></label>')
-                .attr('class', 'tooltiptext')
-                .text('Check it if you want this axis to be displayed in a logarithmic scale.')
-                .appendTo(chkText);
+                .text('Log Y Axis')
+            	.appendTo(chkBoxBase);
 
-            chkText.appendTo(chkBoxBase);
             chkBoxBase.appendTo(tdIsLogarithmic);
-            tdIsLogarithmic.appendTo(row);
+            tdIsLogarithmic.appendTo(wrapper);
+
+	    wrapper.appendTo(row);
         }
         $('#data_axis').append(table);
     }
+
     var updatePVInfoTable = function (datasets, legendHandler, optimizeHandler, removeHandler) {
         var row;
         // Remove all data before rewriting
@@ -346,7 +392,7 @@ module.exports = (function () {
 
             var div = $('<label></label>')
                 .attr('class', 'tooltip')
-                .text('Optimize?');
+                .text('Optimize');
             $('<span></span>')
                 .attr('class', 'tooltiptext')
                 .text('Uncheck it if you want raw data sent from the server.')
