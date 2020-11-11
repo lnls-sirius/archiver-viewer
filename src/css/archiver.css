@@ -450,7 +450,7 @@ select{
       border-color: lightgrey;
 }
 
-#data_table_area .data_table tr td.pv_time {
+#data_table_area .data_table tr td.pvTime {
 
       background-color: lightgrey;
       font-weight: bold;

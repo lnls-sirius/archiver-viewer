@@ -1,5 +1,5 @@
-import path from 'path';
-import HtmlWebpackPlugin from 'html-webpack-plugin';
+import path from "path";
+import HtmlWebpackPlugin from "html-webpack-plugin";
 
 module.exports = {
   entry: path.join(__dirname,'src','index.js'),
@@ -31,8 +31,8 @@ module.exports = {
         test: /\.(css|scss)$/,
         use: [
           "style-loader", // creates style nodes from JS strings
-          "css-loader", // translates CSS into CommonJS
-          "sass-loader" // compiles Sass to CSS, using Node Sass by default
+          "css-loader",   // translates CSS into CommonJS
+          "sass-loader"   // compiles Sass to CSS, using Node Sass by default
         ]
       },
       {
@@ -43,7 +43,8 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: path.join(__dirname,'src','index.html')
+      template: path.join(__dirname,'src','index.html'),
+      favicon: "./src/img/cropped-icon.png"
     })
   ]
 };

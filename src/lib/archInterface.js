@@ -3,15 +3,14 @@
 * The following functions communicate with the /retrieval appliance and
 * fetch data from the archiver.
 **/
-
 import simplify from "simplify-js";
 
-module.exports = (function () {
+const archInterface = (function () {
     const getUrl = ()=> {
         let host = "10.0.38.42";
         if (window.location.host === "vpn.cnpem.br") { // If using WEB VPN
             // Capture IPv4 address
-            const ipRegExp = /(?<=https?\/)((?:(?:2(?:[0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9])\.){3}(?:(?:2([0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9])))(?=\/)/;
+            const ipRegExp = /https?\/((?:(?:2(?:[0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9])\.){3}(?:(?:2([0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9])))\//;
             const match = ipRegExp.exec(window.location.href);
             if (match && match.length > 1) {
                 host = match[1];
@@ -33,7 +32,6 @@ module.exports = (function () {
     const APPLIANCES = [
         window.location.protocol + "//" + url,
         "http://archiver.cnpem.br",
-        "http://10.0.38.42"
     ];
 
     /**
@@ -110,7 +108,7 @@ module.exports = (function () {
                 errorCount ++;
             }
         }
-        if (errorCount == APPLIANCES.length) {
+        if (errorCount === APPLIANCES.length) {
             if (handleError && errors.length > 0) {
                 handleError(errors[0].jqXHR, errors[0].textStatus, errors[0].errorThrown);
             } else {
@@ -169,10 +167,10 @@ module.exports = (function () {
     **/
     const query = function (pvs, handleSuccess, handleError, handleComplete, handleBefore) {
 
-        var jsonurl = "http://" + url + "/retrieval/bpl/getMatchingPVs?pv=" + pvs + "&limit=4000",
-            components = jsonurl.split("?"),
-            querystring = components.length > 1 ? querystring = components[1] : "",
-            HTTPMethod = jsonurl.length > 2048 ? "POST" : "GET";
+        const jsonurl = "http://" + url + "/retrieval/bpl/getMatchingPVs?pv=" + pvs + "&limit=4000";
+        const components = jsonurl.split("?");
+        const querystring = components.length > 1 ? components[1] : "";
+        const HTTPMethod = jsonurl.length > 2048 ? "POST" : "GET";
 
         $.ajax({
             url: components[0],
@@ -206,3 +204,5 @@ module.exports = (function () {
     };
 
 })();
+
+export default archInterface;

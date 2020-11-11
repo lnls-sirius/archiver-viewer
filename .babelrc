@@ -1,19 +1,18 @@
 {
-    "presets": [
+  "presets": [
     [
       "@babel/preset-env",
       {
-        "targets": {
-          "node": "10"
-        },
-        "debug": true
+        "debug": true,
+        "useBuiltIns": "usage", // or "entry"
+        "corejs": 3
       }
     ],
     "@babel/preset-react"
   ],
-    "plugins": [
-	"@babel/plugin-transform-async-to-generator",
-        "@babel/plugin-proposal-class-properties",
-        "transform-es2015-modules-commonjs"
-    ]
+  "plugins": [
+    "@babel/plugin-transform-async-to-generator",
+    "@babel/plugin-proposal-class-properties",
+    "@babel/plugin-transform-modules-commonjs"
+  ]
 }
