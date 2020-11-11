@@ -1,0 +1,33 @@
+.main-bar span{
+    padding: 5px;
+}
+.time-button{
+      font-size: 12px;
+      text-align: center;
+      width: auto;
+      color: #FFF;
+      cursor: pointer;
+}
+
+.time-button:hover {
+    box-shadow: 0 2px 2px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0.0,0.1);
+}
+
+.time-button.pushed {
+      background-color: lightgray;
+      color: black;
+}
+.header-controls{
+    font-size: 16pt;
+    margin-left: 5px;
+    margin-right: 5px;
+}
+.header-controls:hover {
+    box-shadow: 0 2px 2px 0 rgba(0,0,0,0.24), 0 2px 2px 0 rgba(0,0,0,0.2);
+}
+.header-controls.active{
+    color: lightgrey;
+}
+.header-logo img{
+    height: 50px;
+}

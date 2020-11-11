@@ -4,7 +4,6 @@
 * fetch data from the archiver.
 **/
 
-import * as ui from './ui';
 import simplify from 'simplify-js';
 
 module.exports = (function () {
@@ -46,7 +45,7 @@ module.exports = (function () {
     /**
     * Gets the metadata associated with a PV.
     **/
-    var fetchMetadata = function (pv) {
+    var fetchMetadata = function (pv, handleError) {
 
         if (pv == undefined)
             return null;
@@ -66,9 +65,7 @@ module.exports = (function () {
             success: function(data, textStatus, jqXHR) {
                 returnData = textStatus == "success" ? data : null;
             },
-            error: function(xmlHttpRequest, textStatus, errorThrown) {
-                ui.toogleSearchWarning ("Connection failed with " + xmlHttpRequest + " -- " + textStatus + " -- " + errorThrown);
-            }
+            error:handleError
         });
 
         return returnData;
@@ -77,7 +74,7 @@ module.exports = (function () {
     /**
     * Requests data from the archiver.
     **/
-    var fetchData = function (pv, from, to, isOptimized, bins) {
+    var fetchData = function (pv, from, to, isOptimized, bins, handleError) {
 
         if (from == undefined || to == undefined)
             return null;
@@ -110,20 +107,38 @@ module.exports = (function () {
                         returnData = returnData.replace(/(NaN)/g, "\"$1\"");
                         returnData = JSON.parse(returnData);
                     }catch(err){
-                        ui.toogleSearchWarning ("Failed to parse data from request " + components[0] + ". " + err.message);
-                        console.log(components[0], err.message);
+                        console.log("Failed to parse data from request", components[0], err.message);
                     }
                 }
             },
-            error: function(xmlHttpRequest, textStatus, errorThrown) {
-                ui.toogleSearchWarning ("Connection failed with " + xmlHttpRequest + " -- " + textStatus + " -- " + errorThrown);
-                console.log(components[0], textStatus, errorThrown);
-            }
+            error: handleError
         });
         return returnData;
     }
 
+    var getPVStatus = function(pvs, handleSuccess, handleError, handleComplete, handleBefore){
 
+        var jsonurl = url + '/mgmt/bpl/getPVStatus?pv=' + pvs + "&limit=4000",
+            components = jsonurl.split('?'),
+            querystring = components.length > 1 ? querystring = components[1] : '',
+            HTTPMethod = jsonurl.length > 2048 ? 'POST' : 'GET',
+            returnData = null;
+
+        $.ajax({
+            url: components[0],
+            data: querystring,
+            type: HTTPMethod,
+            dataType: 'json',
+            crossDomain: true,
+            async: false,
+            timeout: 3000,
+            beforeSend:handleBefore,
+            success: handleSuccess,
+            error: handleError,
+            complete: handleComplete
+        });
+        return returnData;
+    }
     /**
     * Key event handler which looks for PVs in the archiver
     **/
@@ -147,10 +162,9 @@ module.exports = (function () {
                 returnData = textStatus == "success" ? data : null;
             },
             error: function(xmlHttpRequest, textStatus, errorThrown) {
-                ui.toogleSearchWarning ("An error occured on the server while disconnected PVs -- " + textStatus + " -- " + errorThrown);
+                console.log(xmlHttpRequest, textStatus, errorThrown);
             }
         });
-
         return returnData;
     }
 
@@ -163,6 +177,7 @@ module.exports = (function () {
         fetchMetadata : fetchMetadata,
         fetchData: fetchData,
         query: query,
+        getPVStatus: getPVStatus
     }
 
 })();

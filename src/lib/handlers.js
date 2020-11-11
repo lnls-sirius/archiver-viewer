@@ -17,8 +17,8 @@ module.exports = (function () {
     **/
     var onChangeDateHandler = function (date) {
 
-        var new_date = ui.getTimedate();
-
+        //var new_date = ui.getTimedate();
+        var new_date = date;
         ui.enableLoading();
 
         control.updateStartAndEnd(new_date, true);
@@ -36,17 +36,12 @@ module.exports = (function () {
     /**
     * updateTimeWindow is called when a button event in one of the time window options is captured.
     * Sets control.start () accoording to this new time window and updates the Chartjs
-    * by calling plot-related functions. Chooses whether the next request for the archiver will be optimized
-    * (to reduce the big amount of data) or raw.
+    * by calling plot-related functions.
+    * Chooses whether the next request for the archiver will be optimized (to reduce the big amount of data) or raw.
     **/
-    var updateTimeWindow = function (button) {
-
-        if (button.target.className == "unpushed") {
-
-            control.undo_stack().push ({action : control.stackActions.CHANGE_WINDOW_TIME, window : control.window_time ()});
-
-            control.updateTimeWindow (button.target.cellIndex);
-        }
+    var updateTimeWindow = function (timeId) {
+        control.undo_stack().push({action : control.stackActions.CHANGE_WINDOW_TIME, window : control.window_time()});
+        control.updateTimeWindow(timeId);
     };
 
     /**
@@ -130,22 +125,32 @@ module.exports = (function () {
         }
     }
 
-    /**
-    * Key event handler which looks for PVs in the archiver
-    **/
-    var queryPVs = function (key) {
 
-        if (key.which == KEY_ENTER) {
-            ui.enableLoading ();
-            ui.showSearchResults (archInterface.query ($('#PV').val()), appendPVHandler);
-            ui.disableLoading ();
+    var handleQuerryBefore = ()=>{ ui.enableLoading() }
+    var handleQuerySuccess = (data, statusText) =>{
+        let pv_list = [];
+        data.forEach(element => {
+           if(element.status=='Being archived'){
+            pv_list.push(element['pvName']);
+           }
+        });
+        ui.showSearchResults(pv_list, appendPVHandler);
+    }
+    var handleQueryError = (data, statusText, errorThrown) =>{
+        ui.toogleSearchWarning("An error occured on the server while disconnected PVs -- " + statusText + " -- " + errorThrown);
+    }
+    var handleQueryComplete = (data)=>{ ui.disableLoading() }
+    var queryPVs = function (e, val) {
+        if (e.which == KEY_ENTER) {
+            archInterface.getPVStatus(val,
+                handleQuerySuccess, handleQueryError,
+                handleQueryComplete, handleQuerryBefore);
         }
     }
 
-    /**
-    * Closes PV selection area.
-    **/
-    var refreshScreen = ui.refreshScreen;
+    var handleFetchDataError = (xmlHttpRequest, textStatus, errorThrown)=>{
+        ui.toogleSearchWarning ("Connection failed with " + xmlHttpRequest + " -- " + textStatus + " -- " + errorThrown);
+    }
 
     /**
     * Event handler which is called when the user clicks over a PV to append it
@@ -167,11 +172,10 @@ module.exports = (function () {
 
     var plotSelectedPVs = function (e) {
         var pvs = ui.selectedPVs ();
-        for (var i = 0; i < pvs.length; i++) {
-
+        for (var i = 0; i < pvs.length; i++) { 
             var pv_index = control.getPlotIndex(pvs [i]);
             if (pv_index == null){
-                control.appendPV (pvs [i]);
+                control.appendPV(pvs [i]);
             }
             else{
                 control.updatePlot (pv_index);
@@ -189,21 +193,15 @@ module.exports = (function () {
     **/
 
     var scrollChart = function (evt) {
-
         if (control.scrolling_enabled ()) {
-
             ui.enableLoading();
-
             control.disableScrolling ();
-
-            var window_time_new = evt.deltaY < 0 ? Math.max(control.window_time () - 1, 0) : Math.min(control.window_time () + 1, chartUtils.timeIDs.SEG_30);
-
-            if (window_time_new != control.window_time ())
-                control.updateTimeWindow (window_time_new);
-
+            var window_time_new = evt.deltaY > 0 ? Math.max(control.window_time () - 1, 0) : Math.min(control.window_time () + 1, chartUtils.timeIDs.SEG_30);
+            if (window_time_new != control.window_time ()){
+                control.updateTimeWindow(window_time_new);
+            }
             ui.disableLoading();
-
-            control.enableScrolling ();
+            control.enableScrolling();
         }
     };
 
@@ -331,7 +329,6 @@ module.exports = (function () {
     * Handles a dragging event in the chart and updates the chart drawing area.
     **/
     var doDragging = function (evt) {
-
         if (!control.zoom_flags().isZooming && !control.auto_enabled () && control.drag_flags ().drag_started) {
 
             var offset_x = control.drag_flags ().x - evt.offsetX;
@@ -412,7 +409,7 @@ module.exports = (function () {
                 while (control.end ().getTime() - control.start ().getTime() < chartUtils.timeAxisPreferences[i].milliseconds && i < chartUtils.timeIDs.SEG_30)
                     i++;
 
-                ui.toogleWindowButton (undefined, control.window_time ());
+                //ui.toogleWindowButton (undefined, control.window_time ());
 
                 control.updateTimeWindowOnly (i);
 
@@ -484,6 +481,7 @@ module.exports = (function () {
     }
 
     var exportAs = function (t) {
+        console.log(t);
         if (control.auto_enabled ())
             return undefined;
 
@@ -657,7 +655,7 @@ module.exports = (function () {
 
                 case control.stackActions.ZOOM:
 
-                    ui.toogleWindowButton (undefined, control.window_time ());
+                    //ui.toogleWindowButton (undefined, control.window_time ());
 
                     // Updates the chart attributes
                     control.updateStartTime (redo.start_time);
@@ -684,9 +682,8 @@ module.exports = (function () {
         }
     };
 
-    var updateReferenceTime = function () {
-
-        if (ui.isEndSelected ()) {
+    var updateReferenceTime = function (isEndSelected) {
+        if (isEndSelected) {
             ui.updateDateComponents (control.end ());
             control.updateTimeReference (control.references.END);
         }
@@ -697,13 +694,15 @@ module.exports = (function () {
     };
 
     return {
+        handleFetchDataError:handleFetchDataError,
+
+
         onChangeDateHandler : onChangeDateHandler,
         updateTimeWindow: updateTimeWindow,
         updateEndNow: updateEndNow,
         backTimeWindow: backTimeWindow,
         forwTimeWindow: forwTimeWindow,
         queryPVs: queryPVs,
-        refreshScreen: refreshScreen,
         appendPVHandler: appendPVHandler,
         plotSelectedPVs: plotSelectedPVs,
         scrollChart: scrollChart,

@@ -1,8 +1,8 @@
 /***
-* A web viewer application based on Chartjs for the EPICS archiver.
-*
-* Gustavo Ciotto Pinton
-* LNLS - Brazilian Synchrotron Laboratory
+  A web viewer application based on Chartjs for the EPICS archiver.
+ 
+  Gustavo Ciotto Pinton
+  LNLS - Brazilian Synchrotron Laboratory
 ***/
 
 import 'jquery-browserify';
@@ -16,67 +16,23 @@ import * as ui from './lib/ui';
 
 import './css/archiver.css';
 
-// Future react migration ...
-
-/*
- * Add this to package.json
- * "react": "16.8.3",
- * "react-dom": "16.8.3"
- *
- * */
-/*
 import React from "react";
 import ReactDOM from "react-dom";
+import App from "./App.jsx";
 
-ReactDOM.render(
-  <HelloWorld/>,
-  document.getElementById("root")
-);
-
-*/
-
-/* Module dependencies */
-
-
+ReactDOM.render(<App/>,document.getElementById("root"));
 /* Registers event handler functions */
-
-$(document).click(handlers.refreshScreen);
-document.addEventListener('DOMContentLoaded', function() {
-    var elems = document.querySelectorAll('.tooltipped');
-    var instances = M.Tooltip.init(elems, {delay: 10});
-});
-
-$("#window_size table tr td").on("click", handlers.updateTimeWindow);
-
-$("#date").on('change', 'input', handlers.onChangeDateHandler);
-$("#date .now").on("click", handlers.updateEndNow);
-$("#date .backward").on("click", handlers.backTimeWindow);
-$("#date .forward").on("click", handlers.forwTimeWindow);
-$("#date .zoom").on("click", handlers.zoomClickHandler);
-$("#date .auto").on("click", handlers.autoRefreshingHandler);
-$("#date .type").on("change", handlers.updateReferenceTime);
-
-$('#data_table_area .enable_table:checkbox').change(handlers.toogleTable);
-$("#undo").on("click", handlers.undoHandler);
-$("#redo").on("click", handlers.redoHandler);
-
-$('#PV').keypress(handlers.queryPVs);
-
 $("#archiver_viewer").on('click', handlers.dataClickHandler);
-window.addEventListener("wheel", handlers.scrollChart);
-
-$("#plotSelected").on('click', handlers.plotSelectedPVs);
-$("#selectAll").on('click', ui.selectedAllPVs);
-$("#deselectAll").on('click', ui.deselectedAllPVs);
-
 // Binds handlers to the dragging events
 $("#archiver_viewer").mousedown(handlers.startDragging);
 $("#archiver_viewer").mousemove(handlers.doDragging);
 $("#archiver_viewer").mouseup(handlers.stopDragging);
 
-$("#xlsx").click ({"type" : "xlsx"}, function (event) {
-    handlers.exportAs(event.data.type);
-});
+$("#plotSelected").on('click', handlers.plotSelectedPVs);
+$("#selectAll").on('click', ui.selectedAllPVs);
+$("#deselectAll").on('click', ui.deselectedAllPVs);
+$("#close").on('click', ui.hideSearchedPVs);
+
 
 /******* Initialization function *******/
 /**
@@ -88,6 +44,11 @@ $(document).ready(function () {
             responsive: true,
             maintainAspectRatio: false,
             animation: { duration: 0 },
+            elements: {
+                line:{
+                    tension:0 // disable belzier curves
+                }
+            },
             tooltips: {
                 mode: 'nearest',
                 intersect: false,

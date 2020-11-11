@@ -10,6 +10,7 @@
 var ui = require ("./ui.js");
 var chartUtils = require ("./chartUtils.js");
 var archInterface = require ("./archInterface.js");
+var handlers = require("./handlers.js");
 
 module.exports = (function () {
 
@@ -63,7 +64,7 @@ module.exports = (function () {
 
     var updateTimeWindow = function (window) {
 
-        ui.toogleWindowButton (window, window_time);
+       // ui.toogleWindowButton (window, window_time);
 
         window_time = window;
 
@@ -74,17 +75,17 @@ module.exports = (function () {
                 auto_enabled = false;
 
                 clearInterval(timer);
-
+/*
                 ui.enableDate();
                 ui.enable ($("#date span.now"));
                 ui.enable ($("#date span.zoom"));
                 ui.enable ($("#date span.forward"));
                 ui.enable ($("#date span.backward"));
 
-                $("#date img").css({"cursor" : "pointer"});
+                $("#date img").css({"cursor" : "pointer"});*/
             }
 
-            ui.disable ($("#date span.auto"));
+/*            ui.disable ($("#date span.auto"));*/
         }
         else if (!auto_enabled)
             ui.enable ($("#date span.auto"));
@@ -129,15 +130,21 @@ module.exports = (function () {
         }
 
         // Asks for the PV's metadata
-        var metadata = archInterface.fetchMetadata(pv);
+        var metadata = archInterface.fetchMetadata(
+            pv, ()=>{ui.toogleSearchWarning("Connection failed with " + xmlHttpRequest + " -- " + textStatus + " -- " + errorThrown)});
+                
+        if(metadata == null){
+            console.log('No metadata for ', pv);
+            return -1;
+        }
         var bins = shouldOptimizeRequest(parseFloat(metadata["samplingPeriod"]), metadata["DBRType"]);
 
-        if (optimized == false)
+        if (optimized == false){
             bins = -1;
-        else if (optimized && bins == -1)
+        }else if (optimized && bins == -1){
             bins = chartUtils.timeAxisPreferences[window_time].bins;
-
-        var data = archInterface.fetchData(pv, start, end, bins < 0 ? false : true, bins);
+        }
+        var data = archInterface.fetchData(pv, start, end, bins < 0 ? false : true, bins, handlers.handleFetchDataError);
         if (data == undefined || data == null || data[0].data.length == 0){
             ui.toogleSearchWarning ("No data was received from server.");
             console.log('No data received from server. ', pv);
@@ -274,9 +281,9 @@ module.exports = (function () {
 
             var bins = chartUtils.timeAxisPreferences[window_time].bins;
 
-            var fetchedData = archInterface.fetchData (chart.data.datasets[pv_index].label, start, end, chart.data.datasets[pv_index].pv.optimized, bins);
+            var fetchedData = archInterface.fetchData (chart.data.datasets[pv_index].label, start, end, chart.data.datasets[pv_index].pv.optimized, bins, handlers.handleFetchDataError);
 
-            if (fetchedData.length > 0)
+            if (fetchedData && fetchedData.length > 0)
                 Array.prototype.push.apply(chart.data.datasets[pv_index].data, improveData (archInterface.parseData(fetchedData[0].data)));
 
         }
@@ -292,7 +299,7 @@ module.exports = (function () {
             if (first.getTime() > start.getTime()) {
 
                 // Fetches data from the start to the first measure's time
-                var appendData = archInterface.fetchData(chart.data.datasets[pv_index].label, start, first, false);
+                var appendData = archInterface.fetchData(chart.data.datasets[pv_index].label, start, first, false, handlers.handleFetchDataError);
 
                 // Appends new data into the dataset
                 if (appendData.length > 0) {
@@ -323,7 +330,7 @@ module.exports = (function () {
             if (last.getTime() < end.getTime()) {
 
                 // Fetches data from the last measure's time to the end
-                var appendData = archInterface.fetchData(chart.data.datasets[pv_index].label, last, end, false);
+                var appendData = archInterface.fetchData(chart.data.datasets[pv_index].label, last, end, false, handlers.handleFetchDataError);
 
                 // Appends new data into the dataset
                 if (appendData.length > 0) {
@@ -449,7 +456,7 @@ module.exports = (function () {
         else
             updateStartAndEnd(new Date (), true);
 
-        ui.toogleWindowButton(window_time, undefined);
+        //ui.toogleWindowButton(window_time, undefined);
 
         ui.updateDateComponents(end);
 
@@ -550,6 +557,8 @@ module.exports = (function () {
         zoom_flags: function () { return zoom_flags; },
         undo_stack: function () { return undo_stack; },
         redo_stack: function () { return redo_stack; },
+
+        getWindowTime: function(){return window_time},
 
         /* Setters */
         startTimer : function (t) { timer = t; },
