@@ -5,63 +5,67 @@ module.exports = (function () {
     const PV_MAX_ROW_PER_PAGE = 10;
     const PV_PER_ROW_INFO = 4;
 
-    var current_page = 0;
-    var selectedPVs = [];
+    let currentPage = 0;
+    let selectedPVs = [];
 
     /* Miscellaneous functions  */
-    function pad_with_zeroes(number, length) {
+    function padWithZeros(number, length) {
 
-        var my_string = '' + number;
-        while (my_string.length < length) {
-            my_string = '0' + my_string;
+        let myString = "" + number;
+        while (myString.length < length) {
+            myString = "0" + myString;
         }
 
-        return my_string;
+        return myString;
     }
 
-    var updateDateComponents = function (date) {
-	if(date === undefined){date = new Date();}
+    const updateDateComponents = function (date) {
+        if (date === undefined) {
+            date = new Date();
+        }
 
-        var day   = ("0" + date.getDate()).slice(-2),
+        const day   = ("0" + date.getDate()).slice(-2),
             month = ("0" + (date.getMonth() + 1)).slice(-2);
 
         $("#day").val(date.getFullYear() + "-" + month + "-" + day);
-        $("#hour").val(pad_with_zeroes(date.getHours(), 2));
-        $("#minute").val(pad_with_zeroes(date.getMinutes(), 2));
-        $("#second").val(pad_with_zeroes(date.getSeconds(), 2));
+        $("#hour").val(padWithZeros(date.getHours(), 2));
+        $("#minute").val(padWithZeros(date.getMinutes(), 2));
+        $("#second").val(padWithZeros(date.getSeconds(), 2));
     };
 
-    var toogleWindowButton = function (toPush, toUnpush) {
+    const toogleWindowButton = function (toPush, toUnpush) {
 
         /* Untoggled pushed button */
-        if (toUnpush != undefined)
-            $('#window_table tr').eq(0).find('td').eq(toUnpush)[0].className = "unpushed";
+        if (toUnpush !== undefined) {
+            $("#window_table tr").eq(0).find("td").eq(toUnpush)[0].className = "unpushed";
+        }
 
-        if (toPush != undefined)
-            $('#window_table tr').eq(0).find('td').eq(toPush)[0].className = "pushed";
+        if (toPush !== undefined) {
+            $("#window_table tr").eq(0).find("td").eq(toPush)[0].className = "pushed";
+        }
     };
 
-    var enableLoading = function (){
-        $('.lds-ellipsis').css("display", "inline-block");
+    const enableLoading = function () {
+        $(".lds-ellipsis").css("display", "inline-block");
     };
 
-    var disableLoading = function (){
-        $('.lds-ellipsis').css("display", "none");
+    const disableLoading = function () {
+        $(".lds-ellipsis").css("display", "none");
     };
 
-    var showWarning = function (){
+    const showWarning = function () {
 
         $("#obs").fadeIn().delay(5000).fadeOut();
     };
 
-    var hideWarning = function (){
+    const hideWarning = function () {
 
         $("#obs").fadeOut();
     };
 
-    var getTimedate = function () {
+    const getTimedate = function () {
 
-        var date    = $("#day").val().split("-"),
+        const date    = $("#day").val().split("-"),
             day     = parseInt(date[2]),
             month   = parseInt(date[1]) - 1,
             year    = parseInt(date[0]),
@@ -69,155 +73,162 @@ module.exports = (function () {
             minutes = parseInt($("#minute").val()),
             seconds = parseInt($("#second").val());
 
-        return new Date (year, month, day, hours, minutes, seconds, 0);
+        return new Date(year, month, day, hours, minutes, seconds, 0);
     };
 
-    var disableDate = function () {
+    const disableDate = function () {
 
-        $("#day").prop('disabled', true);
-        $("#hour").prop('disabled', true);
-        $("#minute").prop('disabled', true);
-        $("#second").prop('disabled', true);
+        $("#day").prop("disabled", true);
+        $("#hour").prop("disabled", true);
+        $("#minute").prop("disabled", true);
+        $("#second").prop("disabled", true);
     };
 
-    var enableDate = function () {
+    const enableDate = function () {
 
-        $("#day").prop('disabled', false);
-        $("#hour").prop('disabled', false);
-        $("#minute").prop('disabled', false);
-        $("#second").prop('disabled', false);
+        $("#day").prop("disabled", false);
+        $("#hour").prop("disabled", false);
+        $("#minute").prop("disabled", false);
+        $("#second").prop("disabled", false);
     };
 
-    var toogleSearchWarning = function (warning) {
+    const toogleSearchWarning = function (warning) {
 
-        $("#warning h4").text (warning);
+        $("#warning h4").text(warning);
 
-        showSearchWarning ();
+        showSearchWarning();
 
-        var timer = setInterval(function () {
+        const timer = setInterval(function () {
 
-            hideSearchWarning ();
-            clearInterval (timer);
+            hideSearchWarning();
+            clearInterval(timer);
 
         }, 5000);
 
     };
 
-    var checkboxes = [];
+    let checkboxes = [];
 
-    var showSearchResultsAtPage = function (index, data) {
+    const showSearchResultsAtPage = function (index, data) {
 
         $("#table_PVs tr").remove();
 
-        checkboxes = []
+        checkboxes = [];
 
-        var i;
+        let i;
+        let row;
         for (i = index * PV_MAX_ROW_PER_PAGE * PV_PER_ROW; i < data.length && i < ((index + 1) * PV_MAX_ROW_PER_PAGE * PV_PER_ROW); i++) {
 
-            var row;
-            if (!( (i - index * PV_MAX_ROW_PER_PAGE * PV_PER_ROW) % PV_PER_ROW )) {
+            if (!((i - index * PV_MAX_ROW_PER_PAGE * PV_PER_ROW) % PV_PER_ROW)) {
                 row = $("<tr></tr>");
                 row.appendTo($("#table_PVs"));
             }
 
-            var tdCheckbox = $('<td></td>');
+            const tdCheckbox = $("<td></td>");
 
-            checkboxes.push ($('<input />').attr({"type" : "checkbox", "checked" : selectedPVs.indexOf (data[i]) > -1}).click({"name" : data[i]}, function (event) {
-                if (this.checked)
-                  selectedPVs.push (event.data.name)
-                else
-                  selectedPVs.splice (selectedPVs.indexOf (event.data.name), 1);
+            checkboxes.push($("<input />").attr({"type": "checkbox", "checked": selectedPVs.indexOf(data[i]) > -1}).click({"name": data[i]}, function (event) {
+                if (this.checked) {
+                    selectedPVs.push(event.data.name);
+                } else {
+                    selectedPVs.splice(selectedPVs.indexOf(event.data.name), 1);
+                }
 
-            }).appendTo (tdCheckbox));
+            }).appendTo(tdCheckbox));
 
-            $('<label></label>').text(data[i]).appendTo (tdCheckbox);
+            $("<label></label>").text(data[i]).appendTo(tdCheckbox);
 
-            tdCheckbox.appendTo (row);
+            tdCheckbox.appendTo(row);
         }
     };
 
-    var selectedAllPVs = function (e) {
+    const selectedAllPVs = function (e) {
 
-        for (var i = 0; i < checkboxes.length; i++) {
-            checkboxes [i].prop('checked', true).triggerHandler("click");
+        for (let i = 0; i < checkboxes.length; i++) {
+            checkboxes[i].prop("checked", true).triggerHandler("click");
         }
-    }
+    };
 
-    var deselectedAllPVs = function (e) {
-        for (var i = 0; i < checkboxes.length; i++)
-          checkboxes [i].prop('checked', false).triggerHandler("click");
-    }
+    const deselectedAllPVs = function (e) {
+        for (let i = 0; i < checkboxes.length; i++) {
+            checkboxes[i].prop("checked", false).triggerHandler("click");
+        }
+    };
 
-    var showSearchResults = function (data) {
+    const showSearchResults = function (data) {
 
         if (data != null && data.length > 0) {
-            if (data.length > 1)
+            if (data.length > 1) {
                 $("#archived_PVs h2").text(data.length + " PVs have been found.");
-            else
+            } else {
                 $("#archived_PVs h2").text("1 PV has been found.");
+            }
 
-            current_page = 0;
+            currentPage = 0;
             selectedPVs = [];
 
-            showSearchResultsAtPage (0, data);
+            showSearchResultsAtPage(0, data);
 
-            $(document.body).children().css ('opacity', '0.3');
-            $("#archived_PVs").show ();
-            $("#archived_PVs").css ('opacity', '1.0');
+            $(document.body).children().css("opacity", "0.3");
+            $("#archived_PVs").show();
+            $("#archived_PVs").css("opacity", "1.0");
 
             $("#previous").hide();
 
-            $("#previous").unbind().click ({pvs: data}, function (event) {
+            $("#previous").unbind().click({pvs: data}, function (event) {
 
-                current_page = current_page - 1;
-                showSearchResultsAtPage (current_page, event.data.pvs);
+                currentPage = currentPage - 1;
+                showSearchResultsAtPage(currentPage, event.data.pvs);
 
-                if (!current_page)
+                if (!currentPage) {
                     $("#previous").hide();
+                }
 
                 $("#next").show();
             });
 
-            $("#next").unbind().click ({pvs: data}, function (event) {
+            $("#next").unbind().click({pvs: data}, function (event) {
 
-                current_page = current_page + 1;
-                showSearchResultsAtPage (current_page, event.data.pvs);
+                currentPage = currentPage + 1;
+                showSearchResultsAtPage(currentPage, event.data.pvs);
 
-                if ((current_page + 1) * PV_MAX_ROW_PER_PAGE * PV_PER_ROW >= event.data.pvs.length )
+                if ((currentPage + 1) * PV_MAX_ROW_PER_PAGE * PV_PER_ROW >= event.data.pvs.length) {
                     $("#next").hide();
+                }
 
                 $("#previous").show();
             });
 
-            if (data.length <= PV_MAX_ROW_PER_PAGE * PV_PER_ROW)
+            if (data.length <= PV_MAX_ROW_PER_PAGE * PV_PER_ROW) {
                 $("#next").hide();
-            else
+            } else {
                 $("#next").show();
+            }
+        } else if (data != null) {
+            toogleSearchWarning("No PVs corresponding to the search string have been found.");
         }
-        else if (data != null)
-            toogleSearchWarning ("No PVs corresponding to the search string have been found.");
     };
 
-    var hideSearchedPVs = function () {
+    const hideSearchedPVs = function () {
 
-        $('#archived_PVs').hide();
-        $(document.body).children().css('opacity', '1.0');
-    }
+        $("#archived_PVs").hide();
+        $(document.body).children().css("opacity", "1.0");
+    };
 
-    var toggleZoomButton = function (enable) {
-        if (enable)
-            $("#date .zoom").css('background-color',"lightgrey");
-        else
-            $("#date .zoom").css('background-color',"grey");
-    }
+    const toggleZoomButton = function (enable) {
+        if (enable) {
+            $("#date .zoom").css("background-color", "lightgrey");
+        } else {
+            $("#date .zoom").css("background-color", "grey");
+        }
+    };
 
-    var hideZoomBox = function () {
+    const hideZoomBox = function () {
         $("#canvas_area span.selection_box").hide();
         $("#canvas_area span.selection_box").css("width", 0);
         $("#canvas_area span.selection_box").css("height", 0);
     };
 
-    var drawZoomBox = function (x, w, h) {
+    const drawZoomBox = function (x, w, h) {
 
         $("#canvas_area span.selection_box").css("left", x + "px");
         $("#canvas_area span.selection_box").css("top", "0");
@@ -225,120 +236,121 @@ module.exports = (function () {
         $("#canvas_area span.selection_box").css("height", h  + "px");
     };
 
-    var updateAddress = function (searchString) {
-        var newurl = window.location.pathname + searchString;
-        if (history.pushState)
-            window.history.pushState({path:newurl}, '', newurl);
+    const updateAddress = function (searchString) {
+        const newurl = window.location.pathname + searchString;
+        if (history.pushState) {
+            window.history.pushState({path: newurl}, "", newurl);
+        }
     };
 
     /**
     * updateDataTable draws a table below the char containing the data that is
     * currently being rendered.
     **/
-    var updateDataTable = function (datasets, start, end) {
+    const updateDataTable = function (datasets, start, end) {
 
         // Remove all data before rewriting
         $("#data_table_area .data_table").remove();
         $("#data_table_area h2").remove();
 
         // Draws a table for each variable chosen by the user
-        for (var i = 0; i < datasets.length; i++){
+        for (let i = 0; i < datasets.length; i++) {
 
-            var table = $('<table></table>').addClass('data_table'),
-                pv_data = datasets[i].data,
-                count = 0;
+            const table = $("<table></table>").addClass("data_table");
+            const pvData = datasets[i].data;
+            let count = 0;
 
-            $('#data_table_area').append($('<h2></h2>').text(datasets[i].label));
+            $("#data_table_area").append($("<h2></h2>").text(datasets[i].label));
 
-            for (var j = 0; j < pv_data.length; j++) {
-                var row;
-                if ((pv_data[j].x.getTime() >= start.getTime()) &&
-                    (pv_data[j].x.getTime() <= end.getTime())) {
+            let row;
+            for (let j = 0; j < pvData.length; j++) {
+                if ((pvData[j].x.getTime() >= start.getTime()) &&
+                    (pvData[j].x.getTime() <= end.getTime())) {
 
                     if (!(count % PV_PER_ROW_DATA_TABLE)) {
-                        row = $("<tr></tr>")
+                        row = $("<tr></tr>");
                         row.appendTo(table);
                     }
 
                     count++;
 
-                    $('<td></td>').attr('class', 'pv_time').text(pv_data[j].x.toLocaleDateString() + " " + pv_data[j].x.toLocaleTimeString()).appendTo(row);
-                    $('<td></td>').attr('class', 'pv_value').text(pv_data[j].y.toFixed(datasets[i].pv.precision)).appendTo(row);
+                    $("<td></td>").attr("class", "pv_time").text(pvData[j].x.toLocaleDateString() + " " + pvData[j].x.toLocaleTimeString()).appendTo(row);
+                    $("<td></td>").attr("class", "pv_value").text(pvData[j].y.toFixed(datasets[i].pv.precision)).appendTo(row);
                 }
             }
 
-            $('#data_table_area').append(table);
+            $("#data_table_area").append(table);
         }
     };
 
-    var showTable = function () {
-        $('#data_table_area .data_table').show();
+    const showTable = function () {
+        $("#data_table_area .data_table").show();
     };
 
-    var resetTable = function () {
+    const resetTable = function () {
         $("#data_table_area .data_table").remove();
         $("#data_table_area h2").remove();
-        $('#data_table_area .data_table').hide();
+        $("#data_table_area .data_table").hide();
     };
 
-        var updateDataAxisInfoTable = (series, toggleChartAxisTypeHandler, toggleAutoYHandler, changeYLimitHandler) =>{
+    const updateDataAxisInfoTable = (series, toggleChartAxisTypeHandler, toggleAutoYHandler, changeYLimitHandler) =>{
         let row;
-        $('#data_axis .data_axis_table').remove();
-        let table = $('<table></table>').addClass('data_axis_table');
+        $("#data_axis .data_axis_table").remove();
+        const table = $("<table></table>").addClass("data_axis_table");
 
-        if(series.length < 1)
-            return
+        if (series.length < 1) {
+            return;
+        }
 
         // Draw a table containing each series in the chart.
-        for(let i = 0; i < series.length; i++){
+        for (let i = 0; i < series.length; i++) {
 
             if (!(i % PV_PER_ROW_INFO)) {
                 row = $("<tr></tr>");
                 row.appendTo(table);
             }
-	    
-            $('<td></td>')
-                .text('Chart Series: ' + series[i].id).appendTo(row);
 
-	    let wrapper = $('<div class="footer-box-wrapper"></div>');
+            $("<td></td>")
+                .text("Chart Series: " + series[i].id).appendTo(row);
+
+            const wrapper = $('<div class="footer-box-wrapper"></div>');
             let tdIsLogarithmic = $('<td class="footer-box"></td>');
-            let chkBoxBase = $('<label></label>');
-	    let isManual = !isNaN(series[i].ticks.max) || !isNaN(series[i].ticks.min);
+            let chkBoxBase = $("<label></label>");
+            const isManual = !isNaN(series[i].ticks.max) || !isNaN(series[i].ticks.min);
 
-	    let intervalMin = $('<input />')
+            const intervalMin = $("<input />")
                 .attr({
-		    "class" : "footer-input",
-                    "type" : "text",
-                    "placeholder" : "Min",
-		    "value": isManual ? series[i].ticks.min : ''
+                    "class": "footer-input",
+                    "type": "text",
+                    "placeholder": "Min",
+                    "value": isManual ? series[i].ticks.min : ""
                 })
-                .blur({"axisId" : series[i].id}, changeYLimitHandler)
+                .blur({"axisId": series[i].id}, changeYLimitHandler)
                 .appendTo(row);
 
-            let intervalMax = $('<input />')
+            const intervalMax = $("<input />")
                 .attr({
-		    "class" : "footer-input",
-                    "type" : "text",
-                    "placeholder" : "Max",
-		    "value": isManual ? series[i].ticks.max : ''
+                    "class": "footer-input",
+                    "type": "text",
+                    "placeholder": "Max",
+                    "value": isManual ? series[i].ticks.max : ""
                 })
-                .blur({"axisId" : series[i].id}, changeYLimitHandler)  
+                .blur({"axisId": series[i].id}, changeYLimitHandler)
                 .appendTo(row);
-		if(!isManual)
-		{
-		intervalMax.hide();
-		intervalMin.hide();
-		}
+            if (!isManual) {
+                intervalMax.hide();
+                intervalMin.hide();
+            }
 
-	    let chkAutoY = $('<input />')
+            const chkAutoY = $("<input />")
                 .attr({
-                    "type" : "checkbox",
-                    "checked" : isManual
+                    "type": "checkbox",
+                    "checked": isManual
                 })
-                .click({"axisId" : series[i].id}, toggleAutoYHandler)
+                .click({"axisId": series[i].id}, toggleAutoYHandler)
                 .appendTo(chkBoxBase);
 
-            let chkAutoYText = $('<span></span>')
+            const chkAutoYText = $("<span></span>")
                 .attr("class", "tooltip")
                 .text("Manual Y Limit")
                 .appendTo(chkBoxBase);
@@ -346,104 +358,106 @@ module.exports = (function () {
             chkBoxBase.appendTo(tdIsLogarithmic);
             tdIsLogarithmic.appendTo(wrapper);
 
-	    tdIsLogarithmic = $('<td class="footer-box"></td>');
-	    chkBoxBase = $('<label></label>');
+            tdIsLogarithmic = $('<td class="footer-box"></td>');
+            chkBoxBase = $("<label></label>");
 
-            let chk = $('<input />')
+            const chk = $("<input />")
                 .attr({
-                    "type" : "checkbox",
-                    "checked" : series[i].type != 'linear'
+                    "type": "checkbox",
+                    "checked": series[i].type !== "linear"
                 })
-                .click({"axisId" : series[i].id}, toggleChartAxisTypeHandler)
+                .click({"axisId": series[i].id}, toggleChartAxisTypeHandler)
                 .appendTo(chkBoxBase);
 
-            let chkText = $('<span></span>')
-                .attr('class', 'tooltip')
-                .text('Log Y Axis')
-            	.appendTo(chkBoxBase);
+            const chkText = $("<span></span>")
+                .attr("class", "tooltip")
+                .text("Log Y Axis")
+                .appendTo(chkBoxBase);
 
             chkBoxBase.appendTo(tdIsLogarithmic);
             tdIsLogarithmic.appendTo(wrapper);
 
-	    wrapper.appendTo(row);
+            wrapper.appendTo(row);
         }
-        $('#data_axis').append(table);
-    }
+        $("#data_axis").append(table);
+    };
 
-    var updatePVInfoTable = function (datasets, legendHandler, optimizeHandler, removeHandler) {
-        var row;
+    const updatePVInfoTable = function (datasets, legendHandler, optimizeHandler, removeHandler) {
+        let row;
         // Remove all data before rewriting
         $("#data_pv_info .pv_info_table").remove();
-        var table = $('<table></table>').addClass('pv_info_table');
+        const table = $("<table></table>").addClass("pv_info_table");
         // Draws a table for each variable chosen by the user
-        for (var i = 0; i < datasets.length; i++){
+        for (let i = 0; i < datasets.length; i++) {
 
             if (!(i % PV_PER_ROW_INFO)) {
                 row = $("<tr></tr>");
                 row.appendTo(table);
             }
 
-            $('<td></td>').css({"background-color": datasets[i].backgroundColor, "width": "30px", "cursor" : "pointer"}).click({"datasetIndex" : i}, legendHandler).appendTo(row);
-            $('<td></td>').text(datasets[i].label).appendTo(row);
+            $("<td></td>").css({"background-color": datasets[i].backgroundColor, "width": "30px", "cursor": "pointer"}).click({"datasetIndex": i}, legendHandler).appendTo(row);
+            $("<td></td>").text(datasets[i].label).appendTo(row);
 
-            var tdOptimized = $('<td></td>');
-                $('<input />')
-                    .attr({"type" : "checkbox", "checked" : datasets[i].pv.optimized, "disabled" : datasets[i].pv.type == "DBR_SCALAR_ENUM"}).click({"datasetIndex" : i}, optimizeHandler).appendTo (tdOptimized);
+            const tdOptimized = $("<td></td>");
+            $("<input />")
+                .attr({"type": "checkbox", "checked": datasets[i].pv.optimized, "disabled": datasets[i].pv.type === "DBR_SCALAR_ENUM"}).click({"datasetIndex": i}, optimizeHandler).appendTo(tdOptimized);
 
-            var div = $('<label></label>')
-                .attr('class', 'tooltip')
-                .text('Optimize');
-            $('<span></span>')
-                .attr('class', 'tooltiptext')
-                .text('Uncheck it if you want raw data sent from the server.')
+            const div = $("<label></label>")
+                .attr("class", "tooltip")
+                .text("Optimize");
+            $("<span></span>")
+                .attr("class", "tooltiptext")
+                .text("Uncheck it if you want raw data sent from the server.")
                 .appendTo(div);
-            div.appendTo (tdOptimized);
+            div.appendTo(tdOptimized);
             tdOptimized.appendTo(row);
 
-            var tdRemove = $('<td></td>');
+            const tdRemove = $("<td></td>");
             tdRemove
-                .css({"cursor" : "pointer"})
+                .css({"cursor": "pointer"})
                 .text("Remove")
-                .click ({"datasetIndex" : i}, removeHandler);
+                .click({"datasetIndex": i}, removeHandler);
             tdRemove.appendTo(row);
         }
 
-        $('#data_pv_info').append(table);
+        $("#data_pv_info").append(table);
     };
 
-    var showSearchWarning = function (){
+    const showSearchWarning = function () {
         $("#warning").fadeIn();
     };
 
-    var hideSearchWarning = function (){
+    const hideSearchWarning = function () {
         $("#warning").fadeOut();
     };
 
-    var disable = function (button) {
+    const disable = function (button) {
         button.addClass("disabled");
-        button.css({"background-color" : "lightblue", "cursor" : "default", "pointerEvents" : "none"});
+        button.css({"background-color": "lightblue", "cursor": "default", "pointerEvents": "none"});
     };
 
-    var enable = function (button) {
+    const enable = function (button) {
         button.removeClass("disabled");
-        button.css({"background-color" : "grey", "cursor" : "pointer", "pointerEvents" : "auto"});
+        button.css({"background-color": "grey", "cursor": "pointer", "pointerEvents": "auto"});
     };
 
 /*    var isEndSelected = function () {
         return ($('#date .type').find(":selected").text() == "END");
     };
 */
-    var enableReference = function (i) {
-        $('#date .type>option:eq(' + (1 - i) + ')').prop('selected', false);
-        $('#date .type>option:eq(' + i + ')').prop('selected', true);
+    const enableReference = function (i) {
+        $("#date .type>option:eq(" + (1 - i) + ")").prop("selected", false);
+        $("#date .type>option:eq(" + i + ")").prop("selected", true);
     };
 
     return {
 
-        selectedPVs: function () { return selectedPVs; },
+        selectedPVs: function () {
+            return selectedPVs;
+        },
 
-        updateDataAxisInfoTable : updateDataAxisInfoTable,
-        updateDateComponents : updateDateComponents,
+        updateDataAxisInfoTable: updateDataAxisInfoTable,
+        updateDateComponents: updateDateComponents,
         toogleWindowButton: toogleWindowButton,
         enableLoading: enableLoading,
         disableLoading: disableLoading,
@@ -457,7 +471,7 @@ module.exports = (function () {
         hideSearchedPVs: hideSearchedPVs,
         toggleZoomButton: toggleZoomButton,
         hideZoomBox: hideZoomBox,
-        drawZoomBox:drawZoomBox,
+        drawZoomBox: drawZoomBox,
         updateAddress: updateAddress,
         updateDataTable: updateDataTable,
         showTable: showTable,
