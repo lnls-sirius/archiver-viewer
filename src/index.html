@@ -1,39 +1,40 @@
 <html>
+  <head>
+    <title>Archiver Viewer</title>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="theme-color" content="#000000" />
+  </head>
 
-<head>
-  <title>Archiver Viewer</title>
-  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="theme-color" content="#000000" />
-</head>
-
-<body>
-  <div id="root"></div>
-  <!-- HEADER section: PV search text box and logo images -->
-  <div id="warning">
-    <h4>No PVs corresponding to the search string have been found.</h4>
-  </div>
-  <!-- HEADER section end -->
-
-  <div id="obs">
-    <h4> In order to reduce the data amount retrieved from server, an optimization is used. Each point corresponds
-      to an average calculated over its neighborhood. </h4>
-  </div>
-
-  <div id="archived_PVs">
-    <div id="archived_PVs_header">
-      <h2>Retrieved PVs</h2>
-      <button id="plotSelected">Plot!</button>
-      <button id="selectAll" class="selectAll">Select All</button>
-      <button id="deselectAll" class="deselectAll">Deselect All</button>
-      <button id="close" class="close">X</button>
+  <body>
+    <div id="root"></div>
+    <!-- HEADER section: PV search text box and logo images -->
+    <div id="warning">
+      <h4>No PVs corresponding to the search string have been found.</h4>
     </div>
-    <table id="table_PVs">
-    </table>
-    <span id="next" class="change">></span>
-    <span id="previous" class="change">
-      <</span> </div> <div id="data_pv_info">
-  </div>
-  <div id="data_axis"> </div>
-  <div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
+    <!-- HEADER section end -->
+
+    <div id="obs">
+      <h4>
+        In order to reduce the data amount retrieved from server, an optimization is used. Each point corresponds to an
+        average calculated over its neighborhood.
+      </h4>
+    </div>
+
+    <div id="archived_PVs">
+      <div id="archived_PVs_header">
+        <h2>Retrieved PVs</h2>
+        <button id="plotSelected">Plot!</button>
+        <button id="selectAll" class="selectAll">Select All</button>
+        <button id="deselectAll" class="deselectAll">Deselect All</button>
+        <button id="close" class="close">X</button>
+      </div>
+      <table id="table_PVs"></table>
+      <span id="next" class="change">></span>
+      <span id="previous" class="change"><</span>
+    </div>
+    <div id="data_pv_info"></div>
+    <div id="data_axis"></div>
+    <div class="lds-ellipsis"></div>
+  </body>
 </html>
