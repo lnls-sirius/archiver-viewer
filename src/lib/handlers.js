@@ -504,8 +504,8 @@ const handlers = (function () {
    * Handles a dragging event in the chart and updates the chart drawing area.
    **/
   async function doDragging(e) {
-    const evt = e.nativeEvent;
     if (!control.zoomFlags().isZooming && !control.autoEnabled() && control.dragFlags().dragStarted) {
+      const evt = e.nativeEvent;
       const offsetX = control.dragFlags().x - evt.offsetX;
       let newDate = new Date(
         control.end().getTime() +
@@ -541,6 +541,7 @@ const handlers = (function () {
 
     // Draws zoom rectangle indicating the area in which this operation will applied
     if (control.zoomFlags().isZooming && control.zoomFlags().hasBegan) {
+      const evt = e.nativeEvent;
       // x,y,w,h = o retângulo entre os vértices
       const x = Math.min(control.zoomFlags().beginX, evt.clientX);
       const w = Math.abs(control.zoomFlags().beginX - evt.clientX);
