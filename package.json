@@ -9,6 +9,7 @@
     "@fortawesome/fontawesome-svg-core": "^1.2.25",
     "@fortawesome/free-solid-svg-icons": "^5.11.2",
     "@fortawesome/react-fontawesome": "^0.1.5",
+    "@reduxjs/toolkit": "^1.4.0",
     "babel-eslint": "^10.1.0",
     "chart.js": "^2.8.0",
     "core-js": "^3.6.5",
@@ -20,6 +21,7 @@
     "react": "^16.9.0",
     "react-datepicker": "^2.9.6",
     "react-dom": "^16.9.0",
+    "react-redux": "^7.2.2",
     "simplify-js": "^1.2.3",
     "styled-components": "^5.2.1",
     "xlsx": "0.16.2"
@@ -63,5 +65,5 @@
     "start": "NODE_ENV=development babel-node ./node_modules/webpack-dev-server/bin/webpack-dev-server --host 0.0.0.0",
     "dev:analyze": "npm run dev -- --env.addons=bundleanalyzer",
     "build:analyze": "npm run build -- --env.addons=bundleanalyzer"
-}
+  }
 }
