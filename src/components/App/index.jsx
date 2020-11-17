@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import Chart from "../Chart";
+import LineChart from "../LineChart";
 import Controls from "../Controls";
 import Intervals from "../Intervals";
 import Logo from "../Logo";
@@ -42,7 +42,7 @@ class App extends Component {
           />
           <Controls />
         </S.HeaderWrapper>
-        <Chart handlers={{ handleWheel: this.handleScrollChart }} />
+        <LineChart handlers={{ handleWheel: this.handleScrollChart }} />
         <Footer />
       </S.AppLayout>
     );
