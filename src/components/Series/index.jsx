@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
 
-class SeriesInfo extends Component {
+class Series extends Component {
   constructor(props) {
     super();
 
@@ -37,7 +37,7 @@ class SeriesInfo extends Component {
     );
   }
 }
-SeriesInfo.propTypes = {
+Series.propTypes = {
   optimize: PropTypes.bool.isRequired,
 };
-export default SeriesInfo;
+export default Series;
