@@ -1,8 +1,8 @@
 import React, { Component } from "react";
+import { connect } from "react-redux";
+import {} from "../../features/chart/sliceChart";
 
 import handlers from "../../lib/handlers";
-import control from "../../lib/control";
-
 import Seach from "../Search/Search";
 
 import {
@@ -18,39 +18,24 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 import * as S from "./styled";
+const mapStateToProps = (state) => {
+  const { autoScroll, zooming, singleTooltip, timeReferenceEnd } = state.chart;
+
+  return {
+    autoScroll: autoScroll,
+    zooming: zooming,
+    singleTooltip: singleTooltip,
+    timeReferenceEnd: timeReferenceEnd,
+  };
+};
 
 class Controls extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      autoEnabled: control.autoEnabled(),
-      refTimeEnd: true,
-      singleTip: control.singleTipEnabled(),
       startDate: new Date(),
-      zoom: control.zoomFlags().isZooming,
     };
-    this.END = 0;
-    this.START = 1;
   }
-
-  handleZoom = (e) => {
-    handlers.zoomClickHandler();
-    this.setState({ zoom: control.zoomFlags().isZooming });
-  };
-
-  handleAuto = () => {
-    handlers.autoRefreshingHandler();
-    this.setState({
-      auto: control.autoEnabled(),
-      zoom: control.zoomFlags().isZooming,
-    });
-  };
-
-  handleTooltip = async () => {
-    await handlers.singleTipHandler().then((e) => {
-      this.setState({ singleTip: e });
-    });
-  };
 
   handleDateChange = (e) => {
     handlers.onChangeDateHandler(e);
@@ -58,12 +43,12 @@ class Controls extends Component {
   };
 
   handleTimeRefChange = (e) => {
-    console.log(e.target.value);
-    handlers.updateReferenceTime(e.target.value === this.END);
+    handlers.updateReferenceTime(e.target.value == "true");
   };
 
   render() {
-    const { zoom, startDate, singleTip, auto } = this.state;
+    const { zooming, autoScroll, singleTooltip } = this.props;
+    const { startDate } = this.state;
     return (
       <S.ControlsWrapper>
         <S.ControlsGroupWrapper>
@@ -78,9 +63,9 @@ class Controls extends Component {
             dateFormat="dd/MM/yy h:mm aa"
             maxDate={new Date()}
           />
-          <S.ControlSelect nonChange={this.handleTimeRefChange}>
-            <option value={this.END}>End</option>
-            <option value={this.START}>Start</option>
+          <S.ControlSelect onChange={this.handleTimeRefChange}>
+            <option value={true}>End</option>
+            <option value={false}>Start</option>
           </S.ControlSelect>
         </S.ControlsGroupWrapper>
         <S.ControlsGroupWrapper>
@@ -123,8 +108,20 @@ class Controls extends Component {
             onClick={() => handlers.redoHandler()}
             size="lg"
           />
-          <S.ControlIcon icon={faCarSide} title="Auto scroll" onClick={this.handleAuto} $isActive={auto} size="lg" />
-          <S.ControlIcon icon={faSearchPlus} title="Zoom" onClick={this.handleZoom} $isActive={zoom} size="lg" />
+          <S.ControlIcon
+            icon={faCarSide}
+            title="Auto scroll"
+            onClick={handlers.autoRefreshingHandler}
+            $isActive={autoScroll}
+            size="lg"
+          />
+          <S.ControlIcon
+            icon={faSearchPlus}
+            title="Zoom"
+            onClick={handlers.zoomClickHandler}
+            $isActive={zooming}
+            size="lg"
+          />
           <S.ControlIcon
             icon={faFileExcel}
             title="Export as xlsx"
@@ -135,8 +132,8 @@ class Controls extends Component {
           <S.ControlIcon
             icon={faList}
             title="Show all in tooltip"
-            onClick={this.handleTooltip}
-            $isActive={singleTip}
+            onClick={handlers.singleTipHandler}
+            $isActive={singleTooltip}
             size="lg"
           />
         </S.ControlsGroupWrapper>
@@ -144,4 +141,4 @@ class Controls extends Component {
     );
   }
 }
-export default Controls;
+export default connect(mapStateToProps)(Controls);

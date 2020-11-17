@@ -14,6 +14,15 @@ import ui from "./ui.js";
 import chartUtils from "./chartUtils.js";
 import handlers from "./handlers.js";
 
+import {
+  setAutoScroll,
+  setSingleTooltip,
+  setTimeReferenceEnd,
+  setWindowTime,
+  setZooming,
+} from "../features/chart/sliceChart";
+import store from "../store";
+
 const control = (function () {
   const STACK_ACTIONS = {
     REMOVE_PV: 0,
@@ -25,25 +34,43 @@ const control = (function () {
   };
 
   const REFERENCE = {
-    START: 0,
-    END: 1,
+    START: false,
+    END: true,
   };
 
   /* chartjs instance reference */
   let chart = null;
 
   /* start and end timedates */
-  let start,
-    end,
-    reference = REFERENCE.END;
+  let start;
+  let end;
+  let reference = REFERENCE.END; // Reference time end
 
   let windowTime = chartUtils.timeIDs.MIN10;
+
+  function updateTimeWindowOnly(time) {
+    windowTime = time;
+    store.dispatch(setWindowTime(windowTime));
+  }
 
   let timer = null;
 
   /* Control flags */
   let autoEnabled = false;
+  function setAutoEnabled(enabled) {
+    autoEnabled = enabled;
+    store.dispatch(setAutoScroll(autoEnabled));
+  }
+
   let singleTipEnabled = true;
+  function getSingleTipEnabled() {
+    return singleTipEnabled;
+  }
+  function setSingleTipEnabled(enabled) {
+    singleTipEnabled = enabled;
+    store.dispatch(setSingleTooltip(singleTipEnabled));
+  }
+
   let scrollingEnabled = true;
   let serverDateEnabled = true;
 
@@ -105,11 +132,11 @@ const control = (function () {
   };
 
   async function updateTimeWindow(window) {
-    windowTime = window;
+    updateTimeWindowOnly(window);
 
     if (windowTime < chartUtils.timeIDs.MIN_30) {
       if (autoEnabled) {
-        autoEnabled = false;
+        setAutoEnabled(false);
 
         clearInterval(timer);
       }
@@ -373,9 +400,7 @@ const control = (function () {
         if (appendData.length > 0) {
           appendData = appendData[0].data;
 
-          const x = new Date(
-            appendData[appendData.length - 1].secs * 1e3 + appendData[appendData.length - 1].nanos * 1e-6
-          );
+          const x = new Date(appendData[appendData.length - 1].secs * 1e3 + appendData[appendData.length - 1].nanos * 1e-6);
 
           // Verifies if we are not appending redundant data into the dataset
           while (appendData.length > 0 && x.getTime() >= first.getTime()) {
@@ -433,8 +458,7 @@ const control = (function () {
         // We can remove unnecessary data from the end of the dataset to save memory and improve performance
         for (
           let i = chart.data.datasets[pvIndex].data.length - 1;
-          chart.data.datasets[pvIndex].data.length > 0 &&
-          chart.data.datasets[pvIndex].data[i].x.getTime() > end.getTime();
+          chart.data.datasets[pvIndex].data.length > 0 && chart.data.datasets[pvIndex].data[i].x.getTime() > end.getTime();
           i--
         ) {
           chart.data.datasets[pvIndex].data.pop();
@@ -571,7 +595,7 @@ const control = (function () {
 
     const singleTipCookie = getCookie("singleTip");
 
-    singleTipEnabled = singleTipCookie === "true" || singleTipCookie == null;
+    setSingleTipEnabled(singleTipCookie === "true" || singleTipCookie == null);
 
     chartUtils.toggleTooltipBehavior(chart, singleTipEnabled);
     chart.update(0, false);
@@ -723,9 +747,7 @@ const control = (function () {
     autoEnabled: function () {
       return autoEnabled;
     },
-    singleTipEnabled: function () {
-      return singleTipEnabled;
-    },
+    singleTipEnabled: getSingleTipEnabled,
     scrollingEnabled: function () {
       return scrollingEnabled;
     },
@@ -756,9 +778,7 @@ const control = (function () {
     },
 
     updateTimeWindow: updateTimeWindow,
-    updateTimeWindowOnly: function (t) {
-      windowTime = t;
-    },
+    updateTimeWindowOnly: updateTimeWindowOnly,
     updateStartTime: function (s) {
       start = s;
     },
@@ -767,23 +787,24 @@ const control = (function () {
     },
     updateTimeReference: function (r) {
       reference = r;
+      store.dispatch(setTimeReferenceEnd(reference));
     },
     updateStartAndEnd: updateStartAndEnd,
 
     toggleAuto: function () {
-      autoEnabled = !autoEnabled;
+      setAutoEnabled(!autoEnabled);
     },
     toggleSingleTip: function () {
-      singleTipEnabled = !singleTipEnabled;
+      setSingleTipEnabled(!getSingleTipEnabled());
     },
     disableAuto: function () {
-      autoEnabled = false;
+      setAutoEnabled(false);
     },
     disableServerDate: function () {
       serverDateEnabled = false;
     },
     enableAuto: function () {
-      autoEnabled = true;
+      setAutoEnabled(true);
     },
 
     disableScrolling: function () {
@@ -808,9 +829,11 @@ const control = (function () {
 
     enableZoom: function () {
       zoomFlags.isZooming = true;
+      store.dispatch(setZooming(true));
     },
     disableZoom: function () {
       zoomFlags.isZooming = false;
+      store.dispatch(setZooming(false));
     },
 
     init: init,

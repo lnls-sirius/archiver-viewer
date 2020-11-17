@@ -135,9 +135,7 @@ const handlers = (function () {
   };
 
   const handleQueryError = (data, statusText, errorThrown) => {
-    ui.toogleSearchWarning(
-      "An error occured on the server while disconnected PVs -- " + statusText + " -- " + errorThrown
-    );
+    ui.toogleSearchWarning("An error occured on the server while disconnected PVs -- " + statusText + " -- " + errorThrown);
   };
 
   const handleQueryComplete = (data) => {
@@ -199,13 +197,7 @@ const handlers = (function () {
     if (e.which !== KEY_ENTER) {
       return;
     }
-    await archInterface.query(
-      val,
-      handleQuerySuccessRetrieval,
-      handleQueryError,
-      handleQueryComplete,
-      handleQueryBefore
-    );
+    await archInterface.query(val, handleQuerySuccessRetrieval, handleQueryError, handleQueryComplete, handleQueryBefore);
   }
 
   const handleFetchDataError = (xmlHttpRequest, textStatus, errorThrown) => {
@@ -494,8 +486,7 @@ const handlers = (function () {
       // Computes zoom initial time
       control.zoomFlags().time1 = new Date(
         control.start().getTime() +
-          (evt.offsetX * chartUtils.timeAxisPreferences[control.windowTime()].milliseconds) /
-            control.chart().chart.width
+          (evt.offsetX * chartUtils.timeAxisPreferences[control.windowTime()].milliseconds) / control.chart().chart.width
       );
     }
   };
@@ -570,8 +561,7 @@ const handlers = (function () {
     if (control.zoomFlags().isZooming && control.zoomFlags().hasBegan) {
       control.zoomFlags().time2 = new Date(
         control.start().getTime() +
-          (evt.offsetX * chartUtils.timeAxisPreferences[control.windowTime()].milliseconds) /
-            control.chart().chart.width
+          (evt.offsetX * chartUtils.timeAxisPreferences[control.windowTime()].milliseconds) / control.chart().chart.width
       );
 
       if (control.zoomFlags().time1 !== undefined && control.zoomFlags().time2 !== undefined) {
@@ -602,7 +592,7 @@ const handlers = (function () {
 
         // ui.toogleWindowButton (undefined, control.windowTime ());
 
-        control.updateTimeWindowOnly(i);
+        control.setWindowTime(i);
 
         ui.hideZoomBox();
 
