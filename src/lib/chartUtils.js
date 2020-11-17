@@ -262,23 +262,21 @@ const chartUtils = (function () {
    * Edits tooltip's label before printing them in the screen.
    **/
   const labelCallback = function (label, chart) {
-    if (label.yLabel !== 0 && Math.abs(label.yLabel) < Math.pow(10, -chart.datasets[label.datasetIndex].pv.precision)) {
-      return (
-        chart.datasets[label.datasetIndex].label +
-        ": " +
-        label.yLabel.toExponential(Math.min(3, chart.datasets[label.datasetIndex].pv.precision))
-      );
+    const pvPrecision = chart.datasets[label.datasetIndex].pv.precision;
+    const labelText = chart.datasets[label.datasetIndex].label;
+    const value = label.yLabel;
+
+    let displayValue = "";
+
+    if (pvPrecision > 4) {
+      displayValue = value.toExponential(3);
+    } else if (value !== 0 && Math.abs(value) < Math.pow(10, -pvPrecision)) {
+      displayValue = value.toExponential(Math.min(3, pvPrecision));
+    } else {
+      displayValue = value.toExponential(pvPrecision);
     }
 
-    if (chart.datasets[label.datasetIndex].pv.precision > 4) {
-      return chart.datasets[label.datasetIndex].label + ": " + label.yLabel.toExponential(3);
-    }
-
-    return (
-      chart.datasets[label.datasetIndex].label +
-      ": " +
-      label.yLabel.toFixed(chart.datasets[label.datasetIndex].pv.precision)
-    );
+    return `${labelText}: ${displayValue}`;
   };
 
   const toggleTooltipBehavior = function (chart, isOld) {

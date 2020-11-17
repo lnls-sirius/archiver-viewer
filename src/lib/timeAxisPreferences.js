@@ -1,6 +1,6 @@
-const TIME_AXIS_ID = "x-axis-0";
-const TIME_AXIS_INDEX = 0;
-const TIME_IDS = {
+export const TIME_AXIS_ID = "x-axis-0";
+export const TIME_AXIS_INDEX = 0;
+export const TIME_IDS = {
   YEAR: 0,
   MONTH: 1,
   WEEK2: 2,
@@ -19,7 +19,7 @@ const TIME_IDS = {
   MIN1: 15,
   SEG_30: 16,
 };
-const TIME_AXIS_PREFERENCES = [
+export const TIME_AXIS_PREFERENCES = [
   {
     // 1 year
     text: "1Y",
@@ -191,4 +191,3 @@ const TIME_AXIS_PREFERENCES = [
     id: TIME_IDS.SEG_30,
   },
 ];
-export { TIME_AXIS_ID, TIME_AXIS_INDEX, TIME_AXIS_PREFERENCES, TIME_IDS };

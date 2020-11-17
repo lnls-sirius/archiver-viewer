@@ -475,7 +475,8 @@ const handlers = (function () {
   /**
    * Handles a mouse click event in the chart and prepares for zooming or dragging.
    **/
-  const startDragging = function (evt) {
+  const startDragging = function (e) {
+    const evt = e.nativeEvent;
     control.startDrag();
 
     control.updateDragOffsetX(evt.offsetX);
@@ -502,8 +503,9 @@ const handlers = (function () {
   /**
    * Handles a dragging event in the chart and updates the chart drawing area.
    **/
-  async function doDragging(evt) {
+  async function doDragging(e) {
     if (!control.zoomFlags().isZooming && !control.autoEnabled() && control.dragFlags().dragStarted) {
+      const evt = e.nativeEvent;
       const offsetX = control.dragFlags().x - evt.offsetX;
       let newDate = new Date(
         control.end().getTime() +
@@ -539,6 +541,7 @@ const handlers = (function () {
 
     // Draws zoom rectangle indicating the area in which this operation will applied
     if (control.zoomFlags().isZooming && control.zoomFlags().hasBegan) {
+      const evt = e.nativeEvent;
       // x,y,w,h = o retângulo entre os vértices
       const x = Math.min(control.zoomFlags().beginX, evt.clientX);
       const w = Math.abs(control.zoomFlags().beginX - evt.clientX);
@@ -550,7 +553,8 @@ const handlers = (function () {
   /**
    * Finishes dragging and applies zoom on the chart if this action was previously selected.
    **/
-  async function stopDragging(evt) {
+  async function stopDragging(e) {
+    const evt = e.nativeEvent;
     if (control.dragFlags().dragStarted && control.dragFlags().updateOnComplete) {
       control.updateAllPlots(true);
       control.updateURL();
