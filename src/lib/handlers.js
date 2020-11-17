@@ -475,7 +475,8 @@ const handlers = (function () {
   /**
    * Handles a mouse click event in the chart and prepares for zooming or dragging.
    **/
-  const startDragging = function (evt) {
+  const startDragging = function (e) {
+    const evt = e.nativeEvent;
     control.startDrag();
 
     control.updateDragOffsetX(evt.offsetX);
@@ -502,7 +503,8 @@ const handlers = (function () {
   /**
    * Handles a dragging event in the chart and updates the chart drawing area.
    **/
-  async function doDragging(evt) {
+  async function doDragging(e) {
+    const evt = e.nativeEvent;
     if (!control.zoomFlags().isZooming && !control.autoEnabled() && control.dragFlags().dragStarted) {
       const offsetX = control.dragFlags().x - evt.offsetX;
       let newDate = new Date(
@@ -550,7 +552,8 @@ const handlers = (function () {
   /**
    * Finishes dragging and applies zoom on the chart if this action was previously selected.
    **/
-  async function stopDragging(evt) {
+  async function stopDragging(e) {
+    const evt = e.nativeEvent;
     if (control.dragFlags().dragStarted && control.dragFlags().updateOnComplete) {
       control.updateAllPlots(true);
       control.updateURL();
