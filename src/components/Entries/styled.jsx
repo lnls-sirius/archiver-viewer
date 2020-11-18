@@ -1,10 +1,15 @@
 import styled from "styled-components";
 
 export const EntriesWrapper = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-evenly;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   margin: 0 25px;
+  @media (max-width: 1050px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  @media (max-width: 800px) {
+    grid-template-columns: repeat(1, 1fr);
+  }
 `;
 
 export const EntryGroup = styled.div`
@@ -12,8 +17,8 @@ export const EntryGroup = styled.div`
   align-items: center;
   background-color: #dbdbdb;
   margin: 0.2rem 1.2rem;
+  justify-content: space-between;
 `;
-
 export const Color = styled.span`
   cursor: pointer;
   display: inline-block;
@@ -34,8 +39,9 @@ export const EguText = styled.p`
 `;
 
 export const Button = styled.button`
-  margin: 2px;
-  height: 80%;
+  margin: 0 7px;
+  padding: 0.2rem 0.4rem;
+  height: 100%;
   transition: color 0.5s;
   color: red;
   transition: background-color 0.5s;
