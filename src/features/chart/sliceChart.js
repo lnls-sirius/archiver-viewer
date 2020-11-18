@@ -4,11 +4,14 @@ import { TIME_IDS } from "../../lib/timeAxisPreferences";
 const chartSlice = createSlice({
   name: "chart",
   initialState: {
-    windowTime: TIME_IDS.MIN_30,
+    actionsStack: [],
     autoScroll: false,
-    zooming: false,
-    singleTooltip: false,
+    singleTooltip: true,
+    timeEnd: null,
     timeReferenceEnd: true,
+    timeStart: null,
+    windowTime: TIME_IDS.MIN_30,
+    zooming: false,
   },
   reducers: {
     setWindowTime(state, action) {
@@ -26,9 +29,31 @@ const chartSlice = createSlice({
     setTimeReferenceEnd(state, action) {
       state.timeReferenceEnd = action.payload;
     },
+    setTimeStart(state, action) {
+      state.timeStart = action.payload;
+    },
+    setTimeEnd(state, action) {
+      state.timeEnd = action.payload;
+    },
+    addActionToStack(state, action) {
+      state.actionsStack.push(action.payload);
+    },
+    /*popActionFromStack(state, action) {
+      state.actionsStack.pop();
+    },*/
   },
 });
 
-export const { setWindowTime, setAutoScroll, setZooming, setSingleTooltip, setTimeReferenceEnd } = chartSlice.actions;
+export const {
+  setAutoScroll,
+  setSingleTooltip,
+  setTimeEnd,
+  setTimeReferenceEnd,
+  setTimeStart,
+  setWindowTime,
+  setZooming,
+  addActionToStack,
+  /*popActionFromStack,*/
+} = chartSlice.actions;
 
 export default chartSlice.reducer;
