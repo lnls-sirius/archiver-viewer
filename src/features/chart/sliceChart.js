@@ -12,8 +12,12 @@ const chartSlice = createSlice({
     timeStart: null,
     windowTime: TIME_IDS.MIN_30,
     zooming: false,
+    loading: false,
   },
   reducers: {
+    setLoading(state, action) {
+      state.loading = action.state;
+    },
     setWindowTime(state, action) {
       state.windowTime = action.payload;
     },
@@ -45,14 +49,15 @@ const chartSlice = createSlice({
 });
 
 export const {
+  addActionToStack,
   setAutoScroll,
+  setLoading,
   setSingleTooltip,
   setTimeEnd,
   setTimeReferenceEnd,
   setTimeStart,
   setWindowTime,
   setZooming,
-  addActionToStack,
   /*popActionFromStack,*/
 } = chartSlice.actions;
 

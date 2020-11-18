@@ -5,6 +5,7 @@ import Controls from "../Controls";
 import Intervals from "../Intervals";
 import Logo from "../Logo";
 import Footer from "../Footer";
+import Loading from "../Loading";
 
 import ui from "../../lib/ui";
 
@@ -25,6 +26,7 @@ class App extends Component {
           <Controls />
         </S.HeaderWrapper>
         <LineChart />
+        <Loading visible={true} />
         <Footer />
       </S.AppLayout>
     );
