@@ -401,7 +401,9 @@ const control = (function () {
         if (appendData.length > 0) {
           appendData = appendData[0].data;
 
-          const x = new Date(appendData[appendData.length - 1].secs * 1e3 + appendData[appendData.length - 1].nanos * 1e-6);
+          const x = new Date(
+            appendData[appendData.length - 1].secs * 1e3 + appendData[appendData.length - 1].nanos * 1e-6
+          );
 
           // Verifies if we are not appending redundant data into the dataset
           while (appendData.length > 0 && x.getTime() >= first.getTime()) {
@@ -459,7 +461,8 @@ const control = (function () {
         // We can remove unnecessary data from the end of the dataset to save memory and improve performance
         for (
           let i = chart.data.datasets[pvIndex].data.length - 1;
-          chart.data.datasets[pvIndex].data.length > 0 && chart.data.datasets[pvIndex].data[i].x.getTime() > end.getTime();
+          chart.data.datasets[pvIndex].data.length > 0 &&
+          chart.data.datasets[pvIndex].data[i].x.getTime() > end.getTime();
           i--
         ) {
           chart.data.datasets[pvIndex].data.pop();
@@ -481,7 +484,6 @@ const control = (function () {
    * @param resets: informs if the user wants to reset the data in the dataset.
    **/
   async function updateAllPlots(reset) {
-    console.log("Update All plots", reset);
     if (reset === undefined) {
       reset = false;
     }
@@ -491,7 +493,6 @@ const control = (function () {
       if (chart.data.datasets[i].pv.optimized || reset) {
         chart.data.datasets[i].data.length = 0;
       }
-      console.log("UpdatePlot", i, "dataset len", chart.data.datasets.length);
       await updatePlot(i);
     }
 
@@ -572,8 +573,6 @@ const control = (function () {
     } else {
       await updateStartAndEnd(new Date(), true);
     }
-
-    // ui.toogleWindowButton(windowTime, undefined);
 
     ui.updateDateComponents(end);
 
