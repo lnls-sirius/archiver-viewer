@@ -1,3 +1,6 @@
+import store from "../store";
+import { setLoading } from "../features/chart/sliceChart";
+
 /* eslint-disable radix */
 const ui = (function () {
   const PV_PER_ROW = 4;
@@ -44,11 +47,11 @@ const ui = (function () {
   };
 
   const enableLoading = function () {
-    $(".lds-ellipsis").css("display", "inline-block");
+    store.dispatch(setLoading(true));
   };
 
   const disableLoading = function () {
-    $(".lds-ellipsis").css("display", "none");
+    store.dispatch(setLoading(false));
   };
 
   const showWarning = function () {
@@ -69,20 +72,6 @@ const ui = (function () {
       seconds = parseInt($("#second").val());
 
     return new Date(year, month, day, hours, minutes, seconds, 0);
-  };
-
-  const disableDate = function () {
-    $("#day").prop("disabled", true);
-    $("#hour").prop("disabled", true);
-    $("#minute").prop("disabled", true);
-    $("#second").prop("disabled", true);
-  };
-
-  const enableDate = function () {
-    $("#day").prop("disabled", false);
-    $("#hour").prop("disabled", false);
-    $("#minute").prop("disabled", false);
-    $("#second").prop("disabled", false);
   };
 
   const toogleSearchWarning = function (warning) {
@@ -467,14 +456,10 @@ const ui = (function () {
     showWarning: showWarning,
     hideWarning: hideWarning,
     getTimedate: getTimedate,
-    enableDate: enableDate,
-    disableDate: disableDate,
     showSearchResultsAtPage: showSearchResultsAtPage,
     showSearchResults: showSearchResults,
     hideSearchedPVs: hideSearchedPVs,
     toggleZoomButton: toggleZoomButton,
-    hideZoomBox: hideZoomBox,
-    drawZoomBox: drawZoomBox,
     updateAddress: updateAddress,
     updateDataTable: updateDataTable,
     showTable: showTable,

@@ -6,17 +6,17 @@ const chartSlice = createSlice({
   initialState: {
     actionsStack: [],
     autoScroll: false,
+    loading: false,
     singleTooltip: true,
     timeEnd: null,
     timeReferenceEnd: true,
     timeStart: null,
     windowTime: TIME_IDS.MIN_30,
     zooming: false,
-    loading: false,
   },
   reducers: {
     setLoading(state, action) {
-      state.loading = action.state;
+      state.loading = action.payload;
     },
     setWindowTime(state, action) {
       state.windowTime = action.payload;
