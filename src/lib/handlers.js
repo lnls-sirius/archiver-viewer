@@ -135,7 +135,9 @@ const handlers = (function () {
   };
 
   const handleQueryError = (data, statusText, errorThrown) => {
-    ui.toogleSearchWarning("An error occured on the server while disconnected PVs -- " + statusText + " -- " + errorThrown);
+    ui.toogleSearchWarning(
+      "An error occured on the server while disconnected PVs -- " + statusText + " -- " + errorThrown
+    );
   };
 
   const handleQueryComplete = (data) => {
@@ -197,7 +199,13 @@ const handlers = (function () {
     if (e.which !== KEY_ENTER) {
       return;
     }
-    await archInterface.query(val, handleQuerySuccessRetrieval, handleQueryError, handleQueryComplete, handleQueryBefore);
+    await archInterface.query(
+      val,
+      handleQuerySuccessRetrieval,
+      handleQueryError,
+      handleQueryComplete,
+      handleQueryBefore
+    );
   }
 
   const handleFetchDataError = (xmlHttpRequest, textStatus, errorThrown) => {
@@ -366,9 +374,6 @@ const handlers = (function () {
     labels.sort(function (a, b) {
       return a.datasetIndex - b.datasetIndex;
     });
-
-    // labels.splice(masterSet+1, 0, labels[0]);
-    // labels.shift();
   };
 
   /**
@@ -376,17 +381,7 @@ const handlers = (function () {
    **/
   async function autoRefreshingHandler(e) {
     if (control.autoEnabled()) {
-      $(this).css("background-color", "grey");
-
       clearInterval(control.timer());
-
-      ui.enableDate();
-      ui.enable($("#date span.now"));
-      ui.enable($("#date span.zoom"));
-      ui.enable($("#date span.forward"));
-      ui.enable($("#date span.backward"));
-
-      $("#date img").css({ cursor: "pointer" });
     } else {
       control.startTimer(
         setInterval(async function () {
@@ -411,16 +406,6 @@ const handlers = (function () {
           await control.updateAllPlots(false);
         }, REFRESH_INTERVAL * 1000)
       );
-
-      $(this).css("background-color", "lightgrey");
-
-      ui.disableDate();
-      ui.disable($("#date span.now"));
-      ui.disable($("#date span.zoom"));
-      ui.disable($("#date span.forward"));
-      ui.disable($("#date span.backward"));
-
-      $("#date img").css({ cursor: "not-allowed" });
     }
 
     control.toggleAuto();
@@ -478,7 +463,6 @@ const handlers = (function () {
     }
 
     const book = XLSXutils.book_new();
-    // const sheets = [];
 
     const sheetInfo = [];
     for (let i = 0; i < control.chart().data.datasets.length; i++) {
@@ -508,7 +492,6 @@ const handlers = (function () {
     // Sheet containing PV information.
     XLSXutils.book_append_sheet(book, XLSXutils.json_to_sheet(sheetInfo), "Sheet Info");
 
-    // Write the stuff
     const wbout = XLSXwrite(book, { bookType: t, type: "binary" });
     try {
       FileSaverSaveAs(new Blob([s2ab(wbout)], { type: "application/octet-stream" }), "export." + t);
