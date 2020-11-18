@@ -3,6 +3,9 @@ import { TIME_AXIS_ID, TIME_AXIS_INDEX, TIME_AXIS_PREFERENCES, TIME_IDS } from "
 import { colorStack, randomColorGenerator } from "./colorUtils";
 import { eguNormalize } from "./egu";
 import Chart from "chart.js";
+import store from "../store";
+import { addToDataset } from "../features/chart/sliceChart";
+
 const chartUtils = (function () {
   const yAxisUseCounter = [];
 
@@ -207,16 +210,10 @@ const chartUtils = (function () {
     appendDataAxis(chart, unit, precision);
 
     // Pushes it into the chart
-    chart.data.datasets.push({
+    // @todo: Update the store ....
+    let newDatasetInfo = {
       label: pvName,
-      xAxisID: TIME_AXIS_ID,
       yAxisID: unit,
-      borderWidth: 1.5,
-      data: data,
-      showLine: true,
-      steppedLine: true,
-      fill: false,
-      pointRadius: 0,
       backgroundColor: color,
       borderColor: color,
       pv: {
@@ -228,9 +225,28 @@ const chartUtils = (function () {
         egu: unit,
         metadata: metadata,
       },
-    });
+    };
 
+    chart.data.datasets.push({
+      ...newDatasetInfo,
+      xAxisID: TIME_AXIS_ID,
+      borderWidth: 1.5,
+      data: data,
+      fill: false,
+      pointRadius: 0,
+      showLine: true,
+      steppedLine: true,
+    });
     chart.update();
+
+    store.dispatch(
+      addToDataset({
+        ...newDatasetInfo,
+        pv: {
+          ...newDatasetInfo.pv,
+        },
+      })
+    );
   };
 
   const hidesAxis = function (metadata, chart) {

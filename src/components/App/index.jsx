@@ -6,6 +6,7 @@ import Intervals from "../Intervals";
 import Logo from "../Logo";
 import Footer from "../Footer";
 import Loading from "../Loading";
+import Entries from "../Entries";
 
 import ui from "../../lib/ui";
 
@@ -27,6 +28,7 @@ class App extends Component {
         </S.HeaderWrapper>
         <LineChart />
         <Loading visible={true} />
+        <Entries />
         <Footer />
       </S.AppLayout>
     );

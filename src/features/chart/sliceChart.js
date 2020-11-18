@@ -6,6 +6,7 @@ const chartSlice = createSlice({
   initialState: {
     actionsStack: [],
     autoScroll: false,
+    datasets: [],
     loading: false,
     singleTooltip: true,
     timeEnd: null,
@@ -15,6 +16,13 @@ const chartSlice = createSlice({
     zooming: false,
   },
   reducers: {
+    addToDataset(state, action) {
+      state.datasets.push(action.payload);
+    },
+    /** @todo: Remove from dataset (by pvName?)*/
+    addActionToStack(state, action) {
+      state.actionsStack.push(action.payload);
+    },
     setLoading(state, action) {
       state.loading = action.payload;
     },
@@ -39,9 +47,6 @@ const chartSlice = createSlice({
     setTimeEnd(state, action) {
       state.timeEnd = action.payload;
     },
-    addActionToStack(state, action) {
-      state.actionsStack.push(action.payload);
-    },
     /*popActionFromStack(state, action) {
       state.actionsStack.pop();
     },*/
@@ -50,6 +55,7 @@ const chartSlice = createSlice({
 
 export const {
   addActionToStack,
+  addToDataset,
   setAutoScroll,
   setLoading,
   setSingleTooltip,
