@@ -17,10 +17,13 @@ import handlers from "./handlers.js";
 import {
   setAutoScroll,
   setSingleTooltip,
+  setTimeEnd,
   setTimeReferenceEnd,
+  setTimeStart,
   setWindowTime,
   setZooming,
 } from "../features/chart/sliceChart";
+
 import store from "../store";
 
 const control = (function () {
@@ -42,6 +45,12 @@ const control = (function () {
   let chart = null;
 
   /* start and end timedates */
+  const setStart = (time) => store.dispatch(setTimeStart(time.toString()));
+  const getStart = () => new Date(store.getState().chart.timeStart);
+
+  const setEnd = (time) => store.dispatch(setTimeEnd(time.toString()));
+  const getEnd = () => new Date(store.getState().chart.timeEnd);
+
   let start;
   let end;
   let reference = REFERENCE.END; // Reference time end
@@ -87,8 +96,8 @@ const control = (function () {
     hasBegan: false,
   };
 
-  const undoStack = [],
-    redoStack = [];
+  const undoStack = [];
+  const redoStack = [];
 
   const init = function (c) {
     chart = c;
@@ -104,8 +113,6 @@ const control = (function () {
   Chart.Controller.prototype.eventHandler = function () {
     // This is not a duplicate of the cursor positioner, this handler is called when a tooltip's datapoint index does not change.
     const ret = parentEventHandler.apply(this, arguments);
-    // const tooltipWidth = this.tooltip._model.width;
-    // const tooltipHeight = this.tooltip._model.height;
 
     if (!singleTipEnabled) {
       const x = arguments[0].x;
@@ -137,11 +144,8 @@ const control = (function () {
     if (windowTime < chartUtils.timeIDs.MIN_30) {
       if (autoEnabled) {
         setAutoEnabled(false);
-
         clearInterval(timer);
       }
-    } else if (!autoEnabled) {
-      ui.enable($("#date span.auto"));
     }
 
     if (reference === REFERENCE.END) {
@@ -175,7 +179,7 @@ const control = (function () {
    **/
   async function appendPV(pv, optimized, undo) {
     if (chartUtils.colorStack().length === 0) {
-      console.log("Color stack limit reached. A random color will be used for pv " + pv + ".");
+      console.log(`Color stack limit reached. A random color will be used for pv ${pv}.`);
     }
 
     // Asks for the PV's metadata
@@ -356,9 +360,6 @@ const control = (function () {
   async function updatePlot(pvIndex) {
     // If the dataset is already empty, no verification is needed. All optimized request must be pass this condition.
     if (chart.data.datasets[pvIndex].data.length === 0) {
-      // var bins = shouldOptimizeRequest(chart.data.datasets[pvIndex].pv.samplingPeriod, chart.data.datasets[pvIndex].pv.type);
-      // chart.data.datasets[pvIndex].pv.optimized = bins < 0 ? false : true;
-
       const bins = chartUtils.timeAxisPreferences[windowTime].bins;
 
       const fetchedData = await archInterface.fetchData(
@@ -480,6 +481,7 @@ const control = (function () {
    * @param resets: informs if the user wants to reset the data in the dataset.
    **/
   async function updateAllPlots(reset) {
+    console.log("Update All plots", reset);
     if (reset === undefined) {
       reset = false;
     }
@@ -489,7 +491,7 @@ const control = (function () {
       if (chart.data.datasets[i].pv.optimized || reset) {
         chart.data.datasets[i].data.length = 0;
       }
-
+      console.log("UpdatePlot", i, "dataset len", chart.data.datasets.length);
       await updatePlot(i);
     }
 
@@ -558,13 +560,15 @@ const control = (function () {
       start = new Date(urlStart);
       end = new Date(urlEnd);
 
-      windowTime = 0;
+      let tmpWindowTime = 0;
+      tmpWindowTime = 0;
       while (
-        end.getTime() - start.getTime() < chartUtils.timeAxisPreferences[windowTime].milliseconds &&
-        windowTime < chartUtils.timeIDs.SEG_30
+        end.getTime() - start.getTime() < chartUtils.timeAxisPreferences[tmpWindowTime].milliseconds &&
+        tmpWindowTime < chartUtils.timeIDs.SEG_30
       ) {
-        windowTime++;
+        tmpWindowTime++;
       }
+      updateTimeWindowOnly(tmpWindowTime);
     } else {
       await updateStartAndEnd(new Date(), true);
     }
@@ -779,10 +783,13 @@ const control = (function () {
 
     updateTimeWindow: updateTimeWindow,
     updateTimeWindowOnly: updateTimeWindowOnly,
+
     updateStartTime: function (s) {
+      setStart(s);
       start = s;
     },
     updateEndTime: function (e) {
+      setEnd(e);
       end = e;
     },
     updateTimeReference: function (r) {
