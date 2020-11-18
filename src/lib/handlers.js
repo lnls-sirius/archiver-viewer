@@ -241,7 +241,6 @@ const handlers = (function () {
   /**
    * The following function manages mouse wheel events in the canvas area
    **/
-
   const scrollChart = function (evt) {
     if (control.scrollingEnabled()) {
       ui.enableLoading();
@@ -427,202 +426,7 @@ const handlers = (function () {
     control.toggleAuto();
   }
 
-  /**
-   * Updates the plot after the user clicks on a point.
-   **/
-  async function dataClickHandler(evt) {
-    if (!control.dragFlags().dragStarted && !control.autoEnabled()) {
-      const event = control.chart().getElementsAtEvent(evt);
-
-      if (event !== undefined && event.length > 0) {
-        const eventData = control.chart().data.datasets[event[0].DatasetIndex].data[event[0].Index].x;
-        const middleData = new Date(
-          eventData.getTime() + chartUtils.timeAxisPreferences[control.windowTime()].milliseconds / 2
-        );
-
-        await control.updateStartAndEnd(middleData, true);
-
-        chartUtils.updateTimeAxis(
-          control.chart(),
-          chartUtils.timeAxisPreferences[control.windowTime()].unit,
-          chartUtils.timeAxisPreferences[control.windowTime()].unitStepSize,
-          control.start(),
-          control.end()
-        );
-
-        control.updateAllPlots(true);
-
-        control.updateURL();
-
-        control.chart().update(0, false);
-      }
-    }
-  }
-
   /** ***** Dragging and zoom functions *******/
-  /**
-   * The following functions manage the dragging and zoom operations in the chart.
-   **/
-
-  /**
-   * Handles a mouse click event in the chart and prepares for zooming or dragging.
-   **/
-  const startDragging = function (e) {
-    const evt = e.nativeEvent;
-    control.startDrag();
-
-    control.updateDragOffsetX(evt.offsetX);
-
-    control.updateDragEndTime(control.end());
-
-    if (control.zoomFlags().isZooming) {
-      control.zoomFlags().beginX = evt.clientX;
-      control.zoomFlags().beginY = evt.clientY;
-
-      control.zoomFlags().hasBegan = true;
-
-      $("#canvas_area span.selection_box").css("display", "block");
-
-      // Computes zoom initial time
-      control.zoomFlags().time1 = new Date(
-        control.start().getTime() +
-          (evt.offsetX * chartUtils.timeAxisPreferences[control.windowTime()].milliseconds) / control.chart().chart.width
-      );
-    }
-  };
-
-  /**
-   * Handles a dragging event in the chart and updates the chart drawing area.
-   **/
-  async function doDragging(e) {
-    if (!control.zoomFlags().isZooming && !control.autoEnabled() && control.dragFlags().dragStarted) {
-      const evt = e.nativeEvent;
-      const offsetX = control.dragFlags().x - evt.offsetX;
-      let newDate = new Date(
-        control.end().getTime() +
-          (offsetX * chartUtils.timeAxisPreferences[control.windowTime()].milliseconds) / control.chart().chart.width
-      );
-
-      if (control.reference() === control.references.START) {
-        newDate = new Date(
-          control.start().getTime() +
-            (offsetX * chartUtils.timeAxisPreferences[control.windowTime()].milliseconds) / control.chart().chart.width
-        );
-      }
-
-      control.updateDragOffsetX(evt.offsetX);
-
-      await control.updateStartAndEnd(newDate, true, true);
-
-      chartUtils.updateTimeAxis(
-        control.chart(),
-        chartUtils.timeAxisPreferences[control.windowTime()].unit,
-        chartUtils.timeAxisPreferences[control.windowTime()].unitStepSize,
-        control.start(),
-        control.end()
-      );
-
-      if (!control.dragFlags().updateOnComplete) {
-        control.updateAllPlots(true);
-        control.updateURL();
-      }
-
-      control.chart().update(0, false);
-    }
-
-    // Draws zoom rectangle indicating the area in which this operation will applied
-    if (control.zoomFlags().isZooming && control.zoomFlags().hasBegan) {
-      const evt = e.nativeEvent;
-      // x,y,w,h = o retângulo entre os vértices
-      const x = Math.min(control.zoomFlags().beginX, evt.clientX);
-      const w = Math.abs(control.zoomFlags().beginX - evt.clientX);
-
-      ui.drawZoomBox(x, w, control.chart().chart.height);
-    }
-  }
-
-  /**
-   * Finishes dragging and applies zoom on the chart if this action was previously selected.
-   **/
-  async function stopDragging(e) {
-    const evt = e.nativeEvent;
-    if (control.dragFlags().dragStarted && control.dragFlags().updateOnComplete) {
-      control.updateAllPlots(true);
-      control.updateURL();
-      control.chart().update(0, false);
-
-      control.undoStack().push({
-        action: control.stackActions.CHANGE_END_TIME,
-        endTime: control.dragFlags().endTime,
-      });
-    }
-
-    // Finishes zoom and updates the chart
-    if (control.zoomFlags().isZooming && control.zoomFlags().hasBegan) {
-      control.zoomFlags().time2 = new Date(
-        control.start().getTime() +
-          (evt.offsetX * chartUtils.timeAxisPreferences[control.windowTime()].milliseconds) / control.chart().chart.width
-      );
-
-      if (control.zoomFlags().time1 !== undefined && control.zoomFlags().time2 !== undefined) {
-        control.undoStack().push({
-          action: control.stackActions.ZOOM,
-          startTime: control.start(),
-          endTime: control.end(),
-          windowTime: control.windowTime(),
-        });
-
-        // Checks which zoom times should be used as start time or end time
-        if (control.zoomFlags().time1.getTime() < control.zoomFlags().time2.getTime()) {
-          control.updateStartTime(control.zoomFlags().time1);
-          control.updateEndTime(control.zoomFlags().time2);
-        } else {
-          control.updateStartTime(control.zoomFlags().time2);
-          control.updateEndTime(control.zoomFlags().time1);
-        }
-
-        // Chooses the x axis time scale
-        let i = 0;
-        while (
-          control.end().getTime() - control.start().getTime() < chartUtils.timeAxisPreferences[i].milliseconds &&
-          i < chartUtils.timeIDs.SEG_30
-        ) {
-          i++;
-        }
-
-        // ui.toogleWindowButton (undefined, control.windowTime ());
-
-        control.setWindowTime(i);
-
-        ui.hideZoomBox();
-
-        chartUtils.updateTimeAxis(
-          control.chart(),
-          chartUtils.timeAxisPreferences[i].unit,
-          chartUtils.timeAxisPreferences[i].unitStepSize,
-          control.start(),
-          control.end()
-        );
-
-        control.optimizeAllGraphs();
-        control.updateAllPlots(true);
-        control.updateURL();
-
-        ui.updateDateComponents(control.reference() === control.references.END ? control.end() : control.start());
-
-        // Redraws the chart
-        control.chart().update(0, false);
-
-        control.updateOptimizedWarning();
-
-        ui.toggleZoomButton(false);
-      }
-    }
-
-    control.stopDrag();
-    control.zoomFlags().hasBegan = false;
-    control.disableZoom();
-  }
 
   /**
    * Adjusts the global variables to perform a zoom in the chart.
@@ -864,7 +668,7 @@ const handlers = (function () {
           // ui.toogleWindowButton (undefined, control.windowTime ());
 
           // Updates the chart attributes
-          await control.updateStartTime(redo.startTime);
+          control.updateStartTime(redo.startTime);
           control.updateEndTime(redo.endTime);
 
           chartUtils.updateTimeAxis(
@@ -919,11 +723,7 @@ const handlers = (function () {
     scrollChart: scrollChart,
     autoRefreshingHandler: autoRefreshingHandler,
     singleTipHandler: singleTipHandler,
-    dataClickHandler: dataClickHandler,
 
-    startDragging: startDragging,
-    doDragging: doDragging,
-    stopDragging: stopDragging,
     zoomClickHandler: zoomClickHandler,
 
     toogleTable: toogleTable,
