@@ -3,7 +3,7 @@ import { connect } from "react-redux";
 import {} from "../../features/chart/sliceChart";
 
 import handlers from "../../lib/handlers";
-import Seach from "../Search/Search";
+import Seach from "../Search";
 
 import {
   faBackward,
