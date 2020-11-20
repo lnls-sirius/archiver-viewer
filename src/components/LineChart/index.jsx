@@ -8,7 +8,7 @@ import * as S from "./styled";
 import { setWindowTime } from "../../features/chart/sliceChart";
 import { options } from "./contents";
 import chartUtils from "../../lib/chartUtils";
-import control from "../../lib/control";
+import control, { doSubscriptions } from "../../lib/control";
 import handlers from "../../lib/handlers";
 import ui from "../../lib/ui";
 
@@ -48,7 +48,7 @@ class LineChart extends Component {
   componentDidMount() {
     this.myChart = new Chart(this.chartRef.current, { type: "line", data: [], options });
     control.init(this.myChart);
-
+    doSubscriptions();
     ui.hideWarning(); //@todo: Remove
     ui.hideSearchWarning(); //@todo: Remove
     control.loadFromURL(window.location.search);
