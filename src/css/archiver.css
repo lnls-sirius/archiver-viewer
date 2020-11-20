@@ -349,22 +349,23 @@ button {
 }
 
 #obs {
-  margin: 0 0 10 0;
-  position: relative;
-  padding: 10px 0 10px 0;
-  font-size: 14px;
-  border-width: 1px;
-  border-style: solid;
+  background-color: lightblue;
   border-color: lightgrey;
   border-radius: 5px;
+  border-style: solid;
+  border-width: 1px;
+  font-size: 14px;
   left: 15%;
-  width: 70%;
+  margin: 0 0 10 0;
+  padding: 10px 0 10px 0;
+  position: relative;
   top: 20px;
-  background-color: lightblue;
+  width: 70%;
 }
 
 #obs h4 {
   padding: 0;
+  font-weight: 500;
   margin: 0;
   margin-left: 25px;
 }
