@@ -12,7 +12,7 @@ export const HeaderWrapper = styled.header`
     justify-self: center;
   }
 
-  @media (max-width: 800px) {
+  @media (max-width: 950px) {
     display: flex;
     flex-direction: column;
     align-content: center;
@@ -21,4 +21,10 @@ export const HeaderWrapper = styled.header`
       display: none;
     }
   }
+`;
+
+export const FooterWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  margin-top: 25px;
 `;
