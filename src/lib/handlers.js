@@ -666,8 +666,6 @@ const handlers = (function () {
           control.updateAllPlots(true);
           control.updateURL();
 
-          ui.updateDateComponents(control.end());
-
           // Redraws the chart
           control.chart().update(0, false);
 
@@ -682,10 +680,8 @@ const handlers = (function () {
 
   const updateReferenceTime = function (isEndSelected) {
     if (isEndSelected) {
-      ui.updateDateComponents(control.end());
       control.updateTimeReference(control.references.END);
     } else {
-      ui.updateDateComponents(control.start());
       control.updateTimeReference(control.references.START);
     }
   };

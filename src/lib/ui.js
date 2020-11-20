@@ -21,20 +21,6 @@ const ui = (function () {
     return myString;
   }
 
-  const updateDateComponents = function (date) {
-    if (date === undefined) {
-      date = new Date();
-    }
-
-    const day = ("0" + date.getDate()).slice(-2),
-      month = ("0" + (date.getMonth() + 1)).slice(-2);
-
-    $("#day").val(date.getFullYear() + "-" + month + "-" + day);
-    $("#hour").val(padWithZeros(date.getHours(), 2));
-    $("#minute").val(padWithZeros(date.getMinutes(), 2));
-    $("#second").val(padWithZeros(date.getSeconds(), 2));
-  };
-
   const toogleWindowButton = function (toPush, toUnpush) {
     /* Untoggled pushed button */
     if (toUnpush !== undefined) {
@@ -360,54 +346,6 @@ const ui = (function () {
     $("#data_axis").append(table);
   };
 
-  const updatePVInfoTable = function (datasets, legendHandler, optimizeHandler, removeHandler) {
-    let row;
-    // Remove all data before rewriting
-    $("#data_pv_info .pv_info_table").remove();
-    const table = $("<table></table>").addClass("pv_info_table");
-    // Draws a table for each variable chosen by the user
-    for (let i = 0; i < datasets.length; i++) {
-      if (!(i % PV_PER_ROW_INFO)) {
-        row = $("<tr></tr>");
-        row.appendTo(table);
-      }
-
-      $("<td></td>")
-        .css({
-          "background-color": datasets[i].backgroundColor,
-          width: "30px",
-          cursor: "pointer",
-        })
-        .click({ datasetIndex: i }, legendHandler)
-        .appendTo(row);
-      $("<td></td>").text(datasets[i].label).appendTo(row);
-
-      const tdOptimized = $("<td></td>");
-      $("<input />")
-        .attr({
-          type: "checkbox",
-          checked: datasets[i].pv.optimized,
-          disabled: datasets[i].pv.type === "DBR_SCALAR_ENUM",
-        })
-        .click({ datasetIndex: i }, optimizeHandler)
-        .appendTo(tdOptimized);
-
-      const div = $("<label></label>").attr("class", "tooltip").text("Optimize");
-      $("<span></span>")
-        .attr("class", "tooltiptext")
-        .text("Uncheck it if you want raw data sent from the server.")
-        .appendTo(div);
-      div.appendTo(tdOptimized);
-      tdOptimized.appendTo(row);
-
-      const tdRemove = $("<td></td>");
-      tdRemove.css({ cursor: "pointer" }).text("Remove").click({ datasetIndex: i }, removeHandler);
-      tdRemove.appendTo(row);
-    }
-
-    $("#data_pv_info").append(table);
-  };
-
   const showSearchWarning = function () {
     $("#warning").fadeIn();
   };
@@ -449,7 +387,6 @@ const ui = (function () {
     },
 
     updateDataAxisInfoTable: updateDataAxisInfoTable,
-    updateDateComponents: updateDateComponents,
     toogleWindowButton: toogleWindowButton,
     enableLoading: enableLoading,
     disableLoading: disableLoading,
@@ -464,13 +401,11 @@ const ui = (function () {
     updateDataTable: updateDataTable,
     showTable: showTable,
     resetTable: resetTable,
-    updatePVInfoTable: updatePVInfoTable,
     showSearchWarning: showSearchWarning,
     hideSearchWarning: hideSearchWarning,
     toogleSearchWarning: toogleSearchWarning,
     disable: disable,
     enable: enable,
-    //        isEndSelected: isEndSelected,
     enableReference: enableReference,
     selectedAllPVs: selectedAllPVs,
     deselectedAllPVs: deselectedAllPVs,
