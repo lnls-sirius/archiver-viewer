@@ -1,8 +1,8 @@
 import React from "react";
 import * as S from "./styled";
 import { connect } from "react-redux";
-
-import control from "../../lib/control";
+import Checkbox from "../Checkbox";
+import { hideDataset, optimizeDataset, removeDatasetByLabel } from "../../lib/control";
 
 // hideAxis, optimizeHandler, removeHandler
 
@@ -12,16 +12,25 @@ const mapStateToProps = (props) => {
 
 const Entries = (props) => {
   const { datasets } = props;
+
+  const handleRemove = () => {};
   return (
     <S.EntriesWrapper>
-      {datasets.map((dataset, i) => {
-        const { label, yAxisID, backgroundColor } = dataset;
+      {datasets.map(({ label, yAxisID, backgroundColor, visible, pv: { optimized } }, i) => {
         return (
           <S.EntryGroup key={i}>
-            <S.Color $bgcolor={backgroundColor} />
+            <S.Color $bgcolor={backgroundColor} onClick={() => hideDataset(label)}>
+              {visible ? <S.VisibleIndicator /> : <S.HiddenIndicator />}
+            </S.Color>
             <S.Text>{label}</S.Text>
             <S.EguText>{yAxisID}</S.EguText>
-            <S.Button>Remove</S.Button>
+            <Checkbox
+              onClick={(e) => optimizeDataset(label, e.target.checked)}
+              checked={optimized}
+              text="Optimize?"
+              tooltip="Uncheck if you want raw data from the server"
+            />
+            <S.Button onClick={() => removeDatasetByLabel(label)}>Remove</S.Button>
           </S.EntryGroup>
         );
       })}
