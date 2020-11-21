@@ -1,18 +1,14 @@
 import React, { Component } from "react";
-import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { Chart } from "chart.js";
 
 import * as S from "./styled";
 
-import { setWindowTime } from "../../features/chart/sliceChart";
 import { options } from "./contents";
 import chartUtils from "../../lib/chartUtils";
 import control, { doSubscriptions } from "../../lib/control";
 import handlers from "../../lib/handlers";
 import ui from "../../lib/ui";
-
-const mapDispatch = { setWindowTime };
 
 const mapStateToProps = (state) => {
   const { autoScroll, zooming, singleTooltip, timeReferenceEnd } = state.chart;
@@ -58,6 +54,21 @@ class LineChart extends Component {
     handlers.scrollChart(e);
   };
 
+  getAverageDateFromEvent = (evt) => {
+    let millis = 0;
+    const elements = control.chart().getElementsAtEventForMode(evt, "index", { intersect: false });
+    elements.map((e) => {
+      //console.log(e);
+      const yScaleId = e._yScale.id;
+      const dsetIdx = e._datasetIndex;
+      const idx = e._index;
+      const { x, y } = control.chart().data.datasets[dsetIdx].data[idx];
+      millis += x.getTime();
+      //console.log(/*"dsetIdx", dsetIdx, "idx", idx, yScaleId, "data", */ x, y);
+    });
+    return millis > 0 ? new Date(millis / elements.length) : null;
+  };
+
   startDragging = (e) => {
     const evt = e.nativeEvent;
     control.updateDragEndTime(control.end());
@@ -82,11 +93,12 @@ class LineChart extends Component {
             zoomTime2: null,
             zoomBeginX: evt.clientX,
             zoomBeginY: evt.clientY,
-            zoomTime1: new Date(
+            zoomTime1: this.getAverageDateFromEvent(evt),
+            /*zoomTime1: new Date(
               control.start().getTime() +
                 (evt.offsetX * chartUtils.timeAxisPreferences[control.windowTime()].milliseconds) /
                   control.chart().chart.width
-            ),
+            ),*/
           });
         }
       }
@@ -177,12 +189,17 @@ class LineChart extends Component {
   };
 
   handleStopDragZoom = async (evt) => {
-    const zoomTime2 = new Date(
+    const zoomTime2 = this.getAverageDateFromEvent(evt);
+    /*const zoomTime2 = new Date(
       control.start().getTime() +
         (evt.offsetX * chartUtils.timeAxisPreferences[control.windowTime()].milliseconds) / control.chart().chart.width
-    );
+    );*/
     this.setState({ zoomTime2: zoomTime2 }, () => {
       const { zoomTime1, zoomTime2 } = this.state;
+      if (!zoomTime1 || !zoomTime2) {
+        console.warn(`Invalid time range  ${zoomTime1} ${zoomTime2}`);
+        return;
+      }
       control.undoStack().push({
         action: control.stackActions.ZOOM,
         startTime: control.start(),
@@ -261,8 +278,5 @@ class LineChart extends Component {
     );
   }
 }
-LineChart.propTypes = {
-  setWindowTime: PropTypes.func.isRequired,
-};
 
-export default connect(mapStateToProps, mapDispatch)(LineChart);
+export default connect(mapStateToProps)(LineChart);

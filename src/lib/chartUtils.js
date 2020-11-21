@@ -5,7 +5,6 @@ import { eguNormalize } from "./egu";
 import Chart from "chart.js";
 import store from "../store";
 import { addToDataset, addToDataAxis, setAxisTypeLog, setDatasetVisible } from "../features/chart/sliceChart";
-import { data } from "jquery";
 
 const yAxisUseCounter = [];
 
@@ -105,59 +104,6 @@ export const findAxisIndexById = (chart, axisId) => {
   }
   console.error(`Failed to find index of axis ${axisId}`);
   return null;
-};
-
-const toggleAutoY = (chart, axisId, autoFire) => {
-  let table = $(autoFire).closest(".data_axis_table").find(":text");
-
-  for (let i = 1; i < chart.options.scales.yAxes.length; i++) {
-    if (chart.options.scales.yAxes[i].id === axisId) {
-      table = table.slice((i - 1) * 2, (i - 1) * 2 + 2);
-      table.toggle();
-      if (autoFire.checked) {
-        for (let j = 0; j < table.length; j++) {
-          const limit = parseFloat(table[j].value);
-          if (!isNaN(limit)) {
-            if ($(table[j]).attr("placeholder") === "Max") {
-              chart.options.scales.yAxes[i].ticks.max = limit;
-            } else {
-              chart.options.scales.yAxes[i].ticks.min = limit;
-            }
-          }
-        }
-      } else {
-        delete chart.options.scales.yAxes[i].ticks.max;
-        delete chart.options.scales.yAxes[i].ticks.min;
-      }
-    }
-  }
-  chart.update();
-};
-
-const changeYLimit = (chart, axisId, limitInput) => {
-  if (chart.options.scales.yAxes.length <= 1) {
-    return;
-  }
-
-  for (let i = 1; i < chart.options.scales.yAxes.length; i++) {
-    if (chart.options.scales.yAxes[i].id === axisId) {
-      const limit = parseFloat(limitInput.value);
-      if ($(limitInput).attr("placeholder") === "Max") {
-        if (!isNaN(limit)) {
-          chart.options.scales.yAxes[i].ticks.max = limit;
-        } else {
-          delete chart.options.scales.yAxes[i].ticks.max;
-        }
-      } else {
-        if (!isNaN(limit)) {
-          chart.options.scales.yAxes[i].ticks.min = limit;
-        } else {
-          delete chart.options.scales.yAxes[i].ticks.min;
-        }
-      }
-    }
-  }
-  chart.update();
 };
 
 const getAxesInUse = (axes) => {
@@ -451,8 +397,6 @@ export default {
     axisPositionLeft = a;
   },
   toggleAxisType: toggleAxisType,
-  toggleAutoY: toggleAutoY,
-  changeYLimit: changeYLimit,
   updateTimeAxis: updateTimeAxis,
   appendDataAxis: appendDataAxis,
   appendDataset: appendDataset,

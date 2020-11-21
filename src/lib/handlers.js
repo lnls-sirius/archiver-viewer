@@ -343,7 +343,7 @@ const handlers = (function () {
           chart.datasets[i].data.map((x) => x.x)
         );
 
-        if (chart.datasets[i].data[closest] === undefined || chart.datasets[i].data[closest] === undefined) {
+        if (chart.datasets[i].data[closest] === undefined) {
           return "Loading datasets...";
         }
 

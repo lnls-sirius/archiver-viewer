@@ -248,7 +248,6 @@ async function appendPV(pv, optimized, undo) {
       parseInt(data[0].meta.PREC) + 1,
       metadata
     );
-    handleDataAxisInfoTableUpdate();
   }
 
   updateOptimizedWarning();
@@ -739,26 +738,6 @@ const optimizeHandler = async function (event) {
   await optimizePlot(event.data.datasetIndex, this.checked);
 };
 
-const handleDataAxisInfoTableUpdate = () => {
-  ui.updateDataAxisInfoTable(
-    chartUtils.getAxesInUse(chart.options.scales.yAxes),
-    (evt) => {
-      chartUtils.toggleAxisType(chart, evt.data.axisId, evt.target.checked);
-    },
-    (evt) => {
-      chartUtils.toggleAutoY(chart, evt.data.axisId, evt.currentTarget);
-    },
-    (evt) => {
-      chartUtils.changeYLimit(chart, evt.data.axisId, evt.currentTarget);
-    }
-  );
-};
-
-const removeHandler = function (event) {
-  removeDataset(event.data.datasetIndex);
-  handleDataAxisInfoTableUpdate();
-};
-
 export default {
   /* const references */
   stackActions: STACK_ACTIONS,
@@ -892,5 +871,4 @@ export default {
   removeDataset: removeDataset,
   hideAxis: hideAxis,
   optimizeHandler: optimizeHandler,
-  removeHandler: removeHandler,
 };
