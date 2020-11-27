@@ -6,6 +6,7 @@ const chartSlice = createSlice({
   initialState: {
     actionsStack: [],
     autoScroll: false,
+    searchResults: [],
     dataAxis: [],
     datasets: [],
     loading: false,
@@ -17,6 +18,9 @@ const chartSlice = createSlice({
     zooming: false,
   },
   reducers: {
+    setSearchResults(state, action){
+      state.searchResults = action.payload;
+    },
     addToDataAxis: {
       reducer(state, action) {
         state.dataAxis.push(action.payload);
@@ -67,8 +71,37 @@ const chartSlice = createSlice({
       });
     },
     //removeAxis(state, action) {},
-    addToDataset(state, action) {
-      state.datasets.push(action.payload);
+    addToDataset: {
+      reducer(state, action) {
+        state.datasets.push(action.payload);
+      },
+      prepare(data) {
+        return {
+          payload: {
+            fetching: false,
+            fetchTime: null,
+            ...data,
+          },
+        };
+      },
+    },
+    clearDatasetFetching(state, action) {
+      const { idx } = action.payload;
+      if (index > state.datasets.length) {
+        console.warn(`Invalid dataset index ${idx}`);
+        return;
+      }
+      state.datasets[idx].fetching = false;
+      state.datasets[idx].fetchTime = null;
+    },
+    setDatasetFetching(state, action) {
+      const { idx, time } = action.payload;
+      if (index > state.datasets.length) {
+        console.warn(`Invalid dataset index ${idx}`);
+        return;
+      }
+      state.datasets[idx].fetching = true;
+      state.datasets[idx].fetchTime = time.getTime();
     },
     setDatasetVisible(state, action) {
       const { index, visible } = action.payload;
@@ -120,15 +153,18 @@ export const {
   addActionToStack,
   addToDataAxis,
   addToDataset,
+  clearDatasetFetching,
   removeDataset,
   setAutoScroll,
   setAxisTypeLog,
   setAxisYLimitManual,
   setAxisYLimitMax,
   setAxisYLimitMin,
+  setDatasetFetching,
   setDatasetOptimized,
   setDatasetVisible,
   setLoading,
+  setSearchResults,
   setSingleTooltip,
   setTimeEnd,
   setTimeReferenceEnd,

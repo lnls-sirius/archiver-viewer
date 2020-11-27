@@ -21,7 +21,7 @@ export const CheckboxInput = styled.input.attrs({ type: "checkbox" })`
   margin: -1px;
   overflow: hidden;
   padding: 0;
-  position: absolute;
+  //position: absolute;
   white-space: nowrap;
   width: 1px;
 `;

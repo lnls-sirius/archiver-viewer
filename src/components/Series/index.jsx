@@ -9,6 +9,7 @@ const mapStateToProps = (state) => {
 };
 const mapDispatch = { setAxisYLimitManual, setAxisYLimitMax, setAxisYLimitMin };
 import * as S from "./styled";
+
 const KEY_ENTER = 13;
 const Series = ({ dataAxis, setAxisYLimitManual, setAxisYLimitMax, setAxisYLimitMin }) => {
   const [yMinState, setYMin] = useState("");

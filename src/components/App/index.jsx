@@ -8,6 +8,7 @@ import Logo from "../Logo";
 import Loading from "../Loading";
 import Entries from "../Entries";
 import Series from "../Series";
+import SearchResults from "../SearchResults";
 
 import ui from "../../lib/ui";
 
@@ -21,6 +22,7 @@ const App = () => {
         <Intervals />
         <Controls />
       </S.HeaderWrapper>
+      <SearchResults />
       <LineChart />
       <S.FooterWrapper>
         <Loading visible={true} />
