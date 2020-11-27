@@ -23,6 +23,9 @@ import {
   setTimeStart,
   setWindowTime,
   setZooming,
+  setDatasetFetching,
+  clearDatasetFetching,
+  setSearchResults,
   removeDataset as storeRemoveDataset,
 } from "../features/chart/sliceChart";
 
@@ -41,6 +44,8 @@ const REFERENCE = {
   START: false,
   END: true,
 };
+
+export const updateSearchResults = (results) => store.dispatch(setSearchResults(results));
 
 /* chartjs instance reference */
 let chart = null;
@@ -352,12 +357,13 @@ const updateOptimizedWarning = function () {
 };
 
 const improveData = function (data) {
+  const unshiftData = [];
   if (data.length > 0) {
-    const first = data[0],
-      last = data[data.length - 1];
+    const first = data[0];
+    const last = data[data.length - 1];
 
     if (first.x.getTime() > start.getTime()) {
-      data.unshift({
+      unshiftData.push({
         x: start,
         y: first.y,
       });
@@ -370,137 +376,126 @@ const improveData = function (data) {
       });
     }
   }
-
+  data.unshift(...unshiftData);
   return data;
 };
 
+const datasetFetch = {};
 /**
  * Updates a plot of index pvIndex.
  **/
 async function updatePlot(pvIndex) {
   // If the dataset is already empty, no verification is needed. All optimized request must be pass this condition.
-  if (chart.data.datasets[pvIndex].data.length === 0) {
+  const dataset = chart.data.datasets[pvIndex];
+  if (dataset.data.length === 0) {
     const bins = chartUtils.timeAxisPreferences[windowTime].bins;
 
-    const fetchedData = await archInterface.fetchData(
-      chart.data.datasets[pvIndex].label,
+    const thisFetchTime = new Date().getTime();
+    datasetFetch[pvIndex] = thisFetchTime;
+
+    await archInterface
+      .fetchData(dataset.label, start, end, dataset.pv.optimized, bins, handlers.handleFetchDataError, ui.enableLoading)
+      .then((fetchedData) => {
+        if (datasetFetch[pvIndex] === thisFetchTime) {
+          if (fetchedData && fetchedData.length > 0) {
+            Array.prototype.push.apply(dataset.data, improveData(archInterface.parseData(fetchedData[0].data)));
+          }
+          datasetFetch[pvIndex] = null;
+        }
+      })
+      .catch((e) => console.error(`Failed to fetch ${dataset.label} data, error ${e}`));
+    return;
+  }
+
+  // Gets the time of the first and last element of the dataset
+  const first = dataset.data[0].x;
+  const last = dataset.data[dataset.data.length - 1].x;
+
+  // dataset.pv.optimized = false;
+
+  // we need to append data to the beginning of the data set
+  if (first.getTime() > start.getTime()) {
+    // Fetches data from the start to the first measure's time
+    let appendData = await archInterface.fetchData(
+      dataset.label,
       start,
-      end,
-      chart.data.datasets[pvIndex].pv.optimized,
-      bins,
+      first,
+      false,
       handlers.handleFetchDataError,
       ui.enableLoading
     );
 
-    if (fetchedData && fetchedData.length > 0) {
-      Array.prototype.push.apply(
-        chart.data.datasets[pvIndex].data,
-        improveData(archInterface.parseData(fetchedData[0].data))
-      );
+    // Appends new data into the dataset
+    if (appendData.length > 0) {
+      appendData = appendData[0].data;
+
+      const x = new Date(appendData[appendData.length - 1].secs * 1e3 + appendData[appendData.length - 1].nanos * 1e-6);
+
+      // Verifies if we are not appending redundant data into the dataset
+      while (appendData.length > 0 && x.getTime() >= first.getTime()) {
+        appendData.pop(); // remove last element, which is already in the dataset
+
+        if (appendData.length > 0) {
+          x.setUTCMilliseconds(
+            appendData[appendData.length - 1].secs * 1e3 + appendData[appendData.length - 1].nanos * 1e-6
+          );
+        }
+      }
+      Array.prototype.unshift.apply(dataset.data, archInterface.parseData(appendData));
     }
   } else {
-    // Gets the time of the first and last element of the dataset
-    const first = chart.data.datasets[pvIndex].data[0].x;
-    const last = chart.data.datasets[pvIndex].data[chart.data.datasets[pvIndex].data.length - 1].x;
-
-    // chart.data.datasets[pvIndex].pv.optimized = false;
-
-    // we need to append data to the beginning of the data set
-    if (first.getTime() > start.getTime()) {
-      // Fetches data from the start to the first measure's time
-      let appendData = await archInterface.fetchData(
-        chart.data.datasets[pvIndex].label,
-        start,
-        first,
-        false,
-        handlers.handleFetchDataError,
-        ui.enableLoading
-      );
-
-      // Appends new data into the dataset
-      if (appendData.length > 0) {
-        appendData = appendData[0].data;
-
-        const x = new Date(
-          appendData[appendData.length - 1].secs * 1e3 + appendData[appendData.length - 1].nanos * 1e-6
-        );
-
-        // Verifies if we are not appending redundant data into the dataset
-        while (appendData.length > 0 && x.getTime() >= first.getTime()) {
-          appendData.pop(); // remove last element, which is already in the dataset
-
-          if (appendData.length > 0) {
-            x.setUTCMilliseconds(
-              appendData[appendData.length - 1].secs * 1e3 + appendData[appendData.length - 1].nanos * 1e-6
-            );
-          }
-        }
-
-        Array.prototype.unshift.apply(chart.data.datasets[pvIndex].data, archInterface.parseData(appendData));
-      }
-    } else {
-      // We can remove unnecessary data from the beginning of the dataset to save memory and improve performance
-      while (
-        chart.data.datasets[pvIndex].data.length > 0 &&
-        chart.data.datasets[pvIndex].data[0].x.getTime() < start.getTime()
-      ) {
-        chart.data.datasets[pvIndex].data.shift();
-      }
+    // We can remove unnecessary data from the beginning of the dataset to save memory and improve performance
+    while (dataset.data.length > 0 && dataset.data[0].x.getTime() < start.getTime()) {
+      dataset.data.shift();
     }
-
-    // we need to append data to the end of the data set
-    if (last.getTime() < end.getTime()) {
-      // Fetches data from the last measure's time to the end
-      let appendData = await archInterface.fetchData(
-        chart.data.datasets[pvIndex].label,
-        last,
-        end,
-        false,
-        handlers.handleFetchDataError,
-        ui.enableLoading
-      );
-
-      // Appends new data into the dataset
-      if (appendData.length > 0) {
-        appendData = appendData[0].data;
-
-        const x = new Date(appendData[0].secs * 1e3 + appendData[0].nanos * 1e-6);
-
-        // Verifies if we are not appending redundant data into the dataset
-        while (appendData.length > 0 && x.getTime() <= last.getTime()) {
-          appendData.shift();
-
-          if (appendData.length > 0) {
-            x.setUTCMilliseconds(appendData[0].secs * 1e3 + appendData[0].nanos * 1e-6);
-          }
-        }
-
-        Array.prototype.push.apply(chart.data.datasets[pvIndex].data, archInterface.parseData(appendData));
-      }
-    } else {
-      // We can remove unnecessary data from the end of the dataset to save memory and improve performance
-      for (
-        let i = chart.data.datasets[pvIndex].data.length - 1;
-        chart.data.datasets[pvIndex].data.length > 0 &&
-        chart.data.datasets[pvIndex].data[i].x.getTime() > end.getTime();
-        i--
-      ) {
-        chart.data.datasets[pvIndex].data.pop();
-      }
-    }
-    await improveData(chart.data.datasets[pvIndex].data);
   }
+
+  // we need to append data to the end of the data set
+  if (last.getTime() < end.getTime()) {
+    // Fetches data from the last measure's time to the end
+    let appendData = await archInterface.fetchData(
+      dataset.label,
+      last,
+      end,
+      false,
+      handlers.handleFetchDataError,
+      ui.enableLoading
+    );
+
+    // Appends new data into the dataset
+    if (appendData.length > 0) {
+      appendData = appendData[0].data;
+
+      const x = new Date(appendData[0].secs * 1e3 + appendData[0].nanos * 1e-6);
+
+      // Verifies if we are not appending redundant data into the dataset
+      while (appendData.length > 0 && x.getTime() <= last.getTime()) {
+        appendData.shift();
+
+        if (appendData.length > 0) {
+          x.setUTCMilliseconds(appendData[0].secs * 1e3 + appendData[0].nanos * 1e-6);
+        }
+      }
+
+      Array.prototype.push.apply(dataset.data, archInterface.parseData(appendData));
+    }
+  } else {
+    // We can remove unnecessary data from the end of the dataset to save memory and improve performance
+    for (let i = dataset.data.length - 1; dataset.data.length > 0 && dataset.data[i].x.getTime() > end.getTime(); i--) {
+      dataset.data.pop();
+    }
+  }
+  await improveData(dataset.data);
 }
 
 const optimizeAllGraphs = function () {
-  for (let i = 0; i < chart.data.datasets.length; i++) {
-    const bins = shouldOptimizeRequest(chart.data.datasets[i].pv.samplingPeriod, chart.data.datasets[i].pv.type);
+  chart.data.datasets.forEach((dataset, i) => {
+    const bins = shouldOptimizeRequest(dataset.pv.samplingPeriod, dataset.pv.type);
     const optimized = bins < 0 ? false : true;
-    chart.data.datasets[i].pv.optimized = optimized;
+    dataset.pv.optimized = optimized;
 
-    // @todo: update store, center optimization requests.... Consider removing this function
     store.dispatch(setDatasetOptimized({ index: i, optimized: optimized }));
-  }
+  });
 };
 
 /**
@@ -508,22 +503,24 @@ const optimizeAllGraphs = function () {
  * @param resets: informs if the user wants to reset the data in the dataset.
  **/
 async function updateAllPlots(reset) {
+  ui.enableLoading();
   if (reset === undefined) {
     reset = false;
   }
   updateOptimizedWarning();
 
-  for (let i = 0; i < chart.data.datasets.length; i++) {
-    if (chart.data.datasets[i].pv.optimized || reset) {
-      chart.data.datasets[i].data.length = 0;
-    }
-    await updatePlot(i);
-  }
+  const promisses = chart.data.datasets.map(async (dataset, i) => {
+    if (dataset.pv.optimized || reset) dataset.data.length = 0;
 
-  //ui.updatePVInfoTable(chart.data.datasets, hideAxis, optimizeHandler, removeHandler);
+    await updatePlot(i).then(() => {
+      chart.update();
+    });
+  });
 
-  chart.update();
-  ui.disableLoading();
+  await Promise.all(promisses)
+    /* .then() Handle something? */
+    .catch((error) => console.error(`Failed to update all plots ${error.message}`))
+    .finally(() => ui.disableLoading());
 }
 
 /**

@@ -4,7 +4,7 @@ import { saveAs as FileSaverSaveAs } from "file-saver";
 import archInterface from "./archInterface.js";
 import ui from "./ui.js";
 import chartUtils from "./chartUtils.js";
-import control from "./control.js";
+import control, { updateSearchResults } from "./control.js";
 
 const handlers = (function () {
   const KEY_ENTER = 13;
@@ -51,7 +51,6 @@ const handlers = (function () {
     if (!control.autoEnabled()) {
       if (control.reference() === control.references.START) {
         control.updateTimeReference(control.references.END);
-        ui.enableReference(control.references.END);
       }
 
       const now = await control.getDateNow();
@@ -173,7 +172,7 @@ const handlers = (function () {
               console.log("PV", data.pvName, " is not a scalar value.");
               return;
             }
-            validPVs.push(data.pvName);
+            validPVs.push(data);
             console.log("Append pvName ", data.pvName);
           } catch (error) {
             console.log("Failed to get metadata", error, result);
@@ -193,7 +192,9 @@ const handlers = (function () {
       .catch((e) => console.log("Failed handleGetValidPVs", e));
 
     // Display Matchs
-    ui.showSearchResults(validPVs, appendPVHandler);
+    // addToThe store
+    updateSearchResults(validPVs);
+    //ui.showSearchResults(validPVs, appendPVHandler);
   }
   async function queryPVsRetrieval(e, val) {
     if (e.which !== KEY_ENTER) {
@@ -387,7 +388,6 @@ const handlers = (function () {
         setInterval(async function () {
           if (control.reference() === control.references.START) {
             control.updateTimeReference(control.references.END);
-            ui.enableReference(control.references.END);
           }
 
           const now = await control.getDateNow();

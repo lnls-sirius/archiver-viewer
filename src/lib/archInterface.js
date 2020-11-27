@@ -167,7 +167,7 @@ async function fetchData(pv, from, to, isOptimized, bins, handleError, showLoadi
  * Key event handler which looks for PVs in the archiver
  **/
 const query = function (pvs, handleSuccess, handleError, handleComplete, handleBefore) {
-  const jsonurl = `${window.location.protocol}//${url}/retrieval/bpl/getMatchingPVs?pv=${pvs}&limit=4000`;
+  const jsonurl = `${window.location.protocol}//${url}/retrieval/bpl/getMatchingPVs?pv=${pvs}&limit=500`;
   const components = jsonurl.split("?");
   const querystring = components.length > 1 ? components[1] : "";
   const HTTPMethod = jsonurl.length > 2048 ? "POST" : "GET";

@@ -2,413 +2,322 @@ import store from "../store";
 import { setLoading } from "../features/chart/sliceChart";
 
 /* eslint-disable radix */
-const ui = (function () {
-  const PV_PER_ROW = 4;
-  const PV_PER_ROW_DATA_TABLE = 8;
-  const PV_MAX_ROW_PER_PAGE = 10;
-  const PV_PER_ROW_INFO = 4;
+const PV_PER_ROW = 4;
+const PV_PER_ROW_DATA_TABLE = 8;
+const PV_MAX_ROW_PER_PAGE = 10;
+const PV_PER_ROW_INFO = 4;
 
-  let currentPage = 0;
-  let selectedPVs = [];
+let currentPage = 0;
+let selectedPVs = [];
 
-  /* Miscellaneous functions  */
-  function padWithZeros(number, length) {
-    let myString = "" + number;
-    while (myString.length < length) {
-      myString = "0" + myString;
-    }
-
-    return myString;
+const toogleWindowButton = (toPush, toUnpush) => {
+  /* Untoggled pushed button */
+  if (toUnpush !== undefined) {
+    $("#window_table tr").eq(0).find("td").eq(toUnpush)[0].className = "unpushed";
   }
 
-  const toogleWindowButton = function (toPush, toUnpush) {
-    /* Untoggled pushed button */
-    if (toUnpush !== undefined) {
-      $("#window_table tr").eq(0).find("td").eq(toUnpush)[0].className = "unpushed";
+  if (toPush !== undefined) {
+    $("#window_table tr").eq(0).find("td").eq(toPush)[0].className = "pushed";
+  }
+};
+
+const enableLoading = () => store.dispatch(setLoading(true));
+const disableLoading = () => store.dispatch(setLoading(false));
+
+const showWarning = () => $("#obs").fadeIn().delay(5000).fadeOut();
+const hideWarning = () => $("#obs").fadeOut();
+
+const showSearchWarning = () => {
+  $("#warning").fadeIn();
+};
+
+const hideSearchWarning = () => {
+  $("#warning").fadeOut();
+};
+
+const toogleSearchWarning = function (warning) {
+  $("#warning h4").text(warning);
+
+  showSearchWarning();
+
+  const timer = setInterval(function () {
+    hideSearchWarning();
+    clearInterval(timer);
+  }, 5000);
+};
+
+let checkboxes = [];
+
+const showSearchResultsAtPage = function (index, data) {
+  $("#table_PVs tr").remove();
+
+  checkboxes = [];
+
+  let i;
+  let row;
+  for (
+    i = index * PV_MAX_ROW_PER_PAGE * PV_PER_ROW;
+    i < data.length && i < (index + 1) * PV_MAX_ROW_PER_PAGE * PV_PER_ROW;
+    i++
+  ) {
+    if (!((i - index * PV_MAX_ROW_PER_PAGE * PV_PER_ROW) % PV_PER_ROW)) {
+      row = $("<tr></tr>");
+      row.appendTo($("#table_PVs"));
     }
 
-    if (toPush !== undefined) {
-      $("#window_table tr").eq(0).find("td").eq(toPush)[0].className = "pushed";
-    }
-  };
+    const tdCheckbox = $("<td></td>");
 
-  const enableLoading = function () {
-    store.dispatch(setLoading(true));
-  };
-
-  const disableLoading = function () {
-    store.dispatch(setLoading(false));
-  };
-
-  const showWarning = function () {
-    $("#obs").fadeIn().delay(5000).fadeOut();
-  };
-
-  const hideWarning = function () {
-    $("#obs").fadeOut();
-  };
-
-  const getTimedate = function () {
-    const date = $("#day").val().split("-"),
-      day = parseInt(date[2]),
-      month = parseInt(date[1]) - 1,
-      year = parseInt(date[0]),
-      hours = parseInt($("#hour").val()),
-      minutes = parseInt($("#minute").val()),
-      seconds = parseInt($("#second").val());
-
-    return new Date(year, month, day, hours, minutes, seconds, 0);
-  };
-
-  const toogleSearchWarning = function (warning) {
-    $("#warning h4").text(warning);
-
-    showSearchWarning();
-
-    const timer = setInterval(function () {
-      hideSearchWarning();
-      clearInterval(timer);
-    }, 5000);
-  };
-
-  let checkboxes = [];
-
-  const showSearchResultsAtPage = function (index, data) {
-    $("#table_PVs tr").remove();
-
-    checkboxes = [];
-
-    let i;
-    let row;
-    for (
-      i = index * PV_MAX_ROW_PER_PAGE * PV_PER_ROW;
-      i < data.length && i < (index + 1) * PV_MAX_ROW_PER_PAGE * PV_PER_ROW;
-      i++
-    ) {
-      if (!((i - index * PV_MAX_ROW_PER_PAGE * PV_PER_ROW) % PV_PER_ROW)) {
-        row = $("<tr></tr>");
-        row.appendTo($("#table_PVs"));
-      }
-
-      const tdCheckbox = $("<td></td>");
-
-      checkboxes.push(
-        $("<input />")
-          .attr({
-            type: "checkbox",
-            checked: selectedPVs.indexOf(data[i]) > -1,
-          })
-          .click({ name: data[i] }, function (event) {
-            if (this.checked) {
-              selectedPVs.push(event.data.name);
-            } else {
-              selectedPVs.splice(selectedPVs.indexOf(event.data.name), 1);
-            }
-          })
-          .appendTo(tdCheckbox)
-      );
-
-      $("<label></label>").text(data[i]).appendTo(tdCheckbox);
-
-      tdCheckbox.appendTo(row);
-    }
-  };
-
-  const selectedAllPVs = function (e) {
-    for (let i = 0; i < checkboxes.length; i++) {
-      checkboxes[i].prop("checked", true).triggerHandler("click");
-    }
-  };
-
-  const deselectedAllPVs = function (e) {
-    for (let i = 0; i < checkboxes.length; i++) {
-      checkboxes[i].prop("checked", false).triggerHandler("click");
-    }
-  };
-
-  const showSearchResults = function (data) {
-    if (data != null && data.length > 0) {
-      if (data.length > 1) {
-        $("#archived_PVs h2").text(data.length + " PVs have been found.");
-      } else {
-        $("#archived_PVs h2").text("1 PV has been found.");
-      }
-
-      currentPage = 0;
-      selectedPVs = [];
-
-      showSearchResultsAtPage(0, data);
-
-      $(document.body).children().css("opacity", "0.3");
-      $("#archived_PVs").show();
-      $("#archived_PVs").css("opacity", "1.0");
-
-      $("#previous").hide();
-
-      $("#previous")
-        .unbind()
-        .click({ pvs: data }, function (event) {
-          currentPage = currentPage - 1;
-          showSearchResultsAtPage(currentPage, event.data.pvs);
-
-          if (!currentPage) {
-            $("#previous").hide();
+    checkboxes.push(
+      $("<input />")
+        .attr({
+          type: "checkbox",
+          checked: selectedPVs.indexOf(data[i]) > -1,
+        })
+        .click({ name: data[i] }, function (event) {
+          if (this.checked) {
+            selectedPVs.push(event.data.name);
+          } else {
+            selectedPVs.splice(selectedPVs.indexOf(event.data.name), 1);
           }
+        })
+        .appendTo(tdCheckbox)
+    );
 
-          $("#next").show();
-        });
+    $("<label></label>").text(data[i]).appendTo(tdCheckbox);
 
-      $("#next")
-        .unbind()
-        .click({ pvs: data }, function (event) {
-          currentPage = currentPage + 1;
-          showSearchResultsAtPage(currentPage, event.data.pvs);
+    tdCheckbox.appendTo(row);
+  }
+};
 
-          if ((currentPage + 1) * PV_MAX_ROW_PER_PAGE * PV_PER_ROW >= event.data.pvs.length) {
-            $("#next").hide();
-          }
+const selectedAllPVs = function (e) {
+  for (let i = 0; i < checkboxes.length; i++) {
+    checkboxes[i].prop("checked", true).triggerHandler("click");
+  }
+};
 
-          $("#previous").show();
-        });
+const deselectedAllPVs = function (e) {
+  for (let i = 0; i < checkboxes.length; i++) {
+    checkboxes[i].prop("checked", false).triggerHandler("click");
+  }
+};
 
-      if (data.length <= PV_MAX_ROW_PER_PAGE * PV_PER_ROW) {
-        $("#next").hide();
-      } else {
-        $("#next").show();
-      }
-    } else if (data != null) {
-      toogleSearchWarning("No PVs corresponding to the search string have been found.");
-    }
-  };
-
-  const hideSearchedPVs = function () {
-    $("#archived_PVs").hide();
-    $(document.body).children().css("opacity", "1.0");
-  };
-
-  const toggleZoomButton = function (enable) {
-    if (enable) {
-      $("#date .zoom").css("background-color", "lightgrey");
+const showSearchResults = function (data) {
+  if (data != null && data.length > 0) {
+    if (data.length > 1) {
+      $("#archived_PVs h2").text(data.length + " PVs have been found.");
     } else {
-      $("#date .zoom").css("background-color", "grey");
+      $("#archived_PVs h2").text("1 PV has been found.");
     }
-  };
 
-  const hideZoomBox = function () {
-    $("#canvas_area span.selection_box").hide();
-    $("#canvas_area span.selection_box").css("width", 0);
-    $("#canvas_area span.selection_box").css("height", 0);
-  };
+    currentPage = 0;
+    selectedPVs = [];
 
-  const drawZoomBox = function (x, w, h) {
-    $("#canvas_area span.selection_box").css("left", x + "px");
-    $("#canvas_area span.selection_box").css("top", "0");
-    $("#canvas_area span.selection_box").css("width", w + "px");
-    $("#canvas_area span.selection_box").css("height", h + "px");
-  };
+    showSearchResultsAtPage(0, data);
 
-  const updateAddress = function (searchString) {
-    const newurl = window.location.pathname + searchString;
-    if (history.pushState) {
-      window.history.pushState({ path: newurl }, "", newurl);
-    }
-  };
+    $(document.body).children().css("opacity", "0.3");
+    $("#archived_PVs").show();
+    $("#archived_PVs").css("opacity", "1.0");
 
-  /**
-   * updateDataTable draws a table below the char containing the data that is
-   * currently being rendered.
-   **/
-  const updateDataTable = function (datasets, start, end) {
-    // Remove all data before rewriting
-    $("#data_table_area .data_table").remove();
-    $("#data_table_area h2").remove();
+    $("#previous").hide();
 
-    // Draws a table for each variable chosen by the user
-    for (let i = 0; i < datasets.length; i++) {
-      const table = $("<table></table>").addClass("data_table");
-      const pvData = datasets[i].data;
-      let count = 0;
+    $("#previous")
+      .unbind()
+      .click({ pvs: data }, function (event) {
+        currentPage = currentPage - 1;
+        showSearchResultsAtPage(currentPage, event.data.pvs);
 
-      $("#data_table_area").append($("<h2></h2>").text(datasets[i].label));
-
-      let row;
-      for (let j = 0; j < pvData.length; j++) {
-        if (pvData[j].x.getTime() >= start.getTime() && pvData[j].x.getTime() <= end.getTime()) {
-          if (!(count % PV_PER_ROW_DATA_TABLE)) {
-            row = $("<tr></tr>");
-            row.appendTo(table);
-          }
-
-          count++;
-
-          $("<td></td>")
-            .attr("class", "pvTime")
-            .text(pvData[j].x.toLocaleDateString() + " " + pvData[j].x.toLocaleTimeString())
-            .appendTo(row);
-          $("<td></td>").attr("class", "pvValue").text(pvData[j].y.toFixed(datasets[i].pv.precision)).appendTo(row);
+        if (!currentPage) {
+          $("#previous").hide();
         }
-      }
 
-      $("#data_table_area").append(table);
+        $("#next").show();
+      });
+
+    $("#next")
+      .unbind()
+      .click({ pvs: data }, function (event) {
+        currentPage = currentPage + 1;
+        showSearchResultsAtPage(currentPage, event.data.pvs);
+
+        if ((currentPage + 1) * PV_MAX_ROW_PER_PAGE * PV_PER_ROW >= event.data.pvs.length) {
+          $("#next").hide();
+        }
+
+        $("#previous").show();
+      });
+
+    if (data.length <= PV_MAX_ROW_PER_PAGE * PV_PER_ROW) {
+      $("#next").hide();
+    } else {
+      $("#next").show();
     }
-  };
+  } else if (data != null) {
+    toogleSearchWarning("No PVs corresponding to the search string have been found.");
+  }
+};
 
-  const showTable = function () {
-    $("#data_table_area .data_table").show();
-  };
+const hideSearchedPVs = function () {
+  $("#archived_PVs").hide();
+  $(document.body).children().css("opacity", "1.0");
+};
 
-  const resetTable = function () {
-    $("#data_table_area .data_table").remove();
-    $("#data_table_area h2").remove();
-    $("#data_table_area .data_table").hide();
-  };
+const updateAddress = function (searchString) {
+  const newurl = window.location.pathname + searchString;
+  if (history.pushState) {
+    window.history.pushState({ path: newurl }, "", newurl);
+  }
+};
 
-  const updateDataAxisInfoTable = (series, toggleChartAxisTypeHandler, toggleAutoYHandler, changeYLimitHandler) => {
+/**
+ * updateDataTable draws a table below the char containing the data that is
+ * currently being rendered.
+ **/
+const updateDataTable = function (datasets, start, end) {
+  // Remove all data before rewriting
+  $("#data_table_area .data_table").remove();
+  $("#data_table_area h2").remove();
+
+  // Draws a table for each variable chosen by the user
+  for (let i = 0; i < datasets.length; i++) {
+    const table = $("<table></table>").addClass("data_table");
+    const pvData = datasets[i].data;
+    let count = 0;
+
+    $("#data_table_area").append($("<h2></h2>").text(datasets[i].label));
+
     let row;
-    $("#data_axis .data_axis_table").remove();
-    const table = $("<table></table>").addClass("data_axis_table");
+    for (let j = 0; j < pvData.length; j++) {
+      if (pvData[j].x.getTime() >= start.getTime() && pvData[j].x.getTime() <= end.getTime()) {
+        if (!(count % PV_PER_ROW_DATA_TABLE)) {
+          row = $("<tr></tr>");
+          row.appendTo(table);
+        }
 
-    if (series.length < 1) {
-      return;
+        count++;
+
+        $("<td></td>")
+          .attr("class", "pvTime")
+          .text(pvData[j].x.toLocaleDateString() + " " + pvData[j].x.toLocaleTimeString())
+          .appendTo(row);
+        $("<td></td>").attr("class", "pvValue").text(pvData[j].y.toFixed(datasets[i].pv.precision)).appendTo(row);
+      }
     }
 
-    // Draw a table containing each series in the chart.
-    for (let i = 0; i < series.length; i++) {
-      if (!(i % PV_PER_ROW_INFO)) {
-        row = $("<tr></tr>");
-        row.appendTo(table);
-      }
+    $("#data_table_area").append(table);
+  }
+};
 
-      $("<td></td>")
-        .text("Chart Series: " + series[i].id)
-        .appendTo(row);
+const showTable = function () {
+  $("#data_table_area .data_table").show();
+};
 
-      const wrapper = $('<div class="footer-box-wrapper"></div>');
-      let tdIsLogarithmic = $('<td class="footer-box"></td>');
-      let chkBoxBase = $("<label></label>");
-      const isManual = !isNaN(series[i].ticks.max) || !isNaN(series[i].ticks.min);
+const resetTable = function () {
+  $("#data_table_area .data_table").remove();
+  $("#data_table_area h2").remove();
+  $("#data_table_area .data_table").hide();
+};
 
-      const intervalMin = $("<input />")
-        .attr({
-          class: "footer-input",
-          type: "text",
-          placeholder: "Min",
-          value: isManual ? series[i].ticks.min : "",
-        })
-        .blur({ axisId: series[i].id }, changeYLimitHandler)
-        .appendTo(row);
+const updateDataAxisInfoTable = (series, toggleChartAxisTypeHandler, toggleAutoYHandler, changeYLimitHandler) => {
+  let row;
+  $("#data_axis .data_axis_table").remove();
+  const table = $("<table></table>").addClass("data_axis_table");
 
-      const intervalMax = $("<input />")
-        .attr({
-          class: "footer-input",
-          type: "text",
-          placeholder: "Max",
-          value: isManual ? series[i].ticks.max : "",
-        })
-        .blur({ axisId: series[i].id }, changeYLimitHandler)
-        .appendTo(row);
-      if (!isManual) {
-        intervalMax.hide();
-        intervalMin.hide();
-      }
+  if (series.length < 1) {
+    return;
+  }
 
-      const chkAutoY = $("<input />")
-        .attr({
-          type: "checkbox",
-          checked: isManual,
-        })
-        .click({ axisId: series[i].id }, toggleAutoYHandler)
-        .appendTo(chkBoxBase);
-
-      const chkAutoYText = $("<span></span>").attr("class", "tooltip").text("Manual Y Limit").appendTo(chkBoxBase);
-
-      chkBoxBase.appendTo(tdIsLogarithmic);
-      tdIsLogarithmic.appendTo(wrapper);
-
-      tdIsLogarithmic = $('<td class="footer-box"></td>');
-      chkBoxBase = $("<label></label>");
-
-      const chk = $("<input />")
-        .attr({
-          type: "checkbox",
-          checked: series[i].type !== "linear",
-        })
-        .click({ axisId: series[i].id }, toggleChartAxisTypeHandler)
-        .appendTo(chkBoxBase);
-
-      const chkText = $("<span></span>").attr("class", "tooltip").text("Log Y Axis").appendTo(chkBoxBase);
-
-      chkBoxBase.appendTo(tdIsLogarithmic);
-      tdIsLogarithmic.appendTo(wrapper);
-
-      wrapper.appendTo(row);
+  // Draw a table containing each series in the chart.
+  for (let i = 0; i < series.length; i++) {
+    if (!(i % PV_PER_ROW_INFO)) {
+      row = $("<tr></tr>");
+      row.appendTo(table);
     }
-    $("#data_axis").append(table);
-  };
 
-  const showSearchWarning = function () {
-    $("#warning").fadeIn();
-  };
+    $("<td></td>")
+      .text("Chart Series: " + series[i].id)
+      .appendTo(row);
 
-  const hideSearchWarning = function () {
-    $("#warning").fadeOut();
-  };
+    const wrapper = $('<div class="footer-box-wrapper"></div>');
+    let tdIsLogarithmic = $('<td class="footer-box"></td>');
+    let chkBoxBase = $("<label></label>");
+    const isManual = !isNaN(series[i].ticks.max) || !isNaN(series[i].ticks.min);
 
-  const disable = function (button) {
-    button.addClass("disabled");
-    button.css({
-      "background-color": "lightblue",
-      cursor: "default",
-      pointerEvents: "none",
-    });
-  };
+    const intervalMin = $("<input />")
+      .attr({
+        class: "footer-input",
+        type: "text",
+        placeholder: "Min",
+        value: isManual ? series[i].ticks.min : "",
+      })
+      .blur({ axisId: series[i].id }, changeYLimitHandler)
+      .appendTo(row);
 
-  const enable = function (button) {
-    button.removeClass("disabled");
-    button.css({
-      "background-color": "grey",
-      cursor: "pointer",
-      pointerEvents: "auto",
-    });
-  };
+    const intervalMax = $("<input />")
+      .attr({
+        class: "footer-input",
+        type: "text",
+        placeholder: "Max",
+        value: isManual ? series[i].ticks.max : "",
+      })
+      .blur({ axisId: series[i].id }, changeYLimitHandler)
+      .appendTo(row);
+    if (!isManual) {
+      intervalMax.hide();
+      intervalMin.hide();
+    }
 
-  /*    var isEndSelected = function () {
-        return ($('#date .type').find(":selected").text() == "END");
-    };
-*/
-  const enableReference = function (i) {
-    $("#date .type>option:eq(" + (1 - i) + ")").prop("selected", false);
-    $("#date .type>option:eq(" + i + ")").prop("selected", true);
-  };
+    const chkAutoY = $("<input />")
+      .attr({
+        type: "checkbox",
+        checked: isManual,
+      })
+      .click({ axisId: series[i].id }, toggleAutoYHandler)
+      .appendTo(chkBoxBase);
 
-  return {
-    selectedPVs: function () {
-      return selectedPVs;
-    },
+    const chkAutoYText = $("<span></span>").attr("class", "tooltip").text("Manual Y Limit").appendTo(chkBoxBase);
 
-    updateDataAxisInfoTable: updateDataAxisInfoTable,
-    toogleWindowButton: toogleWindowButton,
-    enableLoading: enableLoading,
-    disableLoading: disableLoading,
-    showWarning: showWarning,
-    hideWarning: hideWarning,
-    getTimedate: getTimedate,
-    showSearchResultsAtPage: showSearchResultsAtPage,
-    showSearchResults: showSearchResults,
-    hideSearchedPVs: hideSearchedPVs,
-    toggleZoomButton: toggleZoomButton,
-    updateAddress: updateAddress,
-    updateDataTable: updateDataTable,
-    showTable: showTable,
-    resetTable: resetTable,
-    showSearchWarning: showSearchWarning,
-    hideSearchWarning: hideSearchWarning,
-    toogleSearchWarning: toogleSearchWarning,
-    disable: disable,
-    enable: enable,
-    enableReference: enableReference,
-    selectedAllPVs: selectedAllPVs,
-    deselectedAllPVs: deselectedAllPVs,
-  };
-})();
-export default ui;
+    chkBoxBase.appendTo(tdIsLogarithmic);
+    tdIsLogarithmic.appendTo(wrapper);
+
+    tdIsLogarithmic = $('<td class="footer-box"></td>');
+    chkBoxBase = $("<label></label>");
+
+    const chk = $("<input />")
+      .attr({
+        type: "checkbox",
+        checked: series[i].type !== "linear",
+      })
+      .click({ axisId: series[i].id }, toggleChartAxisTypeHandler)
+      .appendTo(chkBoxBase);
+
+    const chkText = $("<span></span>").attr("class", "tooltip").text("Log Y Axis").appendTo(chkBoxBase);
+
+    chkBoxBase.appendTo(tdIsLogarithmic);
+    tdIsLogarithmic.appendTo(wrapper);
+
+    wrapper.appendTo(row);
+  }
+  $("#data_axis").append(table);
+};
+
+export default {
+  selectedPVs: () => selectedPVs,
+  updateDataAxisInfoTable: updateDataAxisInfoTable,
+  toogleWindowButton: toogleWindowButton,
+  enableLoading: enableLoading,
+  disableLoading: disableLoading,
+  showWarning: showWarning,
+  hideWarning: hideWarning,
+  showSearchResultsAtPage: showSearchResultsAtPage,
+  showSearchResults: showSearchResults,
+  hideSearchedPVs: hideSearchedPVs,
+  updateAddress: updateAddress,
+  updateDataTable: updateDataTable,
+  showTable: showTable,
+  resetTable: resetTable,
+  showSearchWarning: showSearchWarning,
+  hideSearchWarning: hideSearchWarning,
+  toogleSearchWarning: toogleSearchWarning,
+  selectedAllPVs: selectedAllPVs,
+  deselectedAllPVs: deselectedAllPVs,
+};
