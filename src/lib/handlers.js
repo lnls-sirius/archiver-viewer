@@ -187,14 +187,14 @@ const handlers = (function () {
       .then(async (data) => await handleQuerySuccessRetrieval(data))
       .then(() => displaySearchResults())
       .catch((e) => {
-        ui.toggleSearchWarning(`Failed to fetch PV metadata using "${val}`);
-        console.error(`Failed to fetch PV metadata using "${val}`, e);
+        ui.toggleSearchWarning(`Failed to search PVs using ${val}`);
+        console.error(`Failed to search PVs using ${val}`, e);
       })
       .finally((e) => ui.disableLoading());
   }
 
   const handleFetchDataError = (xmlHttpRequest, textStatus, errorThrown) => {
-    ui.toogleSearchWarning("Connection failed with " + xmlHttpRequest + " -- " + textStatus + " -- " + errorThrown);
+    ui.toggleSearchWarning("Connection failed with " + xmlHttpRequest + " -- " + textStatus + " -- " + errorThrown);
   };
 
   /**
@@ -411,7 +411,7 @@ const handlers = (function () {
   /**
    * Shows or erases data table below the chart
    **/
-  const toogleTable = function (evt) {
+  const toggleTable = function (evt) {
     if (this.checked) {
       ui.updateDataTable(control.chart().data.datasets, control.start(), control.end());
       ui.showTable();
@@ -628,7 +628,7 @@ const handlers = (function () {
           break;
 
         case control.stackActions.ZOOM:
-          // ui.toogleWindowButton (undefined, control.windowTime ());
+          // ui.toggleWindowButton (undefined, control.windowTime ());
 
           // Updates the chart attributes
           control.updateStartTime(redo.startTime);
@@ -685,7 +685,7 @@ const handlers = (function () {
 
     zoomClickHandler: zoomClickHandler,
 
-    toogleTable: toogleTable,
+    toggleTable: toggleTable,
     exportAs: exportAs,
     undoHandler: undoHandler,
     redoHandler: redoHandler,

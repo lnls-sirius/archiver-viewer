@@ -172,7 +172,6 @@ const query = async (pvs) => {
   const options = {
     signal: controller.signal,
     method: "GET",
-    //mode: "no-cors",
     redirect: "follow",
     headers: {
       Accept: "application/json",

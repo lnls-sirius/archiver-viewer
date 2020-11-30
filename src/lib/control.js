@@ -223,7 +223,7 @@ async function appendPV(pv, optimized, undo) {
   // Asks for the PV's metadata
   const metadata = await archInterface.fetchMetadata(pv).catch((err) => console.log("Fetch metadata Exception", err));
   if (metadata == null) {
-    ui.toogleSearchWarning("Failed to fetch metadata for pv " + pv);
+    ui.toggleSearchWarning("Failed to fetch metadata for pv " + pv);
     console.log("No metadata for ", pv);
     return -1;
   }
@@ -245,7 +245,7 @@ async function appendPV(pv, optimized, undo) {
     ui.enableLoading
   );
   if (data === undefined || data === null || data[0].data.length === 0) {
-    ui.toogleSearchWarning("No data was received from server.");
+    ui.toggleSearchWarning("No data was received from server.");
     console.log("No data received from server. ", pv);
   } else {
     chartUtils.appendDataset(

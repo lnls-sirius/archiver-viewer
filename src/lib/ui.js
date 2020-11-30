@@ -10,7 +10,7 @@ const PV_PER_ROW_INFO = 4;
 let currentPage = 0;
 let selectedPVs = [];
 
-const toogleWindowButton = (toPush, toUnpush) => {
+const toggleWindowButton = (toPush, toUnpush) => {
   /* Untoggled pushed button */
   if (toUnpush !== undefined) {
     $("#window_table tr").eq(0).find("td").eq(toUnpush)[0].className = "unpushed";
@@ -35,7 +35,7 @@ const hideSearchWarning = () => {
   $("#warning").fadeOut();
 };
 
-const toogleSearchWarning = function (warning) {
+const toggleSearchWarning = function (warning) {
   $("#warning h4").text(warning);
 
   showSearchWarning();
@@ -152,7 +152,7 @@ const showSearchResults = function (data) {
       $("#next").show();
     }
   } else if (data != null) {
-    toogleSearchWarning("No PVs corresponding to the search string have been found.");
+    toggleSearchWarning("No PVs corresponding to the search string have been found.");
   }
 };
 
@@ -303,7 +303,7 @@ const updateDataAxisInfoTable = (series, toggleChartAxisTypeHandler, toggleAutoY
 export default {
   selectedPVs: () => selectedPVs,
   updateDataAxisInfoTable: updateDataAxisInfoTable,
-  toogleWindowButton: toogleWindowButton,
+  toggleWindowButton: toggleWindowButton,
   enableLoading: enableLoading,
   disableLoading: disableLoading,
   showWarning: showWarning,
@@ -317,7 +317,7 @@ export default {
   resetTable: resetTable,
   showSearchWarning: showSearchWarning,
   hideSearchWarning: hideSearchWarning,
-  toogleSearchWarning: toogleSearchWarning,
+  toggleSearchWarning: toggleSearchWarning,
   selectedAllPVs: selectedAllPVs,
   deselectedAllPVs: deselectedAllPVs,
 };
