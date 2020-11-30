@@ -45,8 +45,8 @@ class LineChart extends Component {
     this.myChart = new Chart(this.chartRef.current, { type: "line", data: [], options });
     control.init(this.myChart);
     doSubscriptions();
-    ui.hideWarning(); //@todo: Remove
-    ui.hideSearchWarning(); //@todo: Remove
+    ui.hideWarning(); //@todo: Remove, implement React Component
+    ui.hideSearchWarning(); //@todo: Remove, implement React Component
     control.loadFromURL(window.location.search);
   }
 
