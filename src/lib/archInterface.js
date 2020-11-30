@@ -179,7 +179,10 @@ const query = async (pvs) => {
   };
 
   const promisse = fetch(_url, options);
-  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  const timeoutId = setTimeout(() => {
+    console.warn(`Aborting request ${_url} with a ${timeout}s timeout`);
+    controller.abort();
+  }, timeout);
 
   return await promisse.then((res) => {
     console.log(res);
