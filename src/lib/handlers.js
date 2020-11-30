@@ -4,7 +4,7 @@ import { saveAs as FileSaverSaveAs } from "file-saver";
 import archInterface from "./archInterface.js";
 import ui from "./ui.js";
 import chartUtils from "./chartUtils.js";
-import control, { updateSearchResults } from "./control.js";
+import control, { updateSearchResults, displaySearchResults } from "./control.js";
 
 const handlers = (function () {
   const KEY_ENTER = 13;
@@ -129,20 +129,6 @@ const handlers = (function () {
     }
   }
 
-  const handleQueryBefore = () => {
-    ui.enableLoading();
-  };
-
-  const handleQueryError = (data, statusText, errorThrown) => {
-    ui.toogleSearchWarning(
-      "An error occured on the server while disconnected PVs -- " + statusText + " -- " + errorThrown
-    );
-  };
-
-  const handleQueryComplete = (data) => {
-    ui.disableLoading();
-  };
-
   async function handleGetValidPVs(pvList) {
     const validPVs = [];
     const promisses = pvList.map((x) => {
@@ -173,7 +159,6 @@ const handlers = (function () {
               return;
             }
             validPVs.push(data);
-            console.log("Append pvName ", data.pvName);
           } catch (error) {
             console.log("Failed to get metadata", error, result);
           }
@@ -184,29 +169,28 @@ const handlers = (function () {
       });
     return validPVs;
   }
-  async function handleQuerySuccessRetrieval(data, statusText) {
+
+  async function handleQuerySuccessRetrieval(data) {
     const validPVs = [];
 
-    await handleGetValidPVs(data)
-      .then((pvs) => pvs.forEach((pv) => validPVs.push(pv)))
-      .catch((e) => console.log("Failed handleGetValidPVs", e));
+    await handleGetValidPVs(data).then((pvs) => pvs.forEach((pv) => validPVs.push(pv)));
 
-    // Display Matchs
-    // addToThe store
     updateSearchResults(validPVs);
-    //ui.showSearchResults(validPVs, appendPVHandler);
   }
+
   async function queryPVsRetrieval(e, val) {
-    if (e.which !== KEY_ENTER) {
-      return;
-    }
-    await archInterface.query(
-      val,
-      handleQuerySuccessRetrieval,
-      handleQueryError,
-      handleQueryComplete,
-      handleQueryBefore
-    );
+    if (e.which !== KEY_ENTER) return;
+
+    ui.enableLoading();
+    await archInterface
+      .query(val)
+      .then(async (data) => await handleQuerySuccessRetrieval(data))
+      .then(() => displaySearchResults())
+      .catch((e) => {
+        ui.toggleSearchWarning(`Failed to fetch PV metadata using "${val}`);
+        console.error(`Failed to fetch PV metadata using "${val}`, e);
+      })
+      .finally((e) => ui.disableLoading());
   }
 
   const handleFetchDataError = (xmlHttpRequest, textStatus, errorThrown) => {
@@ -230,18 +214,16 @@ const handlers = (function () {
     ui.hideSearchedPVs();
   };
 
-  const plotSelectedPVs = function (e) {
-    const pvs = ui.selectedPVs();
-    for (let i = 0; i < pvs.length; i++) {
-      const pvIndex = control.getPlotIndex(pvs[i]);
-      if (pvIndex == null) {
-        control.appendPV(pvs[i]);
+  const plotSelectedPVs = (pvs) => {
+    //@todo: Add the possiblity to plot optimized PVs
+    pvs.forEach((pv) => {
+      const pvIndex = control.getPlotIndex(pv);
+      if (pvIndex === null) {
+        control.appendPV(pv);
       } else {
         control.updatePlot(pvIndex);
       }
-    }
-
-    ui.hideSearchedPVs();
+    });
     control.chart().update(0, false);
     control.updateOptimizedWarning();
   };
@@ -423,8 +405,6 @@ const handlers = (function () {
       } else {
         control.enableZoom();
       }
-
-      ui.toggleZoomButton(control.zoomFlags().isZooming);
     }
   };
 

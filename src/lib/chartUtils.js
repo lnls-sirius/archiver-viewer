@@ -189,7 +189,7 @@ const appendDataset = function (chart, data, bins, precision, metadata) {
   appendDataAxis(chart, unit, precision);
 
   // Pushes it into the chart
-  // @todo: Update the store ....
+  // @todo: Update the store at control.js
   let newDatasetInfo = {
     label: pvName,
     yAxisID: unit,
@@ -274,7 +274,7 @@ export const hideDatasetByLabel = (label, chart) => {
     }
   }
   chart.update(0, false);
-  // @todo: Update store
+  // @todo: Update store at control.js
   store.dispatch(setDatasetVisible({ index: datasetIndex, visible: !meta.hidden }));
 };
 
