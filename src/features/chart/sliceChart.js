@@ -6,9 +6,10 @@ const chartSlice = createSlice({
   initialState: {
     actionsStack: [],
     autoScroll: false,
-    searchResults: [],
-    dataAxis: [],
-    datasets: [],
+    searchResults: {},
+    isSearchResultsVisible: false,
+    dataAxis: [], // @todo: Transform into an object
+    datasets: [], // @todo: Transform into an object
     loading: false,
     singleTooltip: true,
     timeEnd: null,
@@ -18,8 +19,52 @@ const chartSlice = createSlice({
     zooming: false,
   },
   reducers: {
-    setSearchResults(state, action){
-      state.searchResults = action.payload;
+    setSearchResultsVisible(state, action) {
+      state.isSearchResultsVisible = action.payload;
+    },
+    setSearchResults: {
+      reducer(state, action) {
+        state.searchResults = action.payload;
+      },
+      prepare(data) {
+        const map = {};
+        data.forEach((e) => {
+          // @todo: Check if the pvName is already plotted
+          e.isSelected = false;
+          map[e.pvName] = e;
+        });
+        return {
+          payload: map,
+        };
+      },
+    },
+    doSelectAllResults(state, action) {
+      for (const e in state.searchResults) {
+        state.searchResults[e].isSelected = true;
+      }
+    },
+    doDeselectAllResults(state, action) {
+      for (const e in state.searchResults) {
+        state.searchResults[e].isSelected = false;
+      }
+    },
+    doSelectMultipleResults(state, action) {
+      action.payload.data.forEach(({ isSelected, pvName }) => {
+        state.searchResults[pvName].isSelected = isSelected;
+      });
+    },
+    doSelectSearchResult(state, action) {
+      const { isSelected, pvName } = action.payload;
+      state.searchResults[pvName].isSelected = isSelected;
+    },
+    doRemoveDataAxis(state, action) {
+      let index = null;
+      state.dataAxis.forEach((e, idx) => {
+        if (e.id === action.payload) index = idx;
+      });
+      if (index !== null) {
+        state.dataAxis.splice(index, 1);
+      }
     },
     addToDataAxis: {
       reducer(state, action) {
@@ -28,11 +73,11 @@ const chartSlice = createSlice({
       prepare(data) {
         return {
           payload: {
-            yLimitManual: false,
-            yMin: null,
-            yMax: null,
             ...data,
             isLog: data.type === "linear" ? false : true,
+            yLimitManual: false,
+            yMax: null,
+            yMin: null,
           },
         };
       },
@@ -112,7 +157,19 @@ const chartSlice = createSlice({
       state.datasets[index].pv.optimized = optimized;
     },
     removeDataset(state, action) {
-      state.datasets.splice(action.payload, 1);
+      const { idx, removeAxis } = action.payload;
+      state.datasets.splice(idx, 1);
+
+      if (removeAxis !== null) {
+        // Remove data axis if needed
+        let index = null;
+        state.dataAxis.forEach((e, idx) => {
+          if (e.id === removeAxis) index = idx;
+        });
+        if (index !== null) {
+          state.dataAxis.splice(index, 1);
+        }
+      }
     },
     /** @todo: Remove from dataset (by pvName?)*/
     addActionToStack(state, action) {
@@ -154,6 +211,11 @@ export const {
   addToDataAxis,
   addToDataset,
   clearDatasetFetching,
+  doRemoveDataAxis,
+  doDeselectAllResults,
+  doSelectAllResults,
+  doSelectMultipleResults,
+  doSelectSearchResult,
   removeDataset,
   setAutoScroll,
   setAxisTypeLog,
@@ -165,6 +227,7 @@ export const {
   setDatasetVisible,
   setLoading,
   setSearchResults,
+  setSearchResultsVisible,
   setSingleTooltip,
   setTimeEnd,
   setTimeReferenceEnd,
