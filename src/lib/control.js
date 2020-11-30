@@ -25,6 +25,8 @@ import {
   setZooming,
   setDatasetFetching,
   clearDatasetFetching,
+  setSearchResultsVisible,
+  doRemoveDataAxis,
   setSearchResults,
   removeDataset as storeRemoveDataset,
 } from "../features/chart/sliceChart";
@@ -44,7 +46,7 @@ const REFERENCE = {
   START: false,
   END: true,
 };
-
+export const displaySearchResults = () => store.dispatch(setSearchResultsVisible(true));
 export const updateSearchResults = (results) => store.dispatch(setSearchResults(results));
 
 /* chartjs instance reference */
@@ -695,7 +697,7 @@ const removeDataset = function (datasetIndex, undo) {
 
   const yAxis = chart.data.datasets[datasetIndex].yAxisID;
   const yAxisUseCount = chartUtils.yAxisUseCounter()[yAxis];
-
+  let removeAxis = null;
   if (yAxisUseCount === 0) {
     console.log("Removing Axis");
     delete chartUtils.yAxisUseCounter()[yAxis];
@@ -706,19 +708,18 @@ const removeDataset = function (datasetIndex, undo) {
     for (let i = 1; i < chart.options.scales.yAxes.length; i++) {
       if (chart.options.scales.yAxes[i].id === yAxis) {
         chart.options.scales.yAxes.splice(i, 1);
-        // @todo: update store, series removed
+        removeAxis = yAxis;
         break;
       }
     }
   }
 
   chart.data.datasets.splice(datasetIndex, 1);
-  //console.log("Removed index", datasetIndex,chart.data.datasets);
   chart.update(0);
   updateURL();
   updateOptimizedWarning();
-  // @todo: update store, dataset removed
-  store.dispatch(storeRemoveDataset(datasetIndex));
+
+  store.dispatch(storeRemoveDataset({ idx: datasetIndex, removeAxis: removeAxis }));
 };
 
 const hideAxis = function (event) {
