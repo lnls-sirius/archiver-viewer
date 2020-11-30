@@ -83,9 +83,8 @@ async function fetchMetadata(pv, handleError) {
     const jsonurl = appliance + "/retrieval/bpl/getMetadata?pv=" + pv;
     const components = jsonurl.split("?");
     const HTTPMethod = jsonurl.length > 2048 ? "POST" : "GET";
-    const lastErrors = { jqXHR: null, textStatus: null, errorThrown: null };
+    //const lastErrors = { jqXHR: null, textStatus: null, errorThrown: null };
 
-    console.log("Search appliance", appliance, "for PV", pv);
     try {
       await $.ajax({
         url: components[0],
@@ -97,10 +96,10 @@ async function fetchMetadata(pv, handleError) {
       })
         .fail((jqXHR, textStatus, errorThrown) => {
           errorCount++;
-          lastErrors.jqXHR = jqXHR;
+          /*lastErrors.jqXHR = jqXHR;
           lastErrors.textStatus = textStatus;
           lastErrors.errorThrown = errorThrown;
-          errors.push(lastErrors);
+          errors.push(lastErrors);*/
         })
         .done((data, textStatus, jqXHR) => {
           returnData = jqXHR.status === 200 ? data : null;
@@ -110,11 +109,7 @@ async function fetchMetadata(pv, handleError) {
     }
   }
   if (errorCount === APPLIANCES.length) {
-    if (handleError && errors.length > 0) {
-      handleError(errors[0].jqXHR, errors[0].textStatus, errors[0].errorThrown);
-    } else {
-      console.log("Failed to fetch metadadata for pv", pv, "last errors", errors);
-    }
+    // @todo: Consider giving the user feedback about paused PVs
   }
   return returnData;
 }
@@ -166,23 +161,31 @@ async function fetchData(pv, from, to, isOptimized, bins, handleError, showLoadi
 /**
  * Key event handler which looks for PVs in the archiver
  **/
-const query = function (pvs, handleSuccess, handleError, handleComplete, handleBefore) {
-  const jsonurl = `${window.location.protocol}//${url}/retrieval/bpl/getMatchingPVs?pv=${pvs}&limit=500`;
-  const components = jsonurl.split("?");
-  const querystring = components.length > 1 ? components[1] : "";
-  const HTTPMethod = jsonurl.length > 2048 ? "POST" : "GET";
+const query = async (pvs) => {
+  const timeout = 10000;
+  const controller = new AbortController();
+  const _url = `${window.location.protocol}//${url}/retrieval/bpl/getMatchingPVs?${new URLSearchParams({
+    pv: pvs,
+    limit: 500,
+  }).toString()}`;
 
-  $.ajax({
-    url: components[0],
-    data: querystring,
-    type: HTTPMethod,
-    crossDomain: true,
-    dataType: "json",
-    timeout: 3000,
-    beforeSend: handleBefore,
-    success: handleSuccess,
-    error: handleError,
-    complete: handleComplete,
+  const options = {
+    signal: controller.signal,
+    method: "GET",
+    //mode: "no-cors",
+    redirect: "follow",
+    headers: {
+      Accept: "application/json",
+    },
+  };
+
+  const promisse = fetch(_url, options);
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+  return await promisse.then((res) => {
+    console.log(res);
+    if (!res.ok) throw `Invalid response code ${res}`;
+    return res.json();
   });
 };
 
