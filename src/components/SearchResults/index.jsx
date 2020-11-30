@@ -1,64 +1,69 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { connect } from "react-redux";
 import * as S from "./styled";
 import Modal from "../Modal";
-import Checkbox from "../Checkbox";
 import handlers from "../../lib/handlers";
+import SearchResult from "../SearchResult";
+import {
+  doSelectMultipleResults,
+  doSelectAllResults,
+  doDeselectAllResults,
+  setSearchResultsVisible,
+} from "../../features/chart/sliceChart";
 
 const mapStateToProps = (state) => {
-  return { results: state.chart.searchResults };
-};
-const SearchResult = ({
-  hostName,
-  samplingPeriod,
-  DBRType,
-  creationTime,
-  PREC,
-  units,
-  pvName,
-  applianceIdentity,
-  idx,
-}) => {
-  const [selected, setSelected] = useState(false);
-  return (
-    <S.TableRow>
-      <S.TableData>{idx}</S.TableData>
-      <S.TableData>
-        <Checkbox
-          checked={selected}
-          onClick={() => {
-            setSelected(!selected);
-          }}
-        />
-      </S.TableData>
-      <S.TableData>{pvName}</S.TableData>
-      <S.TableData>{units}</S.TableData>
-      <S.TableData>{PREC}</S.TableData>
-      <S.TableData>{hostName}</S.TableData>
-      <S.TableData>{DBRType}</S.TableData>
-      <S.TableData>{`${1 / parseFloat(samplingPeriod)} Hz`}</S.TableData>
-      <S.TableData>{applianceIdentity}</S.TableData>
-    </S.TableRow>
-  );
+  return { results: state.chart.searchResults, isVisible: state.chart.isSearchResultsVisible };
 };
 
-const SearchResults = ({ results }) => {
-  const [visible, setVisible] = useState(true);
-  const [renderModal, setRenderModal] = useState(true);
+const mapDispatchToProps = {
+  doSelectMultipleResults,
+  doSelectAllResults,
+  doDeselectAllResults,
+  setSearchResultsVisible,
+};
+
+const SearchResults = ({ results, doSelectAllResults, doDeselectAllResults, isVisible, setSearchResultsVisible }) => {
+  const [isModalVisible, setModalVisible] = useState(isVisible);
+  const selectAll = () => doSelectAllResults();
+  const deselectAll = () => doDeselectAllResults();
+  const setVisible = () => {
+    if (isVisible) {
+      setModalVisible(false); // Fade out modal fist
+      setTimeout(() => setSearchResultsVisible(false), 250); // Destroy component
+    } else {
+      setSearchResultsVisible(true);
+    }
+  };
+  const plotPVs = () => {
+    const selectedPVs = [];
+    for (const e in results) {
+      if (results[e].isSelected) {
+        selectedPVs.push(e);
+      }
+    }
+    handlers.plotSelectedPVs(selectedPVs);
+    setVisible();
+  };
+
+  useEffect(() => {
+    // False modal in/out
+    setTimeout(() => setModalVisible(isVisible, 250));
+  }, [isVisible]);
+
   return (
     <>
-      {renderModal ? (
-        <Modal visible={visible}>
+      {isVisible ? (
+        <Modal visible={isModalVisible}>
           <S.Controls>
             <S.ControlsLeft>
-              <S.Button $bgH="lightgreen" $fgH="black" $bg="darkgreen" $fg="white">
+              <S.Button $bgH="lightgreen" $fgH="black" $bg="darkgreen" $fg="white" onClick={plotPVs}>
                 Ok
               </S.Button>
-              <S.Button>Select All</S.Button>
-              <S.Button>Deselect All</S.Button>
+              <S.Button onClick={selectAll}>Select All</S.Button>
+              <S.Button onClick={deselectAll}>Deselect All</S.Button>
             </S.ControlsLeft>
             <div>
-              <S.Button $bgH="#ff6961" $fgH="black" $bg="darkred" $fg="white">
+              <S.Button $bgH="#ff6961" $fgH="black" $bg="darkred" $fg="white" onClick={setVisible}>
                 Cancel
               </S.Button>
             </div>
@@ -79,33 +84,17 @@ const SearchResults = ({ results }) => {
                 </S.TableRow>
               </S.TableHead>
               <S.TableBody>
-                {results.map((result, idx) => (
-                  <SearchResult {...result} idx={idx} key={idx} />
+                {Object.entries(results).map(([pvName, result], idx) => (
+                  <SearchResult {...result} idx={idx} key={pvName} />
                 ))}
               </S.TableBody>
             </S.Table>
           </S.TableWrapper>
-          <button
-            onClick={() => {
-              setTimeout(() => setRenderModal(!visible), 300);
-              setVisible(!visible);
-            }}
-          >
-            Toggle
-          </button>
         </Modal>
       ) : (
         ""
       )}
-      <button
-        onClick={() => {
-          setTimeout(() => setRenderModal(!visible), 300);
-          setVisible(!visible);
-        }}
-      >
-        Toggle
-      </button>
     </>
   );
 };
-export default connect(mapStateToProps)(SearchResults);
+export default connect(mapStateToProps, mapDispatchToProps)(SearchResults);
