@@ -4,7 +4,7 @@ import { saveAs as FileSaverSaveAs } from "file-saver";
 import archInterface from "./archInterface.js";
 import ui from "./ui.js";
 import chartUtils from "./chartUtils.js";
-import control from "./control.js";
+import control, { updateSearchResults, displaySearchResults } from "./control.js";
 
 const handlers = (function () {
   const KEY_ENTER = 13;
@@ -51,7 +51,6 @@ const handlers = (function () {
     if (!control.autoEnabled()) {
       if (control.reference() === control.references.START) {
         control.updateTimeReference(control.references.END);
-        ui.enableReference(control.references.END);
       }
 
       const now = await control.getDateNow();
@@ -130,20 +129,6 @@ const handlers = (function () {
     }
   }
 
-  const handleQueryBefore = () => {
-    ui.enableLoading();
-  };
-
-  const handleQueryError = (data, statusText, errorThrown) => {
-    ui.toogleSearchWarning(
-      "An error occured on the server while disconnected PVs -- " + statusText + " -- " + errorThrown
-    );
-  };
-
-  const handleQueryComplete = (data) => {
-    ui.disableLoading();
-  };
-
   async function handleGetValidPVs(pvList) {
     const validPVs = [];
     const promisses = pvList.map((x) => {
@@ -173,8 +158,7 @@ const handlers = (function () {
               console.log("PV", data.pvName, " is not a scalar value.");
               return;
             }
-            validPVs.push(data.pvName);
-            console.log("Append pvName ", data.pvName);
+            validPVs.push(data);
           } catch (error) {
             console.log("Failed to get metadata", error, result);
           }
@@ -185,31 +169,32 @@ const handlers = (function () {
       });
     return validPVs;
   }
-  async function handleQuerySuccessRetrieval(data, statusText) {
+
+  async function handleQuerySuccessRetrieval(data) {
     const validPVs = [];
 
-    await handleGetValidPVs(data)
-      .then((pvs) => pvs.forEach((pv) => validPVs.push(pv)))
-      .catch((e) => console.log("Failed handleGetValidPVs", e));
+    await handleGetValidPVs(data).then((pvs) => pvs.forEach((pv) => validPVs.push(pv)));
 
-    // Display Matchs
-    ui.showSearchResults(validPVs, appendPVHandler);
+    updateSearchResults(validPVs);
   }
+
   async function queryPVsRetrieval(e, val) {
-    if (e.which !== KEY_ENTER) {
-      return;
-    }
-    await archInterface.query(
-      val,
-      handleQuerySuccessRetrieval,
-      handleQueryError,
-      handleQueryComplete,
-      handleQueryBefore
-    );
+    if (e.which !== KEY_ENTER) return;
+
+    ui.enableLoading();
+    await archInterface
+      .query(val)
+      .then(async (data) => await handleQuerySuccessRetrieval(data))
+      .then(() => displaySearchResults())
+      .catch((e) => {
+        ui.toggleSearchWarning(`Failed to search PVs using ${val}`);
+        console.error(`Failed to search PVs using ${val}`, e);
+      })
+      .finally((e) => ui.disableLoading());
   }
 
   const handleFetchDataError = (xmlHttpRequest, textStatus, errorThrown) => {
-    ui.toogleSearchWarning("Connection failed with " + xmlHttpRequest + " -- " + textStatus + " -- " + errorThrown);
+    ui.toggleSearchWarning("Connection failed with " + xmlHttpRequest + " -- " + textStatus + " -- " + errorThrown);
   };
 
   /**
@@ -229,18 +214,16 @@ const handlers = (function () {
     ui.hideSearchedPVs();
   };
 
-  const plotSelectedPVs = function (e) {
-    const pvs = ui.selectedPVs();
-    for (let i = 0; i < pvs.length; i++) {
-      const pvIndex = control.getPlotIndex(pvs[i]);
-      if (pvIndex == null) {
-        control.appendPV(pvs[i]);
+  const plotSelectedPVs = (pvs) => {
+    //@todo: Add the possiblity to plot optimized PVs
+    pvs.forEach((pv) => {
+      const pvIndex = control.getPlotIndex(pv);
+      if (pvIndex === null) {
+        control.appendPV(pv);
       } else {
         control.updatePlot(pvIndex);
       }
-    }
-
-    ui.hideSearchedPVs();
+    });
     control.chart().update(0, false);
     control.updateOptimizedWarning();
   };
@@ -249,7 +232,6 @@ const handlers = (function () {
   /**
    * The following function manages mouse wheel events in the canvas area
    **/
-
   const scrollChart = function (evt) {
     if (control.scrollingEnabled()) {
       ui.enableLoading();
@@ -344,7 +326,7 @@ const handlers = (function () {
           chart.datasets[i].data.map((x) => x.x)
         );
 
-        if (chart.datasets[i].data[closest] === undefined || chart.datasets[i].data[closest] === undefined) {
+        if (chart.datasets[i].data[closest] === undefined) {
           return "Loading datasets...";
         }
 
@@ -375,9 +357,6 @@ const handlers = (function () {
     labels.sort(function (a, b) {
       return a.datasetIndex - b.datasetIndex;
     });
-
-    // labels.splice(masterSet+1, 0, labels[0]);
-    // labels.shift();
   };
 
   /**
@@ -385,23 +364,12 @@ const handlers = (function () {
    **/
   async function autoRefreshingHandler(e) {
     if (control.autoEnabled()) {
-      $(this).css("background-color", "grey");
-
       clearInterval(control.timer());
-
-      ui.enableDate();
-      ui.enable($("#date span.now"));
-      ui.enable($("#date span.zoom"));
-      ui.enable($("#date span.forward"));
-      ui.enable($("#date span.backward"));
-
-      $("#date img").css({ cursor: "pointer" });
     } else {
       control.startTimer(
         setInterval(async function () {
           if (control.reference() === control.references.START) {
             control.updateTimeReference(control.references.END);
-            ui.enableReference(control.references.END);
           }
 
           const now = await control.getDateNow();
@@ -420,219 +388,12 @@ const handlers = (function () {
           await control.updateAllPlots(false);
         }, REFRESH_INTERVAL * 1000)
       );
-
-      $(this).css("background-color", "lightgrey");
-
-      ui.disableDate();
-      ui.disable($("#date span.now"));
-      ui.disable($("#date span.zoom"));
-      ui.disable($("#date span.forward"));
-      ui.disable($("#date span.backward"));
-
-      $("#date img").css({ cursor: "not-allowed" });
     }
 
     control.toggleAuto();
   }
 
-  /**
-   * Updates the plot after the user clicks on a point.
-   **/
-  async function dataClickHandler(evt) {
-    if (!control.dragFlags().dragStarted && !control.autoEnabled()) {
-      const event = control.chart().getElementsAtEvent(evt);
-
-      if (event !== undefined && event.length > 0) {
-        const eventData = control.chart().data.datasets[event[0].DatasetIndex].data[event[0].Index].x;
-        const middleData = new Date(
-          eventData.getTime() + chartUtils.timeAxisPreferences[control.windowTime()].milliseconds / 2
-        );
-
-        await control.updateStartAndEnd(middleData, true);
-
-        chartUtils.updateTimeAxis(
-          control.chart(),
-          chartUtils.timeAxisPreferences[control.windowTime()].unit,
-          chartUtils.timeAxisPreferences[control.windowTime()].unitStepSize,
-          control.start(),
-          control.end()
-        );
-
-        control.updateAllPlots(true);
-
-        control.updateURL();
-
-        control.chart().update(0, false);
-      }
-    }
-  }
-
   /** ***** Dragging and zoom functions *******/
-  /**
-   * The following functions manage the dragging and zoom operations in the chart.
-   **/
-
-  /**
-   * Handles a mouse click event in the chart and prepares for zooming or dragging.
-   **/
-  const startDragging = function (e) {
-    const evt = e.nativeEvent;
-    control.startDrag();
-
-    control.updateDragOffsetX(evt.offsetX);
-
-    control.updateDragEndTime(control.end());
-
-    if (control.zoomFlags().isZooming) {
-      control.zoomFlags().beginX = evt.clientX;
-      control.zoomFlags().beginY = evt.clientY;
-
-      control.zoomFlags().hasBegan = true;
-
-      $("#canvas_area span.selection_box").css("display", "block");
-
-      // Computes zoom initial time
-      control.zoomFlags().time1 = new Date(
-        control.start().getTime() +
-          (evt.offsetX * chartUtils.timeAxisPreferences[control.windowTime()].milliseconds) /
-            control.chart().chart.width
-      );
-    }
-  };
-
-  /**
-   * Handles a dragging event in the chart and updates the chart drawing area.
-   **/
-  async function doDragging(e) {
-    if (!control.zoomFlags().isZooming && !control.autoEnabled() && control.dragFlags().dragStarted) {
-      const evt = e.nativeEvent;
-      const offsetX = control.dragFlags().x - evt.offsetX;
-      let newDate = new Date(
-        control.end().getTime() +
-          (offsetX * chartUtils.timeAxisPreferences[control.windowTime()].milliseconds) / control.chart().chart.width
-      );
-
-      if (control.reference() === control.references.START) {
-        newDate = new Date(
-          control.start().getTime() +
-            (offsetX * chartUtils.timeAxisPreferences[control.windowTime()].milliseconds) / control.chart().chart.width
-        );
-      }
-
-      control.updateDragOffsetX(evt.offsetX);
-
-      await control.updateStartAndEnd(newDate, true, true);
-
-      chartUtils.updateTimeAxis(
-        control.chart(),
-        chartUtils.timeAxisPreferences[control.windowTime()].unit,
-        chartUtils.timeAxisPreferences[control.windowTime()].unitStepSize,
-        control.start(),
-        control.end()
-      );
-
-      if (!control.dragFlags().updateOnComplete) {
-        control.updateAllPlots(true);
-        control.updateURL();
-      }
-
-      control.chart().update(0, false);
-    }
-
-    // Draws zoom rectangle indicating the area in which this operation will applied
-    if (control.zoomFlags().isZooming && control.zoomFlags().hasBegan) {
-      const evt = e.nativeEvent;
-      // x,y,w,h = o retângulo entre os vértices
-      const x = Math.min(control.zoomFlags().beginX, evt.clientX);
-      const w = Math.abs(control.zoomFlags().beginX - evt.clientX);
-
-      ui.drawZoomBox(x, w, control.chart().chart.height);
-    }
-  }
-
-  /**
-   * Finishes dragging and applies zoom on the chart if this action was previously selected.
-   **/
-  async function stopDragging(e) {
-    const evt = e.nativeEvent;
-    if (control.dragFlags().dragStarted && control.dragFlags().updateOnComplete) {
-      control.updateAllPlots(true);
-      control.updateURL();
-      control.chart().update(0, false);
-
-      control.undoStack().push({
-        action: control.stackActions.CHANGE_END_TIME,
-        endTime: control.dragFlags().endTime,
-      });
-    }
-
-    // Finishes zoom and updates the chart
-    if (control.zoomFlags().isZooming && control.zoomFlags().hasBegan) {
-      control.zoomFlags().time2 = new Date(
-        control.start().getTime() +
-          (evt.offsetX * chartUtils.timeAxisPreferences[control.windowTime()].milliseconds) /
-            control.chart().chart.width
-      );
-
-      if (control.zoomFlags().time1 !== undefined && control.zoomFlags().time2 !== undefined) {
-        control.undoStack().push({
-          action: control.stackActions.ZOOM,
-          startTime: control.start(),
-          endTime: control.end(),
-          windowTime: control.windowTime(),
-        });
-
-        // Checks which zoom times should be used as start time or end time
-        if (control.zoomFlags().time1.getTime() < control.zoomFlags().time2.getTime()) {
-          control.updateStartTime(control.zoomFlags().time1);
-          control.updateEndTime(control.zoomFlags().time2);
-        } else {
-          control.updateStartTime(control.zoomFlags().time2);
-          control.updateEndTime(control.zoomFlags().time1);
-        }
-
-        // Chooses the x axis time scale
-        let i = 0;
-        while (
-          control.end().getTime() - control.start().getTime() < chartUtils.timeAxisPreferences[i].milliseconds &&
-          i < chartUtils.timeIDs.SEG_30
-        ) {
-          i++;
-        }
-
-        // ui.toogleWindowButton (undefined, control.windowTime ());
-
-        control.updateTimeWindowOnly(i);
-
-        ui.hideZoomBox();
-
-        chartUtils.updateTimeAxis(
-          control.chart(),
-          chartUtils.timeAxisPreferences[i].unit,
-          chartUtils.timeAxisPreferences[i].unitStepSize,
-          control.start(),
-          control.end()
-        );
-
-        control.optimizeAllGraphs();
-        control.updateAllPlots(true);
-        control.updateURL();
-
-        ui.updateDateComponents(control.reference() === control.references.END ? control.end() : control.start());
-
-        // Redraws the chart
-        control.chart().update(0, false);
-
-        control.updateOptimizedWarning();
-
-        ui.toggleZoomButton(false);
-      }
-    }
-
-    control.stopDrag();
-    control.zoomFlags().hasBegan = false;
-    control.disableZoom();
-  }
 
   /**
    * Adjusts the global variables to perform a zoom in the chart.
@@ -644,15 +405,13 @@ const handlers = (function () {
       } else {
         control.enableZoom();
       }
-
-      ui.toggleZoomButton(control.zoomFlags().isZooming);
     }
   };
 
   /**
    * Shows or erases data table below the chart
    **/
-  const toogleTable = function (evt) {
+  const toggleTable = function (evt) {
     if (this.checked) {
       ui.updateDataTable(control.chart().data.datasets, control.start(), control.end());
       ui.showTable();
@@ -684,7 +443,6 @@ const handlers = (function () {
     }
 
     const book = XLSXutils.book_new();
-    // const sheets = [];
 
     const sheetInfo = [];
     for (let i = 0; i < control.chart().data.datasets.length; i++) {
@@ -714,7 +472,6 @@ const handlers = (function () {
     // Sheet containing PV information.
     XLSXutils.book_append_sheet(book, XLSXutils.json_to_sheet(sheetInfo), "Sheet Info");
 
-    // Write the stuff
     const wbout = XLSXwrite(book, { bookType: t, type: "binary" });
     try {
       FileSaverSaveAs(new Blob([s2ab(wbout)], { type: "application/octet-stream" }), "export." + t);
@@ -871,10 +628,10 @@ const handlers = (function () {
           break;
 
         case control.stackActions.ZOOM:
-          // ui.toogleWindowButton (undefined, control.windowTime ());
+          // ui.toggleWindowButton (undefined, control.windowTime ());
 
           // Updates the chart attributes
-          await control.updateStartTime(redo.startTime);
+          control.updateStartTime(redo.startTime);
           control.updateEndTime(redo.endTime);
 
           chartUtils.updateTimeAxis(
@@ -888,8 +645,6 @@ const handlers = (function () {
           control.optimizeAllGraphs();
           control.updateAllPlots(true);
           control.updateURL();
-
-          ui.updateDateComponents(control.end());
 
           // Redraws the chart
           control.chart().update(0, false);
@@ -905,10 +660,8 @@ const handlers = (function () {
 
   const updateReferenceTime = function (isEndSelected) {
     if (isEndSelected) {
-      ui.updateDateComponents(control.end());
       control.updateTimeReference(control.references.END);
     } else {
-      ui.updateDateComponents(control.start());
       control.updateTimeReference(control.references.START);
     }
   };
@@ -929,14 +682,10 @@ const handlers = (function () {
     scrollChart: scrollChart,
     autoRefreshingHandler: autoRefreshingHandler,
     singleTipHandler: singleTipHandler,
-    dataClickHandler: dataClickHandler,
 
-    startDragging: startDragging,
-    doDragging: doDragging,
-    stopDragging: stopDragging,
     zoomClickHandler: zoomClickHandler,
 
-    toogleTable: toogleTable,
+    toggleTable: toggleTable,
     exportAs: exportAs,
     undoHandler: undoHandler,
     redoHandler: redoHandler,

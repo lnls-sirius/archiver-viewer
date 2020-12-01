@@ -4,205 +4,166 @@
  * fetch data from the archiver.
  **/
 import simplify from "simplify-js";
+import axios from "axios";
 
-const archInterface = (function () {
-  const getUrl = () => {
-    let host = "10.0.38.42";
-    if (window.location.host === "vpn.cnpem.br") {
-      // If using WEB VPN
-      // Capture IPv4 address
-      const ipRegExp = /https?\/((?:(?:2(?:[0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9])\.){3}(?:(?:2([0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9])))\//;
-      const match = ipRegExp.exec(window.location.href);
-      if (match && match.length > 1) {
-        host = match[1];
-      }
-    } else {
-      host = window.location.host;
+const getUrl = () => {
+  let host = "10.0.38.42";
+  if (window.location.host === "vpn.cnpem.br") {
+    // If using WEB VPN
+    // Capture IPv4 address
+    const ipRegExp = /https?\/((?:(?:2(?:[0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9])\.){3}(?:(?:2([0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9])))\//;
+    const match = ipRegExp.exec(window.location.href);
+    if (match && match.length > 1) {
+      host = match[1];
     }
-
-    if (host === "10.0.38.50" || window.location.host === "localhost:8080") {
-      host = "10.0.38.42";
-      console.log("DEBUG SERVER. Setting host to 10.0.38.42");
-    }
-    return host;
-  };
-
-  let url = getUrl();
-  const BYPASS_URL = window.location.protocol + "//" + url + "/archiver-generic-backend";
-  const GET_DATA_URL = window.location.protocol + "//" + url + "/retrieval/data/getData.json";
-  const APPLIANCES = [window.location.protocol + "//" + url, "http://archiver.cnpem.br"];
-
-  /**
-   * Parses the data retrieved from the archiver in a way that it can be understood by the chart controller
-   **/
-  const parseData = function (data, optimize = false, tolerance = 0.001, highRes = false) {
-    const parsedData = [];
-    for (let i = 0; i < data.length; i++) {
-      const timedate = new Date(data[i].secs * 1e3 + data[i].nanos * 1e-6);
-      if (!isNaN(timedate.getTime())) {
-        parsedData.push(
-          optimize
-            ? {
-                timedate: timedate,
-                x: i,
-                y: data[i].val.length > 0 ? data[i].val[0] : data[i].val,
-              }
-            : {
-                x: timedate,
-                y: data[i].val.length > 0 ? data[i].val[0] : data[i].val,
-              }
-        );
-      }
-    }
-
-    if (optimize) {
-      const result = simplify(parsedData, tolerance, highRes);
-      for (let i = 0; i < result.length; i++) {
-        result[i].x = result[i].timedate;
-      }
-      console.log(parsedData.length, result.length);
-      return result;
-    }
-    return parsedData;
-  };
-
-  /**
-   * Gets the metadata associated with a PV.
-   **/
-  async function fetchMetadata(pv, handleError) {
-    if (pv === undefined) {
-      return null;
-    }
-
-    let returnData = null;
-    let errorCount = 0;
-    const errors = [];
-    for (const appliance of APPLIANCES) {
-      if (returnData != null) {
-        break;
-      }
-      const jsonurl = appliance + "/retrieval/bpl/getMetadata?pv=" + pv;
-      const components = jsonurl.split("?");
-      const HTTPMethod = jsonurl.length > 2048 ? "POST" : "GET";
-      const lastErrors = { jqXHR: null, textStatus: null, errorThrown: null };
-
-      console.log("Search appliance", appliance, "for PV", pv);
-      try {
-        await $.ajax({
-          url: components[0],
-          data: components[1],
-          type: HTTPMethod,
-          crossDomain: true,
-          dataType: "json",
-          timeout: 0,
-        })
-          .fail((jqXHR, textStatus, errorThrown) => {
-            errorCount++;
-            lastErrors.jqXHR = jqXHR;
-            lastErrors.textStatus = textStatus;
-            lastErrors.errorThrown = errorThrown;
-            errors.push(lastErrors);
-          })
-          .done((data, textStatus, jqXHR) => {
-            returnData = jqXHR.status === 200 ? data : null;
-          });
-      } catch (error) {
-        errorCount++;
-      }
-    }
-    if (errorCount === APPLIANCES.length) {
-      if (handleError && errors.length > 0) {
-        handleError(errors[0].jqXHR, errors[0].textStatus, errors[0].errorThrown);
-      } else {
-        console.log("Failed to fetch metadadata for pv", pv, "last errors", errors);
-      }
-    }
-    return returnData;
+  } else {
+    host = window.location.host;
   }
 
-  /**
-   * Requests data from the archiver.
-   **/
-  async function fetchData(pv, from, to, isOptimized, bins, handleError, showLoading) {
-    if (from === undefined || to === undefined) {
-      return null;
+  if (host === "10.0.38.50" || window.location.host === "localhost:8080") {
+    host = "10.0.38.42";
+    console.log("DEBUG SERVER. Setting host to 10.0.38.42");
+  }
+  return host;
+};
+
+let url = getUrl();
+const BYPASS_URL = window.location.protocol + "//" + url + "/archiver-generic-backend";
+const GET_DATA_URL = window.location.protocol + "//" + url + "/retrieval/data/getData.json";
+const APPLIANCES = [window.location.protocol + "//" + url, "http://archiver.cnpem.br"];
+
+/**
+ * Parses the data retrieved from the archiver in a way that it can be understood by the chart controller
+ **/
+const parseData = function (data, optimize = false, tolerance = 0.001, highRes = false) {
+  const parsedData = [];
+  for (let i = 0; i < data.length; i++) {
+    const timedate = new Date(data[i].secs * 1e3 + data[i].nanos * 1e-6);
+    if (!isNaN(timedate.getTime())) {
+      parsedData.push(
+        optimize
+          ? {
+              timedate: timedate,
+              x: i,
+              y: data[i].val.length > 0 ? data[i].val[0] : data[i].val,
+            }
+          : {
+              x: timedate,
+              y: data[i].val.length > 0 ? data[i].val[0] : data[i].val,
+            }
+      );
     }
+  }
+  if (optimize) {
+    const result = simplify(parsedData, tolerance, highRes);
+    for (let i = 0; i < result.length; i++) {
+      result[i].x = result[i].timedate;
+    }
+    console.log(parsedData.length, result.length);
+    return result;
+  }
+  return parsedData;
+};
 
-    const jsonurl = !isOptimized
-      ? GET_DATA_URL + "?pv=" + pv + "&from=" + from.toJSON() + "&to=" + to.toJSON()
-      : GET_DATA_URL + "?pv=optimized_" + bins + "(" + pv + ")&from=" + from.toJSON() + "&to=" + to.toJSON();
+/**
+ * Gets the metadata associated with a PV.
+ **/
+async function fetchMetadata(pv) {
+  if (pv === undefined) {
+    return null;
+  }
 
-    const components = jsonurl.split("?");
-    const HTTPMethod = jsonurl.length > 2048 ? "POST" : "GET";
-    let returnData = null;
+  let errorCount = 0;
+  for (const appliance of APPLIANCES) {
+    const jsonurl = appliance + "/retrieval/bpl/getMetadata?pv=" + pv;
 
-    await $.ajax({
-      url: components[0],
-      data: components[1],
-      type: HTTPMethod,
-      crossDomain: true,
-      dataType: "text",
-      beforeSend: showLoading,
-      timeout: 0,
-    })
-      .done(function (data, textStatus, jqXHR) {
-        returnData = textStatus === "success" ? data : null;
-        if (returnData) {
-          try {
-            returnData = returnData.replace(/(-?Infinity)/g, '"$1"');
-            returnData = returnData.replace(/(NaN)/g, '"$1"');
-            returnData = JSON.parse(returnData);
-          } catch (err) {
-            console.log("Failed to parse data from request", components[0], err.message);
-          }
+    const data = await axios
+      .get(jsonurl, { timeout: 0, responseType: "json" })
+      .then((res) => {
+        if (res.status !== 200) {
+          return null;
         }
+        return res.data;
       })
-      .fail(function (jqXHR, textStatus, errorThrown) {
-        handleError(jqXHR, textStatus, errorThrown);
+      .catch((e) => {
+        errorCount++;
+        return null;
       });
+    if (data !== null) {
+      return data;
+    }
+  }
+  if (errorCount === APPLIANCES.length) {
+    // @todo: Consider doing something
+    // console.warn(`Failed to obtain metadata for PV ${pv}`);
+  }
+}
 
-    return returnData;
+/**
+ * Requests data from the archiver.
+ **/
+async function fetchData(pv, from, to, isOptimized, bins, handleError, showLoading) {
+  if (from === undefined || to === undefined) {
+    return null;
   }
 
-  /**
-   * Key event handler which looks for PVs in the archiver
-   **/
-  const query = function (pvs, handleSuccess, handleError, handleComplete, handleBefore) {
-    const jsonurl = `${window.location.protocol}//${url}/retrieval/bpl/getMatchingPVs?pv=${pvs}&limit=4000`;
-    const components = jsonurl.split("?");
-    const querystring = components.length > 1 ? components[1] : "";
-    const HTTPMethod = jsonurl.length > 2048 ? "POST" : "GET";
+  const jsonurl = !isOptimized
+    ? GET_DATA_URL + "?pv=" + pv + "&from=" + from.toJSON() + "&to=" + to.toJSON()
+    : GET_DATA_URL + "?pv=optimized_" + bins + "(" + pv + ")&from=" + from.toJSON() + "&to=" + to.toJSON();
 
-    $.ajax({
-      url: components[0],
-      data: querystring,
-      type: HTTPMethod,
-      crossDomain: true,
-      dataType: "json",
-      timeout: 3000,
-      beforeSend: handleBefore,
-      success: handleSuccess,
-      error: handleError,
-      complete: handleComplete,
+  return axios
+    .get(jsonurl, {
+      timeout: 0,
+      method: "GET",
+      responseType: "text",
+      transformResponse: (res) => {
+        let data = res.replace(/(-?Infinity)/g, '"$1"');
+        data = data.replace(/(NaN)/g, '"$1"');
+        data = JSON.parse(data);
+        return data;
+      },
+    })
+    .then((res) => {
+      if (res.status !== 200) {
+        // @todo: Handler this !
+        console.warn(`Request ${jsonurl} return invalid status code ${res}`);
+        return null;
+      }
+      return res.data;
     });
-  };
+}
 
-  return {
-    url: function () {
-      return url;
-    },
-    updateURL: function (u) {
-      url = u;
-    },
-    bypassUrl: function () {
-      return BYPASS_URL;
-    },
+/**
+ * Key event handler which looks for PVs in the archiver
+ **/
+const query = async (pvs) => {
+  const timeout = 10000;
+  const _url = `${window.location.protocol}//${url}/retrieval/bpl/getMatchingPVs?${new URLSearchParams({
+    pv: pvs,
+    limit: 500,
+  }).toString()}`;
 
-    parseData: parseData,
-    fetchMetadata: fetchMetadata,
-    fetchData: fetchData,
-    query: query,
-  };
-})();
+  return await axios.get(_url, { method: "GET", timeout: timeout, responseType: "json" }).then((res) => {
+    if (res.status !== 200) {
+      throw `Failed to complete request ${_url}, response ${res}`;
+    }
+    return res.data;
+  });
+};
 
-export default archInterface;
+export default {
+  url: function () {
+    return url;
+  },
+  updateURL: function (u) {
+    url = u;
+  },
+  bypassUrl: function () {
+    return BYPASS_URL;
+  },
+
+  parseData: parseData,
+  fetchMetadata: fetchMetadata,
+  fetchData: fetchData,
+  query: query,
+};
