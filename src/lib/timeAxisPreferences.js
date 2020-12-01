@@ -2,22 +2,25 @@ export const TIME_AXIS_ID = "x-axis-0";
 export const TIME_AXIS_INDEX = 0;
 export const TIME_IDS = {
   YEAR: 0,
-  MONTH: 1,
-  WEEK2: 2,
-  WEEK1: 3,
-  DAY25: 4,
-  DAY1: 5,
-  HOUR18: 6,
-  HOUR12: 7,
-  HOUR_8: 8,
-  HOUR_4: 9,
-  HOUR2: 10,
-  HOUR1: 11,
-  MIN_30: 12,
-  MIN10: 13,
-  MIN_5: 14,
-  MIN1: 15,
-  SEG_30: 16,
+  MONTH_9: 1,
+  MONTH_6: 2,
+  MONTH_3: 3,
+  MONTH_1: 4,
+  WEEK2: 5,
+  WEEK1: 6,
+  DAY25: 7,
+  DAY1: 8,
+  HOUR18: 9,
+  HOUR12: 10,
+  HOUR_8: 11,
+  HOUR_4: 12,
+  HOUR2: 13,
+  HOUR1: 14,
+  MIN_30: 15,
+  MIN10: 16,
+  MIN_5: 17,
+  MIN1: 18,
+  SEG_30: 19,
 };
 export const TIME_AXIS_PREFERENCES = [
   {
@@ -29,6 +32,36 @@ export const TIME_AXIS_PREFERENCES = [
     optimized: true,
     bins: 2000,
     id: TIME_IDS.YEAR,
+  },
+  {
+    // 9 month
+    text: "9M",
+    unit: "day",
+    unitStepSize: 4,
+    milliseconds: 9 * 30 * 24 * 3600 * 1000,
+    optimized: true,
+    bins: 1200,
+    id: TIME_IDS.MONTH_9,
+  },
+  {
+    // 6 month
+    text: "6M",
+    unit: "day",
+    unitStepSize: 4,
+    milliseconds: 6 * 30 * 24 * 3600 * 1000,
+    optimized: true,
+    bins: 1200,
+    id: TIME_IDS.MONTH_6,
+  },
+  {
+    // 3 month
+    text: "3M",
+    unit: "day",
+    unitStepSize: 4,
+    milliseconds: 3 * 30 * 24 * 3600 * 1000,
+    optimized: true,
+    bins: 1200,
+    id: TIME_IDS.MONTH_3,
   },
   {
     // 1 month
