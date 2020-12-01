@@ -4,6 +4,7 @@
  * fetch data from the archiver.
  **/
 import simplify from "simplify-js";
+import axios from "axios";
 
 const getUrl = () => {
   let host = "10.0.38.42";
@@ -53,7 +54,6 @@ const parseData = function (data, optimize = false, tolerance = 0.001, highRes =
       );
     }
   }
-
   if (optimize) {
     const result = simplify(parsedData, tolerance, highRes);
     for (let i = 0; i < result.length; i++) {
@@ -68,50 +68,35 @@ const parseData = function (data, optimize = false, tolerance = 0.001, highRes =
 /**
  * Gets the metadata associated with a PV.
  **/
-async function fetchMetadata(pv, handleError) {
+async function fetchMetadata(pv) {
   if (pv === undefined) {
     return null;
   }
 
-  let returnData = null;
   let errorCount = 0;
-  const errors = [];
   for (const appliance of APPLIANCES) {
-    if (returnData != null) {
-      break;
-    }
     const jsonurl = appliance + "/retrieval/bpl/getMetadata?pv=" + pv;
-    const components = jsonurl.split("?");
-    const HTTPMethod = jsonurl.length > 2048 ? "POST" : "GET";
-    //const lastErrors = { jqXHR: null, textStatus: null, errorThrown: null };
 
-    try {
-      await $.ajax({
-        url: components[0],
-        data: components[1],
-        type: HTTPMethod,
-        crossDomain: true,
-        dataType: "json",
-        timeout: 0,
+    const data = await axios
+      .get(jsonurl, { timeout: 0, responseType: "json" })
+      .then((res) => {
+        if (res.status !== 200) {
+          return null;
+        }
+        return res.data;
       })
-        .fail((jqXHR, textStatus, errorThrown) => {
-          errorCount++;
-          /*lastErrors.jqXHR = jqXHR;
-          lastErrors.textStatus = textStatus;
-          lastErrors.errorThrown = errorThrown;
-          errors.push(lastErrors);*/
-        })
-        .done((data, textStatus, jqXHR) => {
-          returnData = jqXHR.status === 200 ? data : null;
-        });
-    } catch (error) {
-      errorCount++;
+      .catch((e) => {
+        errorCount++;
+        return null;
+      });
+    if (data !== null) {
+      return data;
     }
   }
   if (errorCount === APPLIANCES.length) {
-    // @todo: Consider giving the user feedback about paused PVs
+    // @todo: Consider doing something
+    // console.warn(`Failed to obtain metadata for PV ${pv}`);
   }
-  return returnData;
 }
 
 /**
@@ -126,36 +111,26 @@ async function fetchData(pv, from, to, isOptimized, bins, handleError, showLoadi
     ? GET_DATA_URL + "?pv=" + pv + "&from=" + from.toJSON() + "&to=" + to.toJSON()
     : GET_DATA_URL + "?pv=optimized_" + bins + "(" + pv + ")&from=" + from.toJSON() + "&to=" + to.toJSON();
 
-  const components = jsonurl.split("?");
-  const HTTPMethod = jsonurl.length > 2048 ? "POST" : "GET";
-  let returnData = null;
-
-  await $.ajax({
-    url: components[0],
-    data: components[1],
-    type: HTTPMethod,
-    crossDomain: true,
-    dataType: "text",
-    beforeSend: showLoading,
-    timeout: 0,
-  })
-    .done(function (data, textStatus, jqXHR) {
-      returnData = textStatus === "success" ? data : null;
-      if (returnData) {
-        try {
-          returnData = returnData.replace(/(-?Infinity)/g, '"$1"');
-          returnData = returnData.replace(/(NaN)/g, '"$1"');
-          returnData = JSON.parse(returnData);
-        } catch (err) {
-          console.log("Failed to parse data from request", components[0], err.message);
-        }
-      }
+  return axios
+    .get(jsonurl, {
+      timeout: 0,
+      method: "GET",
+      responseType: "text",
+      transformResponse: (res) => {
+        let data = res.replace(/(-?Infinity)/g, '"$1"');
+        data = data.replace(/(NaN)/g, '"$1"');
+        data = JSON.parse(data);
+        return data;
+      },
     })
-    .fail(function (jqXHR, textStatus, errorThrown) {
-      handleError(jqXHR, textStatus, errorThrown);
+    .then((res) => {
+      if (res.status !== 200) {
+        // @todo: Handler this !
+        console.warn(`Request ${jsonurl} return invalid status code ${res}`);
+        return null;
+      }
+      return res.data;
     });
-
-  return returnData;
 }
 
 /**
@@ -163,31 +138,16 @@ async function fetchData(pv, from, to, isOptimized, bins, handleError, showLoadi
  **/
 const query = async (pvs) => {
   const timeout = 10000;
-  const controller = new AbortController();
   const _url = `${window.location.protocol}//${url}/retrieval/bpl/getMatchingPVs?${new URLSearchParams({
     pv: pvs,
     limit: 500,
   }).toString()}`;
 
-  const options = {
-    signal: controller.signal,
-    method: "GET",
-    redirect: "follow",
-    headers: {
-      Accept: "application/json",
-    },
-  };
-
-  const promisse = fetch(_url, options);
-  const timeoutId = setTimeout(() => {
-    console.warn(`Aborting request ${_url} with a ${timeout}s timeout`);
-    controller.abort();
-  }, timeout);
-
-  return await promisse.then((res) => {
-    console.log(res);
-    if (!res.ok) throw `Invalid response code ${res}`;
-    return res.json();
+  return await axios.get(_url, { method: "GET", timeout: timeout, responseType: "json" }).then((res) => {
+    if (res.status !== 200) {
+      throw `Failed to complete request ${_url}, response ${res}`;
+    }
+    return res.data;
   });
 };
 
