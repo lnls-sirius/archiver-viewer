@@ -8,6 +8,6 @@ A web interface based on [Chartjs](http://www.chartjs.org/)
 ## Building
 
 ```
-npm install
-npm run build
+yarn install
+yarn run build
 ```
