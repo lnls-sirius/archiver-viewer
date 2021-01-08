@@ -1,5 +1,6 @@
 {
   "name": "archiver-viewer",
+  "homepage": ".",
   "version": "1.0.0",
   "description": "Epics Archiver Viewer",
   "main": "init",
@@ -66,7 +67,7 @@
   },
   "scripts": {
     "lint": "npx eslint src/lib/*",
-    "build": "NODE_ENV=production babel-node ./node_modules/webpack/bin/webpack && sed -i 's/c=l\\.r,s=l\\.c/ /g' ./dist/index.bundle.js",
+    "build": "NODE_ENV=production babel-node ./node_modules/webpack/bin/webpack && sed -i 's/c=l\\.r,s=l\\.c/ /g' ./build/index.bundle.js",
     "start": "NODE_ENV=development babel-node ./node_modules/webpack-dev-server/bin/webpack-dev-server --host 0.0.0.0",
     "dev:analyze": "npm run dev -- --env.addons=bundleanalyzer",
     "build:analyze": "npm run build -- --env.addons=bundleanalyzer"
