@@ -41,7 +41,7 @@
             "Please utilize a modern browser.\n\n" +
             "You will be redirected to the legacy viewer.\n"
         );
-        window.location.href = window.location.protocol + "//" + window.location.hostname + "/archiver-viewer-legacy";
+        window.location.href = window.location.href.replace("archiver-viewer", "archiver-viewer-legacy");
       }
     </script>
   <link rel="shortcut icon" href="cropped-icon.png"></head>
