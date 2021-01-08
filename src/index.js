@@ -1,3 +1,4 @@
+/* eslint-disable radix */
 /** *
   A web viewer application based on Chartjs for the EPICS archiver.
 

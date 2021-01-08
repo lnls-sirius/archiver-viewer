@@ -229,7 +229,7 @@ const appendDataset = function (chart, data, bins, precision, metadata) {
   );
 };
 
-/*** Get dataset index by it's labe */
+/*** Get dataset index by it's label */
 export const getDatasetIndex = (label, chart) => {
   // Find dataset index and yAxis
   let datasetIndex = null;
