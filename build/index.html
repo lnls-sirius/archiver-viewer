@@ -38,10 +38,22 @@
       if (detectIEEdge()) {
         alert(
           "Internet Explorer is not supported.\n" +
-            "Please utilize a modern browser.\n\n" +
+            "Please use a modern browser.\n\n" +
             "You will be redirected to the legacy viewer.\n"
         );
-        window.location.href = window.location.href.replace("archiver-viewer", "archiver-viewer-legacy");
+        var url = window.location.href;
+        var args = "";
+        var i;
+        for (i = 0; i < url.length; i++) {
+          if (url[i] == "?") {
+            break;
+          }
+        }
+        if (i != 0 && i != (url.length - 1)) {
+          args = url.slice(i);
+        }
+        window.location.href =
+          window.location.protocol + "//" + window.location.hostname + "/archiver-viewer-legacy/" + args;
       }
     </script>
   <link rel="shortcut icon" href="cropped-icon.png"></head>
