@@ -2,7 +2,7 @@
 import path from "path";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import CompressionPlugin from "compression-webpack-plugin";
-import { BundleAnalyzerPlugin } from "webpack-bundle-analyzer";
+// import { BundleAnalyzerPlugin } from "webpack-bundle-analyzer";
 
 const isEnvProduction = process.env.NODE_ENV === "production";
 
@@ -26,7 +26,7 @@ module.exports = {
     },
   },
   output: {
-    path: path.join(__dirname, "dist"),
+    path: path.join(__dirname, "build"),
     filename: "index.bundle.js",
   },
   mode: isEnvProduction ? "production" : "development",
@@ -65,6 +65,6 @@ module.exports = {
       favicon: "./src/img/cropped-icon.png",
     }),
     new CompressionPlugin(),
-    new BundleAnalyzerPlugin(),
+    // new BundleAnalyzerPlugin(),
   ],
 };
