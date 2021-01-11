@@ -28,6 +28,7 @@ export const CheckboxInput = styled.input.attrs({ type: "checkbox" })`
 
 export const CheckboxBox = styled.div`
   display: inline-block;
+  min-width: 16px;
   width: 16px;
   height: 16px;
   background: ${(props) => (props.checked ? "blue" : "papayawhip")};
