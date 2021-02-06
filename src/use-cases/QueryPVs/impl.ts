@@ -71,7 +71,6 @@ async function filterMetadata(data: string[]): Promise<void> {
 
 const QueryPVsImpl: QueryPVsInterface = async (search: string): Promise<void> => {
   RequestsDispatcher.IncrementActiveRequests();
-  // control.enableLoading();
   await archInterface
     .query(search)
     .then(async (data) => await filterMetadata(data))
@@ -84,7 +83,6 @@ const QueryPVsImpl: QueryPVsInterface = async (search: string): Promise<void> =>
       RequestsDispatcher.Error(msg, e);
     });
 
-  //control.disableLoading();
   RequestsDispatcher.DecrementActiveRequests();
 };
 

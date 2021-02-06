@@ -13,9 +13,7 @@ class PlotPVsImpl implements PlotPVs {
   private async getPVMetadata(pv: string): Promise<any> {
     // Asks for the PV's metadata
     const metadata = await archInterface.fetchMetadata(pv).catch((err) => console.log("Fetch metadata Exception", err));
-    if (metadata == null) {
-      //    ui.toggleSearchWarning("Failed to fetch metadata for pv " + pv);
-      console.log("No metadata for ", pv);
+    if (metadata === null || metadata === undefined) {
       return -1;
     }
     return metadata;
@@ -36,8 +34,6 @@ class PlotPVsImpl implements PlotPVs {
       bins = chartUtils.timeAxisPreferences[windowTime].bins;
     }
 
-    // @todo: Enable loading ...
-    //   enableLoading();
     RequestsDispatcher.IncrementActiveRequests();
     await archInterface
       .fetchData(pv, start, end, bins < 0 ? false : true, bins)
