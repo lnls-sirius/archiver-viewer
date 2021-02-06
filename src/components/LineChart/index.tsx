@@ -4,72 +4,66 @@ import { Chart } from "chart.js";
 
 import * as S from "./styled";
 
-import { options } from "./contents";
-import chartUtils from "../../lib/chartUtils";
-import control, { doSubscriptions } from "../../lib/control";
+import chartUtils from "../../utility/chartUtils";
 import handlers from "../../lib/handlers";
-import ui from "../../lib/ui";
+import control from "../../controllers";
+import { StackAction } from "../../controllers/ActionsStack/ActionsStackConstants";
 
-const mapStateToProps = (state) => {
-  const { autoScroll, zooming, singleTooltip, timeReferenceEnd } = state.chart;
+import { options } from "./config";
+import { initialState, getAverageDateFromEvent, LineChartProps, LineChartStates } from "./contents";
+import { RootState } from "../../reducers";
+
+const mapStateToProps = (state: RootState) => {
+  const { autoScroll, zooming, singleTooltip } = state.chart;
 
   return {
     autoScroll: autoScroll,
     isZooming: zooming,
     singleTooltip: singleTooltip,
-    timeReferenceEnd: timeReferenceEnd,
   };
 };
 
-class LineChart extends Component {
-  constructor(props) {
+class LineChart extends Component<LineChartProps, LineChartStates> {
+  private chart: Chart;
+  private chartDOMRef: React.RefObject<HTMLCanvasElement>;
+  private updateProps: Chart.ChartUpdateProps;
+
+  constructor(props: LineChartProps | Readonly<LineChartProps>) {
     super(props);
-    this.chartRef = React.createRef();
-    this.state = {
-      isDragging: false,
-      zoomBoxVisible: false,
-      zoomBeginX: 0,
-      zoomBeginY: 0,
-      zoomBoxHeight: 0,
-      zoomBoxWidth: 0,
-      zoomBoxLeft: 0,
-      zoomBoxTop: 0,
-      zoomTime1: null,
-      zoomTime2: null,
-      dragOffsetX: 0,
-      dragEndTime: null,
-    };
+    this.chartDOMRef = React.createRef();
+    this.state = initialState;
+    this.chart = null;
+    this.updateProps = { duration: 0, easing: "linear", lazy: false };
   }
 
   componentDidMount() {
-    this.myChart = new Chart(this.chartRef.current, { type: "line", data: [], options });
-    control.init(this.myChart);
-    doSubscriptions();
-    ui.hideWarning(); //@todo: Remove, implement React Component
-    ui.hideSearchWarning(); //@todo: Remove, implement React Component
-    control.loadFromURL(window.location.search);
+    this.chart = new Chart(this.chartDOMRef.current, { type: "line", options });
+    control.init(this.chart);
   }
 
-  handleScrollChart = (e) => {
+  handleScrollChart = (e: React.WheelEvent<HTMLCanvasElement>) => {
     handlers.scrollChart(e);
   };
 
-  getAverageDateFromEvent = (evt) => {
-    let millis = 0;
-    const elements = control.chart().getElementsAtEventForMode(evt, "index", { intersect: false });
-    elements.map((e) => {
-      //console.log(e);
-      const yScaleId = e._yScale.id;
-      const dsetIdx = e._datasetIndex;
-      const idx = e._index;
-      const { x, y } = control.chart().data.datasets[dsetIdx].data[idx];
-      millis += x.getTime();
-      //console.log(/*"dsetIdx", dsetIdx, "idx", idx, yScaleId, "data", */ x, y);
-    });
-    return millis > 0 ? new Date(millis / elements.length) : null;
+  setZoomBoxInitialState = (evt: MouseEvent) => {
+    const { isZooming } = this.props;
+    if (isZooming) {
+      const zoomTime1 = getAverageDateFromEvent(this.chart, evt);
+      this.setState({
+        zoomBeginX: evt.clientX,
+        zoomBeginY: evt.clientY,
+        zoomBoxHeight: 0,
+        zoomBoxLeft: 0,
+        zoomBoxTop: 0,
+        zoomBoxVisible: true,
+        zoomBoxWidth: 0,
+        zoomTime1,
+        zoomTime2: null,
+      });
+    }
   };
 
-  startDragging = (e) => {
+  startDragging = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const evt = e.nativeEvent;
     control.updateDragEndTime(control.end());
 
@@ -79,33 +73,11 @@ class LineChart extends Component {
         dragOffsetX: evt.offsetX,
         dragEndTime: control.end(),
       },
-      () => {
-        const { isZooming } = this.props;
-        if (isZooming) {
-          this.setState({
-            zoomBoxVisible: true,
-            zoomBeginX: 0,
-            zoomBeginY: 0,
-            zoomBoxHeight: 0,
-            zoomBoxWidth: 0,
-            zoomBoxLeft: 0,
-            zoomBoxTop: 0,
-            zoomTime2: null,
-            zoomBeginX: evt.clientX,
-            zoomBeginY: evt.clientY,
-            zoomTime1: this.getAverageDateFromEvent(evt),
-            /*zoomTime1: new Date(
-              control.start().getTime() +
-                (evt.offsetX * chartUtils.timeAxisPreferences[control.windowTime()].milliseconds) /
-                  control.chart().chart.width
-            ),*/
-          });
-        }
-      }
+      () => this.setZoomBoxInitialState(evt)
     );
   };
 
-  handleDoDragZoom = (e) => {
+  handleDoDragZoom = (e: React.MouseEvent) => {
     // Draws zoom rectangle indicating the area in which this operation will applied
     const evt = e.nativeEvent;
     const { zoomBeginX } = this.state;
@@ -113,8 +85,7 @@ class LineChart extends Component {
     const x = Math.min(zoomBeginX, evt.clientX);
     const w = Math.abs(zoomBeginX - evt.clientX);
 
-    // console.log(this.chartRef.current.getBoundingClientRect());
-    const { top, height } = this.chartRef.current.getBoundingClientRect();
+    const { top, height } = this.chartDOMRef.current.getBoundingClientRect();
     this.setState({
       zoomBoxLeft: x,
       zoomBoxTop: top,
@@ -123,40 +94,40 @@ class LineChart extends Component {
     });
   };
 
-  handleDoDataDrag = async (e) => {
+  handleDoDataDrag = async (e: React.MouseEvent) => {
     const evt = e.nativeEvent;
     const { dragOffsetX } = this.state;
     const offsetX = dragOffsetX - evt.offsetX;
     let newDate = new Date(
       control.end().getTime() +
-        (offsetX * chartUtils.timeAxisPreferences[control.windowTime()].milliseconds) / control.chart().chart.width
+        (offsetX * chartUtils.timeAxisPreferences[control.windowTime()].milliseconds) / this.chart.width
     );
 
     if (control.reference() === control.references.START) {
       newDate = new Date(
         control.start().getTime() +
-          (offsetX * chartUtils.timeAxisPreferences[control.windowTime()].milliseconds) / control.chart().chart.width
+          (offsetX * chartUtils.timeAxisPreferences[control.windowTime()].milliseconds) / this.chart.width
       );
     }
     this.setState({ dragOffsetX: evt.offsetX });
 
-    await control.updateStartAndEnd(newDate, true, true);
+    await control.updateStartAndEnd(newDate);
 
     chartUtils.updateTimeAxis(
-      control.chart(),
+      this.chart,
       chartUtils.timeAxisPreferences[control.windowTime()].unit,
       chartUtils.timeAxisPreferences[control.windowTime()].unitStepSize,
       control.start(),
       control.end()
     );
 
-    control.chart().update(0, false);
+    this.chart.update(this.updateProps);
   };
 
   /**
    * Handles a dragging event in the chart and updates the chart drawing area.
    **/
-  doDragging = async (e) => {
+  doDragging = async (e: React.MouseEvent) => {
     const { isZooming, autoScroll } = this.props;
     const { isDragging } = this.state;
 
@@ -171,7 +142,6 @@ class LineChart extends Component {
 
     if (!isZooming && !autoScroll) {
       this.handleDoDataDrag(e);
-      return;
     }
   };
 
@@ -180,20 +150,16 @@ class LineChart extends Component {
 
     control.updateAllPlots(true);
     control.updateURL();
-    control.chart().update(0, false);
+    this.chart.update(this.updateProps);
 
     control.undoStack().push({
-      action: control.stackActions.CHANGE_END_TIME,
+      action: StackAction.CHANGE_END_TIME,
       endTime: dragEndTime,
     });
   };
 
-  handleStopDragZoom = async (evt) => {
-    const zoomTime2 = this.getAverageDateFromEvent(evt);
-    /*const zoomTime2 = new Date(
-      control.start().getTime() +
-        (evt.offsetX * chartUtils.timeAxisPreferences[control.windowTime()].milliseconds) / control.chart().chart.width
-    );*/
+  handleStopDragZoom = async (evt: MouseEvent) => {
+    const zoomTime2 = getAverageDateFromEvent(this.chart, evt);
     this.setState({ zoomTime2: zoomTime2 }, () => {
       const { zoomTime1, zoomTime2 } = this.state;
       if (!zoomTime1 || !zoomTime2) {
@@ -201,7 +167,7 @@ class LineChart extends Component {
         return;
       }
       control.undoStack().push({
-        action: control.stackActions.ZOOM,
+        action: StackAction.ZOOM,
         startTime: control.start(),
         endTime: control.end(),
         windowTime: control.windowTime(),
@@ -235,14 +201,14 @@ class LineChart extends Component {
   /**
    * Finishes dragging and applies zoom on the chart if this action was previously selected.
    **/
-  stopDragging = async (e) => {
+  stopDragging = async (e: React.MouseEvent<HTMLCanvasElement>) => {
     const { isZooming } = this.props;
     const { isDragging } = this.state;
 
     const evt = e.nativeEvent;
 
     if (isDragging && !isZooming) {
-      this.handleStopDragData(e);
+      this.handleStopDragData();
     }
 
     // Finishes zoom and updates the chart
@@ -261,7 +227,7 @@ class LineChart extends Component {
     return (
       <S.LineChartWrapper>
         <canvas
-          ref={this.chartRef}
+          ref={this.chartDOMRef}
           onWheel={this.handleScrollChart}
           onMouseDown={this.startDragging}
           onMouseMove={this.doDragging}

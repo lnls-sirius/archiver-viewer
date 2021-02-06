@@ -1,43 +1,50 @@
 import React, { useState, useEffect } from "react";
-import { connect } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+
 import * as S from "./styled";
+
 import Modal from "../Modal";
 import handlers from "../../lib/handlers";
 import SearchResult from "../SearchResult";
-import {
-  doSelectMultipleResults,
-  doSelectAllResults,
-  doDeselectAllResults,
-  setSearchResultsVisible,
-} from "../../features/chart/sliceChart";
+import { actions as searchActions, SearchResult as SearchResultData } from "../../features/search";
+import { RootState } from "../../reducers";
 
-const mapStateToProps = (state) => {
-  return { results: state.chart.searchResults, isVisible: state.chart.isSearchResultsVisible };
+const RenderSearchResultsElements = (results: { [key: string]: SearchResultData }): JSX.Element[] => {
+  const elements: JSX.Element[] = [];
+  for (const key in results) {
+    const result = results[key];
+    elements.push(<SearchResult {...result} idx={result.pvName} key={key} />);
+  }
+  return elements;
 };
 
-const mapDispatchToProps = {
-  doSelectMultipleResults,
-  doSelectAllResults,
-  doDeselectAllResults,
-  setSearchResultsVisible,
-};
+const SearchResults: React.FC = () => {
+  const dispatch = useDispatch();
 
-const SearchResults = ({ results, doSelectAllResults, doDeselectAllResults, isVisible, setSearchResultsVisible }) => {
-  const [isModalVisible, setModalVisible] = useState(isVisible);
-  const selectAll = () => doSelectAllResults();
-  const deselectAll = () => doDeselectAllResults();
+  const selectSearchIsVisible = (state: RootState) => state.search.visible;
+  const selectSearchResults = (state: RootState) => state.search.results;
+
+  const visible = useSelector(selectSearchIsVisible);
+  const results = useSelector(selectSearchResults);
+
+  const [isModalVisible, setModalVisible] = useState(visible);
+
+  const selectAll = () => dispatch(searchActions.doSelectAllResults());
+  const deselectAll = () => dispatch(searchActions.doDeselectAllResults());
+
   const setVisible = () => {
-    if (isVisible) {
+    if (visible) {
       setModalVisible(false); // Fade out modal fist
-      setTimeout(() => setSearchResultsVisible(false), 250); // Destroy component
+      setTimeout(() => dispatch(searchActions.setSearchResultsVisible(false)), 250); // Destroy component
     } else {
-      setSearchResultsVisible(true);
+      dispatch(searchActions.setSearchResultsVisible(true));
     }
   };
+
   const plotPVs = () => {
     const selectedPVs = [];
     for (const e in results) {
-      if (results[e].isSelected) {
+      if (results[e].selected) {
         selectedPVs.push(e);
       }
     }
@@ -46,13 +53,12 @@ const SearchResults = ({ results, doSelectAllResults, doDeselectAllResults, isVi
   };
 
   useEffect(() => {
-    // False modal in/out
-    setTimeout(() => setModalVisible(isVisible, 250));
-  }, [isVisible]);
+    setTimeout(() => setModalVisible(visible), 250);
+  }, [visible]);
 
   return (
     <>
-      {isVisible ? (
+      {visible ? (
         <Modal visible={isModalVisible}>
           <S.Controls>
             <S.ControlsLeft>
@@ -71,7 +77,7 @@ const SearchResults = ({ results, doSelectAllResults, doDeselectAllResults, isVi
           <S.TableWrapper>
             <S.Table>
               <S.TableHead>
-                <S.TableRow>
+                <S.TableRow style={{ height: "1.2rem" }}>
                   <S.TableHeader>n</S.TableHeader>
                   <S.TableHeader>Select</S.TableHeader>
                   <S.TableHeader>Name</S.TableHeader>
@@ -83,11 +89,7 @@ const SearchResults = ({ results, doSelectAllResults, doDeselectAllResults, isVi
                   <S.TableHeader>Appliance</S.TableHeader>
                 </S.TableRow>
               </S.TableHead>
-              <S.TableBody>
-                {Object.entries(results).map(([pvName, result], idx) => (
-                  <SearchResult {...result} idx={idx} key={pvName} />
-                ))}
-              </S.TableBody>
+              <S.TableBody>{RenderSearchResultsElements(results)}</S.TableBody>
             </S.Table>
           </S.TableWrapper>
         </Modal>
@@ -97,4 +99,4 @@ const SearchResults = ({ results, doSelectAllResults, doDeselectAllResults, isVi
     </>
   );
 };
-export default connect(mapStateToProps, mapDispatchToProps)(SearchResults);
+export default SearchResults;

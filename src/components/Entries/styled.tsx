@@ -44,14 +44,18 @@ export const EntryGroup = styled.div`
   margin: 0.125rem 0.25rem;
   justify-content: space-between;
 `;
-export const Color = styled.span`
+
+interface ColorProps {
+  $bgcolor: string;
+}
+export const Color = styled.span<ColorProps>`
   cursor: pointer;
   display: inline-block;
   min-height: 2rem;
   min-width: 2rem;
   height: 2rem;
   width: 2rem;
-  background-color: ${(props) => props.$bgcolor};
+  background-color: ${({ $bgcolor }) => $bgcolor};
 `;
 
 export const Text = styled.p`

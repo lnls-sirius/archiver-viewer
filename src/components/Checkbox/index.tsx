@@ -1,9 +1,16 @@
 import React from "react";
 import * as S from "./styled";
 
-const Checkbox = ({ checked, text, tooltip, onClick, ...props }) => {
-  const handleClick = (e) => {
-    e.target.checked = !checked;
+interface CheckboxProps {
+  checked: boolean;
+  text?: string;
+  tooltip?: string;
+  onClick(e: React.MouseEvent): any;
+}
+
+// eslint-disable-next-line react/prop-types
+const Checkbox: React.FC<CheckboxProps> = ({ checked, text, tooltip, onClick }) => {
+  const handleClick = (e: React.MouseEvent) => {
     onClick(e);
   };
   return (

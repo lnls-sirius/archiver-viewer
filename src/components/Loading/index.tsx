@@ -1,13 +1,10 @@
 import React from "react";
-import { connect } from "react-redux";
+import { useSelector } from "react-redux";
+import { RootState } from "../../reducers";
 import * as S from "./styled";
 
-const mapStateToProps = (props) => {
-  return { visible: props.chart.loading };
-};
-
-const Loading = (props) => {
-  const { visible } = props;
+const Loading: React.FC = () => {
+  const visible = useSelector(({ chart: { loading } }: RootState) => loading);
 
   return (
     <S.LoadingWrapper $visible={visible}>
@@ -18,4 +15,4 @@ const Loading = (props) => {
     </S.LoadingWrapper>
   );
 };
-export default connect(mapStateToProps)(Loading);
+export default Loading;

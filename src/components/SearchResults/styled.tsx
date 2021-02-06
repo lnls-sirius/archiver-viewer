@@ -8,7 +8,14 @@ export const Controls = styled.div`
   top: 0;
   width: 100%;
 `;
-export const Button = styled.button`
+
+interface ButtonStyleProps {
+  $bgH?: string;
+  $fgH?: string;
+  $bg?: string;
+  $fg?: string;
+}
+export const Button = styled.button<ButtonStyleProps>`
   background-color: ${(props) => (props.$bg ? props.$bg : "gray")};
   border-radius: 2px;
   color: ${(props) => (props.$fg ? props.$fg : "white")};
@@ -51,11 +58,6 @@ export const TableHeader = styled.th`
   margin-bottom: 5px;
   position: sticky;
   top: 0;
-
-  ${TableHeader} {
-    padding: 5px;
-    color: white;
-  }
 `;
 
 export const TableHead = styled.thead``;

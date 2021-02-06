@@ -9,12 +9,15 @@ export const IntervalsWarpper = styled.div`
   box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.14), 0 2px 1px -1px rgba(0, 0, 0, 0.12), 0 1px 3px 0 rgba(0, 0, 0, 0.2);
 `;
 
-export const IntervalsItem = styled.button`
+interface IntervalsItemProps {
+  pushed: boolean;
+}
+export const IntervalsItem = styled.button<IntervalsItemProps>`
   padding: 0.4rem 0.65rem;
   text-align: center;
-  color: ${(props) => (props.pushed ? "black" : "white")};
-  background-color: ${(props) => (props.pushed ? "lightgrey" : "grey")};
-  font-weight: ${(props) => (props.pushed ? 700 : 500)};
+  color: ${({ pushed }) => (pushed ? "black" : "white")};
+  background-color: ${({ pushed }) => (pushed ? "lightgrey" : "grey")};
+  font-weight: ${({ pushed }) => (pushed ? 700 : 500)};
 
   transition: color 0.5s;
 

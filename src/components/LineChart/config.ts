@@ -1,9 +1,10 @@
-import chartUtils from "../../lib/chartUtils";
-import { TIME_AXIS_ID } from "../../lib/timeAxisPreferences";
+import chartUtils from "../../utility/chartUtils";
+import { TimeAxisID } from "../../utility/TimeAxis/TimeAxisConstants";
 import handlers from "../../lib/handlers";
+import Chart from "chart.js";
 
-export const options = {
-  showLine: true,
+export const options: Chart.ChartOptions = {
+  showLines: true,
   spanGaps: true,
   responsiveAnimationDuration: 0,
   responsive: true,
@@ -24,8 +25,6 @@ export const options = {
     custom: handlers.tooltipColorHandler,
     cornerRadius: 5,
     caretSize: 0,
-    yAlign: "no-transform",
-    xAlign: "no-transform",
     position: "cursor",
     callbacks: {
       label: chartUtils.labelCallback,
@@ -34,22 +33,16 @@ export const options = {
   },
   hover: {
     mode: "nearest",
-    position: "nearest",
     intersect: false,
     animationDuration: 0,
   },
   title: { display: false },
   scales: {
-    B: {
-      display: false,
-      min: 0,
-      max: 10,
-    },
     xAxes: [
       {
         // Common x axis
         offset: true,
-        id: TIME_AXIS_ID,
+        id: TimeAxisID,
         type: "time",
         distribution: "linear",
         time: {
@@ -71,7 +64,6 @@ export const options = {
           maxRotation: 0,
           minRotation: 0,
           stepSize: 1,
-          // maxTicksLimit: 15
         },
       },
     ],

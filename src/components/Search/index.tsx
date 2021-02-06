@@ -2,14 +2,14 @@ import React, { useState } from "react";
 import handlers from "../../lib/handlers";
 import * as S from "./styled";
 
-const Search = () => {
+const Search: React.FC = () => {
   const [value, setValue] = useState("");
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setValue(e.target.value);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.KeyboardEvent) => {
     handlers.queryPVsRetrieval(e, value);
   };
 

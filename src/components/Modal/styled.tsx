@@ -1,7 +1,10 @@
 import styled from "styled-components";
 
-export const ModalWrapper = styled.div`
-  opacity: ${(props) => (props.$visible ? 1 : 0)};
+interface ModalWrapperProps {
+  $visible: boolean;
+}
+export const ModalWrapper = styled.div<ModalWrapperProps>`
+  opacity: ${({ $visible }) => ($visible ? 1 : 0)};
   // display: ${(props) => (props.$visible ? "block" : "none")};
   transition: 0.25s;
   height: 80%;

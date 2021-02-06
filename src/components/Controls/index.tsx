@@ -18,56 +18,82 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 import * as S from "./styled";
-const mapStateToProps = (state) => {
-  const { autoScroll, zooming, singleTooltip, timeReferenceEnd } = state.chart;
+import { RootState } from "../../reducers";
+
+interface ControlsReduxProps {
+  autoScroll: boolean;
+  zooming: boolean;
+  singleTooltip: boolean;
+  timeReferenceEnd: boolean;
+  pending: number;
+}
+const mapStateToProps = (state: RootState): ControlsReduxProps => {
+  const {
+    chart: { autoScroll, zooming, singleTooltip, timeReferenceEnd },
+    requests: { pending },
+  } = state;
 
   return {
-    autoScroll: autoScroll,
-    zooming: zooming,
-    singleTooltip: singleTooltip,
-    timeReferenceEnd: timeReferenceEnd,
+    autoScroll,
+    zooming,
+    singleTooltip,
+    timeReferenceEnd,
+    pending,
   };
 };
 
-class Controls extends Component {
-  constructor(props) {
+interface ControlsState {
+  startDate: Date;
+}
+class Controls extends Component<ControlsReduxProps, ControlsState> {
+  constructor(props: ControlsReduxProps) {
     super(props);
     this.state = {
       startDate: new Date(),
     };
   }
 
-  handleDateChange = (e) => {
+  handleDateChange = (e: any) => {
     handlers.onChangeDateHandler(e);
     this.setState({ startDate: e });
   };
 
-  handleTimeRefChange = (e) => {
-    handlers.updateReferenceTime(e.target.value == "true");
+  handleTimeRefChange = (e: any) => {
+    // eslint-disable-next-line radix
+    handlers.updateReferenceTime(parseInt(e.target.value) === 1);
   };
 
+  renderLeftGroup = () => {
+    const { startDate } = this.state;
+    const { pending } = this.props;
+
+    return (
+      <S.ControlsGroupWrapper>
+        <span style={{ padding: "0 5px 0 5px", fontWeight: 500 }}>{`${pending}`}</span>
+
+        <Seach />
+        <S.DatePickerWrapper
+          title="Start/end timestamp"
+          showTimeSelect
+          selected={startDate}
+          onChange={this.handleDateChange}
+          timeFormat="HH:mm"
+          timeCaption="time"
+          dateFormat="dd/MM/yy h:mm aa"
+          maxDate={new Date()}
+        />
+        <S.ControlSelect onChange={this.handleTimeRefChange}>
+          <option value={1}>End</option>
+          <option value={0}>Start</option>
+        </S.ControlSelect>
+      </S.ControlsGroupWrapper>
+    );
+  };
   render() {
     const { zooming, autoScroll, singleTooltip } = this.props;
-    const { startDate } = this.state;
     return (
       <S.ControlsWrapper>
-        <S.ControlsGroupWrapper>
-          <Seach />
-          <S.DatePickerWrapper
-            title="Start/end timestamp"
-            showTimeSelect
-            selected={startDate}
-            onChange={this.handleDateChange}
-            timeFormat="HH:mm"
-            timeCaption="time"
-            dateFormat="dd/MM/yy h:mm aa"
-            maxDate={new Date()}
-          />
-          <S.ControlSelect onChange={this.handleTimeRefChange}>
-            <option value={true}>End</option>
-            <option value={false}>Start</option>
-          </S.ControlSelect>
-        </S.ControlsGroupWrapper>
+        {this.renderLeftGroup()}
         <S.ControlsGroupWrapper>
           <S.ControlIcon
             icon={faBackward}
@@ -111,7 +137,7 @@ class Controls extends Component {
           <S.ControlIcon
             icon={faCarSide}
             title="Auto scroll"
-            onClick={handlers.autoRefreshingHandler}
+            onClick={handlers.autoUpdateHandler}
             $isActive={autoScroll}
             size="lg"
           />
@@ -126,7 +152,7 @@ class Controls extends Component {
             icon={faFileExcel}
             title="Export as xlsx"
             className="header-controls"
-            onClick={() => handlers.exportAs("xlsx")}
+            onClick={async () => await handlers.exportAs("xlsx")}
             size="lg"
           />
           <S.ControlIcon

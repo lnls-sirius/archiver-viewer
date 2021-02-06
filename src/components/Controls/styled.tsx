@@ -19,10 +19,13 @@ export const ControlsGroupWrapper = styled.span`
 export const DatePickerWrapper = styled(DatePicker)`
   height: 1.75rem;
 `;
-export const ControlIcon = styled(FontAwesomeIcon)`
+interface ControlIconProps {
+  $isActive?: boolean;
+}
+export const ControlIcon = styled(FontAwesomeIcon)<ControlIconProps>`
   margin: 0.4rem 0.5rem;
   display: inline-block;
-  color: ${(props) => ("$isActive" in props && props.$isActive ? "grey" : "black")};
+  color: ${({ $isActive }) => ($isActive !== undefined && $isActive ? "grey" : "black")};
   transition: color 0.2s;
 
   background-position: center;
@@ -35,7 +38,7 @@ export const ControlIcon = styled(FontAwesomeIcon)`
 
   &:hover {
     box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.12), 0 1px 5px 0 rgba(0, 0, 0, 0.2);
-    color: ${(props) => ("$isActive" in props && props.$isActive ? "lightgrey" : "lightblue")};
+    color: ${({ $isActive }) => ($isActive !== undefined && $isActive ? "lightgrey" : "lightblue")};
   }
 `;
 

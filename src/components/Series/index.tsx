@@ -1,43 +1,47 @@
 import React, { useState } from "react";
-import { connect } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import Checkbox from "../Checkbox";
 
-import { toggleAxisType, toggleAutoY } from "../../lib/control";
+import { toggleAxisType } from "../../lib/control";
 import { setAxisYLimitManual, setAxisYLimitMax, setAxisYLimitMin } from "../../features/chart/sliceChart";
-const mapStateToProps = (state) => {
-  return { dataAxis: state.chart.dataAxis };
-};
-const mapDispatch = { setAxisYLimitManual, setAxisYLimitMax, setAxisYLimitMin };
+
 import * as S from "./styled";
+import { RootState } from "../../reducers";
 
 const KEY_ENTER = 13;
-const Series = ({ dataAxis, setAxisYLimitManual, setAxisYLimitMax, setAxisYLimitMin }) => {
+const Series: React.FC = () => {
+  const dataAxis = useSelector(({ chart: { dataAxis } }: RootState) => dataAxis);
+  const dispatch = useDispatch();
   const [yMinState, setYMin] = useState("");
   const [yMaxState, setYMax] = useState("");
 
-  const handleYMin = (e, id) => {
+  const handleYMin = (e: any, id: any) => {
     setYMin(e.target.value);
   };
 
-  const handleYMax = (e, id) => {
+  const handleYMax = (e: any, id: any) => {
     setYMax(e.target.value);
   };
 
-  const handleSubmitYMin = (e, id) => {
-    if (e.which !== KEY_ENTER) return;
+  const handleSubmitYMin = (e: any, id: any) => {
+    if (e.which !== KEY_ENTER) {
+      return;
+    }
 
     const val = parseFloat(yMinState);
     if (val) {
-      setAxisYLimitMin({ id: id, yMin: val });
+      dispatch(setAxisYLimitMin({ id: id, yMin: val }));
     }
   };
 
-  const handleSubmitYMax = (e, id) => {
-    if (e.which !== KEY_ENTER) return;
+  const handleSubmitYMax = (e: any, id: any) => {
+    if (e.which !== KEY_ENTER) {
+      return;
+    }
 
     const val = parseFloat(yMaxState);
     if (val) {
-      setAxisYLimitMax({ id: id, yMax: val });
+      dispatch(setAxisYLimitMax({ id: id, yMax: val }));
     }
   };
 
@@ -52,12 +56,12 @@ const Series = ({ dataAxis, setAxisYLimitManual, setAxisYLimitMax, setAxisYLimit
               text="Manual Y Limit"
               tooltip="Manually define Y limits"
               checked={yLimitManual}
-              onClick={() => setAxisYLimitManual({ id: id, yLimitManual: !yLimitManual })}
+              onClick={() => dispatch(setAxisYLimitManual({ id: id, yLimitManual: !yLimitManual }))}
             />
             <S.InputWarpper>
               <S.Input
                 $visible={yLimitManual}
-                onChange={(e) => handleYMax(e, id)} /*onKeyDown={handleSubmit}*/
+                onChange={(e) => handleYMax(e, id)}
                 onKeyDown={(e) => handleSubmitYMax(e, id)}
                 placeholder={`yMax ${yMax ? yMax : ""}`}
                 type="text"
@@ -65,7 +69,7 @@ const Series = ({ dataAxis, setAxisYLimitManual, setAxisYLimitMax, setAxisYLimit
               />
               <S.Input
                 $visible={yLimitManual}
-                onChange={(e) => handleYMin(e, id)} /*onKeyDown={handleSubmit}*/
+                onChange={(e) => handleYMin(e, id)}
                 onKeyDown={(e) => handleSubmitYMin(e, id)}
                 placeholder={`yMin ${yMin ? yMin : ""}`}
                 type="text"
@@ -79,4 +83,4 @@ const Series = ({ dataAxis, setAxisYLimitManual, setAxisYLimitMax, setAxisYLimit
   );
 };
 
-export default connect(mapStateToProps, mapDispatch)(Series);
+export default Series;

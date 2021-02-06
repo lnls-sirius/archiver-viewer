@@ -3,8 +3,11 @@ export const InputWarpper = styled.div`
   display: flex;
   flex-direction: column;
 `;
-export const Input = styled.input`
-  display: ${(props) => (props.$visible ? "inline-block" : "none")};
+interface InputProps {
+  $visible: boolean;
+}
+export const Input = styled.input<InputProps>`
+  display: ${({ $visible }) => ($visible ? "inline-block" : "none")};
   width: 80px;
   margin: 2px;
 `;

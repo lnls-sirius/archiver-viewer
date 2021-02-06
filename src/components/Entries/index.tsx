@@ -1,19 +1,15 @@
 import React from "react";
 import * as S from "./styled";
-import { connect } from "react-redux";
+import { useSelector } from "react-redux";
 import Checkbox from "../Checkbox";
 import { hideDataset, optimizeDataset, removeDatasetByLabel } from "../../lib/control";
+import { RootState } from "../../reducers";
 
-// hideAxis, optimizeHandler, removeHandler
-
-const mapStateToProps = (props) => {
-  return { datasets: props.chart.datasets };
-};
-
-const Entries = (props) => {
-  const { datasets } = props;
-
-  const handleRemove = () => {};
+const Entries: React.FC = () => {
+  const datasets = useSelector(({ chart: { datasets } }: RootState) => datasets);
+  const optimizeHandler = (optimize: boolean, label: string) => {
+    optimizeDataset(label, optimize);
+  };
   return (
     <S.EntriesWrapper>
       {datasets.map(({ label, yAxisID, backgroundColor, visible, pv: { optimized } }, i) => {
@@ -25,7 +21,7 @@ const Entries = (props) => {
             <S.Text>{label}</S.Text>
             <S.EguText>{yAxisID}</S.EguText>
             <Checkbox
-              onClick={(e) => optimizeDataset(label, e.target.checked)}
+              onClick={(e: React.MouseEvent) => optimizeHandler(!optimized, label)}
               checked={optimized}
               text="Optimize?"
               tooltip="Uncheck if you want raw data from the server"
@@ -37,4 +33,4 @@ const Entries = (props) => {
     </S.EntriesWrapper>
   );
 };
-export default connect(mapStateToProps)(Entries);
+export default Entries;

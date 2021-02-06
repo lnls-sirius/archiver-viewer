@@ -26,19 +26,22 @@ export const CheckboxInput = styled.input.attrs({ type: "checkbox" })`
   width: 1px;
 `;
 
-export const CheckboxBox = styled.div`
+interface ChecboxProps {
+  checked: boolean;
+}
+export const CheckboxBox = styled.div<ChecboxProps>`
   display: inline-block;
   min-width: 16px;
   min-width: 16px;
   height: 16px;
   height: 16px;
-  background: ${(props) => (props.checked ? "blue" : "papayawhip")};
+  background: ${({ checked }) => (checked ? "blue" : "papayawhip")};
   border-radius: 3px;
   transition: all 150ms;
   cursor: pointer;
 
   &:hover {
-    background: ${(props) => (props.checked ? "darkblue" : "papayawhip")};
+    background: ${({ checked }) => (checked ? "darkblue" : "papayawhip")};
     box-shadow: 0 0 0 3px lightblue;
   }
 
@@ -47,7 +50,7 @@ export const CheckboxBox = styled.div`
   }
 
   ${Icon} {
-    visibility: ${(props) => (props.checked ? "visible" : "hidden")};
+    visibility: ${({ checked }) => (checked ? "visible" : "hidden")};
   }
 `;
 

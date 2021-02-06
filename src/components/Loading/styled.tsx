@@ -1,8 +1,11 @@
 import styled from "styled-components";
 
-export const LoadingWrapper = styled.div`
+interface LoadingWrapperProps {
+  $visible: boolean;
+}
+export const LoadingWrapper = styled.div<LoadingWrapperProps>`
   bottom: 90px;
-  display: ${(props) => (props.$visible ? "block" : "none")};
+  display: ${({ $visible }) => ($visible ? "block" : "none")};
   height: 80px;
   left: 50%;
   position: absolute;
