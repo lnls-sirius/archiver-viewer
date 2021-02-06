@@ -1,27 +1,56 @@
 /** ***** Chart control functions *******/
-import { TIME_AXIS_ID, TIME_AXIS_INDEX, TIME_AXIS_PREFERENCES, TIME_IDS } from "./timeAxisPreferences";
-import { colorStack, randomColorGenerator } from "./colorUtils";
+import { TIME_AXIS_PREFERENCES, TIME_IDS } from "../lib/timeAxisPreferences";
+import { TimeAxisID, TimeAxisIndex } from "./TimeAxis/TimeAxisConstants";
+import { colorStack, randomColorGenerator } from "./color";
 import { eguNormalize } from "./egu";
 import Chart from "chart.js";
 import store from "../store";
 import { addToDataset, addToDataAxis, setAxisTypeLog, setDatasetVisible } from "../features/chart/sliceChart";
 
-const yAxisUseCounter = [];
+const yAxisUseCounter: any[] = [];
+
+const AxisUseCounter: Map<string, number> = new Map();
+function addAxisUseCounter(axisName: string): number {
+  let value = AxisUseCounter.get(axisName);
+  if (value === undefined) {
+    value = 1;
+    AxisUseCounter.set(axisName, 1);
+  } else {
+    value++;
+    AxisUseCounter.set(axisName, value);
+  }
+  return value;
+}
+function removeAxisUseCounter(axisName: string): number {
+  let value = AxisUseCounter.get(axisName);
+  if (value === undefined) {
+    return 0;
+  }
+  value--;
+
+  if (value === 0) {
+    AxisUseCounter.delete(axisName);
+  } else {
+    AxisUseCounter.set(axisName, value);
+  }
+
+  return value;
+}
 
 let axisPositionLeft = true;
 
 /**
  * Updates chart's time axes, but does not updates it by calling update(0, false).
  **/
-const updateTimeAxis = function (chart, unit, unitStepSize, from, to) {
-  chart.options.scales.xAxes[TIME_AXIS_INDEX].time.unit = unit;
-  chart.options.scales.xAxes[TIME_AXIS_INDEX].time.stepSize = unitStepSize;
-  chart.options.scales.xAxes[TIME_AXIS_INDEX].time.min = from;
-  chart.options.scales.xAxes[TIME_AXIS_INDEX].time.max = to;
+const updateTimeAxis = function (chart: any, unit: any, unitStepSize: any, from: Date, to: Date): void {
+  chart.options.scales.xAxes[TimeAxisIndex].time.unit = unit;
+  chart.options.scales.xAxes[TimeAxisIndex].time.stepSize = unitStepSize;
+  chart.options.scales.xAxes[TimeAxisIndex].time.min = from;
+  chart.options.scales.xAxes[TimeAxisIndex].time.max = to;
 };
 
 /** Custom tick settings for pressure readings */
-const tickPressureCallback = (label, index, labels) => {
+const tickPressureCallback = (label: any) => {
   switch (label) {
     case 1e-12:
     case 1e-11:
@@ -35,29 +64,16 @@ const tickPressureCallback = (label, index, labels) => {
     case 1e-3:
     case 1e-2:
     case 1e-1:
-      /*case 1:
-    case 1e12:
-    case 1e11:
-    case 1e10:
-    case 1e9:
-    case 1e8:
-    case 1e7:
-    case 1e6:
-    case 1e5:
-    case 1e4:
-    case 1e3:
-    case 1e2:*/
       return label.toExponential(1);
     default:
       return "";
   }
 };
 
-const TICK_CALLBACKS_LOG = {
-  mBar: tickPressureCallback,
-};
+const TICK_CALLBACKS_LOG: Map<string, any> = new Map();
+TICK_CALLBACKS_LOG.set("mBar", tickPressureCallback);
 
-function getYAxisById(chart, axisId) {
+function getYAxisById(chart: any, axisId: any) {
   if (chart.options.scales.yAxes.length <= 1) {
     return null;
   }
@@ -69,7 +85,7 @@ function getYAxisById(chart, axisId) {
   return null;
 }
 
-const toggleAxisType = (chart, axisId, isLogarithmic) => {
+const toggleAxisType = (chart: any, axisId: string) => {
   const yAxis = getYAxisById(chart, axisId);
   if (yAxis === null) {
     return;
@@ -84,7 +100,7 @@ const toggleAxisType = (chart, axisId, isLogarithmic) => {
     // Apply specific callback
     yAxis.callback = tickPressureCallback;
     if (axisId in TICK_CALLBACKS_LOG) {
-      yAxis.callback = TICK_CALLBACKS_LOG[axisId];
+      yAxis.callback = TICK_CALLBACKS_LOG.get(axisId);
     } else {
       delete yAxis.callback;
     }
@@ -92,11 +108,12 @@ const toggleAxisType = (chart, axisId, isLogarithmic) => {
     delete yAxis.callback;
   }
   chart.update();
-  //@todo: Move the store access to another place
+
+  // @todo: Move the store access to another place
   store.dispatch(setAxisTypeLog({ id: axisId, isLog: newAxisIsLog }));
 };
 
-export const findAxisIndexById = (chart, axisId) => {
+export const findAxisIndexById = (chart: any, axisId: any) => {
   for (let i = 1; i < chart.options.scales.yAxes.length; i++) {
     if (chart.options.scales.yAxes[i].id === axisId) {
       return i;
@@ -106,13 +123,13 @@ export const findAxisIndexById = (chart, axisId) => {
   return null;
 };
 
-const getAxesInUse = (axes) => {
+const getAxesInUse = (axes: any) => {
   if (axes == null || axes.length <= 1) {
     return [];
   }
 
-  const axesInUse = [];
-  axes.forEach((element) => {
+  const axesInUse: any[] = [];
+  axes.forEach((element: any) => {
     if (element.id in yAxisUseCounter && yAxisUseCounter[element.id] > 0) {
       axesInUse.push(element);
     }
@@ -121,7 +138,7 @@ const getAxesInUse = (axes) => {
 };
 
 /** Adds a new vertical axis to the chart. */
-const appendDataAxis = function (chart, nId, ticksPrecision) {
+const appendDataAxis = function (chart: any, nId: any, ticksPrecision: any) {
   if (nId in yAxisUseCounter) {
     /* Increments the number of times this axis is used by a PV. */
     yAxisUseCounter[nId]++;
@@ -136,7 +153,7 @@ const appendDataAxis = function (chart, nId, ticksPrecision) {
   }
 
   // Function which is called when the scale is being drawn.
-  const ticksCallback = (value) => {
+  const ticksCallback = (value: number) => {
     if (value !== 0 && Math.abs(value) < Math.pow(10, -ticksPrecision)) {
       return value.toExponential(ticksPrecision);
     }
@@ -175,7 +192,7 @@ const appendDataAxis = function (chart, nId, ticksPrecision) {
   store.dispatch(addToDataAxis(dataAxisSettings));
 };
 
-const appendDataset = function (chart, data, bins, precision, metadata) {
+const appendDataset = function (chart: any, data: any, bins: any, precision: any, metadata: any) {
   const samplingPeriod = parseFloat(metadata.samplingPeriod);
   const pvName = metadata.pvName;
   const desc = metadata.DESC;
@@ -190,7 +207,7 @@ const appendDataset = function (chart, data, bins, precision, metadata) {
 
   // Pushes it into the chart
   // @todo: Update the store at control.js
-  let newDatasetInfo = {
+  const newDatasetInfo = {
     label: pvName,
     yAxisID: unit,
     backgroundColor: color,
@@ -208,7 +225,7 @@ const appendDataset = function (chart, data, bins, precision, metadata) {
 
   chart.data.datasets.push({
     ...newDatasetInfo,
-    xAxisID: TIME_AXIS_ID,
+    xAxisID: TimeAxisID,
     borderWidth: 1.5,
     data: data,
     fill: false,
@@ -229,11 +246,11 @@ const appendDataset = function (chart, data, bins, precision, metadata) {
   );
 };
 
-/*** Get dataset index by it's label */
-export const getDatasetIndex = (label, chart) => {
+/** Get dataset index by it's label */
+export const getDatasetIndex = (label: any, chart: any) => {
   // Find dataset index and yAxis
-  let datasetIndex = null;
-  chart.data.datasets.forEach((e, i) => {
+  let datasetIndex: any = null;
+  chart.data.datasets.forEach((e: any, i: number) => {
     if (datasetIndex !== null) {
       return;
     }
@@ -248,8 +265,8 @@ export const getDatasetIndex = (label, chart) => {
   return datasetIndex;
 };
 
-/*** Hide a dataset by it's label */
-export const hideDatasetByLabel = (label, chart) => {
+/** Hide a dataset by it's label */
+export const hideDatasetByLabel = (label: any, chart: any) => {
   const datasetIndex = getDatasetIndex(label, chart);
   if (datasetIndex === null) {
     // Failed to obtain dataset info
@@ -258,7 +275,7 @@ export const hideDatasetByLabel = (label, chart) => {
   }
 
   // Update visibility status
-  let meta = chart.getDatasetMeta(datasetIndex);
+  const meta = chart.getDatasetMeta(datasetIndex);
   const { yAxisID } = meta;
 
   if (meta.hidden) {
@@ -278,7 +295,7 @@ export const hideDatasetByLabel = (label, chart) => {
   store.dispatch(setDatasetVisible({ index: datasetIndex, visible: !meta.hidden }));
 };
 
-const hidesAxis = function (metadata, chart) {
+const hidesAxis = function (metadata: any, chart: any) {
   if (metadata.hidden) {
     yAxisUseCounter[metadata.yAxisID]++;
     chart.scales[metadata.yAxisID].options.display = true;
@@ -295,7 +312,7 @@ const hidesAxis = function (metadata, chart) {
 /**
  * Decides if a y axis should be displayed or not.
  **/
-const legendCallback = function (e, legendItem) {
+const legendCallback = function (e: any, legendItem: any) {
   const meta = this.chart.getDatasetMeta(legendItem.datasetIndex);
 
   hidesAxis(meta, this.chart);
@@ -306,7 +323,7 @@ const legendCallback = function (e, legendItem) {
 /**
  * Edits tooltip's label before printing them in the screen.
  **/
-const labelCallback = function (label, chart) {
+const labelCallback = function (label: any, chart: any) {
   const pvPrecision = chart.datasets[label.datasetIndex].pv.precision;
   const labelText = chart.datasets[label.datasetIndex].label;
   const value = label.yLabel;
@@ -324,8 +341,8 @@ const labelCallback = function (label, chart) {
   return `${labelText}: ${displayValue}`;
 };
 
-const toggleTooltipBehavior = function (chart, isOld) {
-  if (isOld) {
+const toggleTooltipBehavior = (chart: any, isSingleTooltipEnabled: boolean) => {
+  if (isSingleTooltipEnabled) {
     chart.options.tooltips.position = "nearest";
     chart.options.tooltips.mode = "nearest";
     chart.options.tooltips.caretSize = 5;
@@ -346,7 +363,7 @@ const toggleTooltipBehavior = function (chart, isOld) {
   chart.update();
 };
 
-const reboundTooltip = function (x, y, tooltip, factor) {
+const reboundTooltip = (x: any, y: any, tooltip: any, factor: any): any => {
   const tooltipWidth = tooltip.width;
   const tooltipHeight = tooltip.height;
   const coordinates = { x: 0, y: y };
@@ -356,12 +373,6 @@ const reboundTooltip = function (x, y, tooltip, factor) {
   } else {
     coordinates.x = x + 5;
   }
-
-  /* if(y > tooltip._chart.height - (tooltipHeight + 10)) {
-            coordinates.y = y + tooltipHeight - 5;
-        } else {
-            coordinates.y = y - tooltipHeight*factor + 5;
-        }*/
   coordinates.y = y - tooltipHeight * factor + 5;
 
   return coordinates;
@@ -375,25 +386,19 @@ Chart.Tooltip.positioners.cursor = function (chartElements, coordinates) {
 
 export default {
   /* const references */
-  timeAxisID: TIME_AXIS_ID,
+  timeAxisID: TimeAxisID,
   timeAxisPreferences: TIME_AXIS_PREFERENCES,
   timeIDs: TIME_IDS,
 
   /* Getters */
   getAxesInUse: getAxesInUse,
-  yAxisUseCounter: function () {
-    return yAxisUseCounter;
-  },
-  colorStack: function () {
-    return colorStack;
-  },
-  axisPositionLeft: function () {
-    return axisPositionLeft;
-  },
+  yAxisUseCounter: (): any => yAxisUseCounter,
+  colorStack: (): any => colorStack,
+  axisPositionLeft: (): any => axisPositionLeft,
 
   /* Setters */
   toggleTooltipBehavior: toggleTooltipBehavior,
-  updateAxisPositionLeft: (a) => {
+  updateAxisPositionLeft: (a: any): any => {
     axisPositionLeft = a;
   },
   toggleAxisType: toggleAxisType,

@@ -1,4 +1,4 @@
-const colorStack = [
+const colorStack: string[] = [
   "rgba(255, 0, 0, 1.0)",
   "rgba(0, 255, 0, 1.0)",
   "rgba(0, 0, 255, 1.0)",
@@ -25,7 +25,7 @@ const colorStack = [
   "rgba(0, 0, 128, 1.0)",
 ];
 
-const randomColorGenerator = function () {
+const randomColorGenerator = function (): string {
   return "#" + (Math.random().toString(16) + "0000000").slice(2, 8);
 };
 export { colorStack, randomColorGenerator };

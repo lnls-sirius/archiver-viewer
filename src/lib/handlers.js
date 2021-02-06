@@ -1,14 +1,17 @@
-import { utils as XLSXutils, write as XLSXwrite } from "xlsx";
-import { saveAs as FileSaverSaveAs } from "file-saver";
+import chartUtils from "../utility/chartUtils";
+import control from "./control.js";
 
-import archInterface from "./archInterface.js";
-import ui from "./ui.js";
-import chartUtils from "./chartUtils.js";
-import control, { updateSearchResults, displaySearchResults } from "./control.js";
+import { StackAction } from "../controllers/ActionsStack/ActionsStackConstants";
+import QueryPVs from "../use-cases/QueryPVs";
+import PlotPVs from "../use-cases/PlotPVs";
+import ExportDataset from "../use-cases/ExportDataset";
 
 const handlers = (function () {
   const KEY_ENTER = 13;
-  const REFRESH_INTERVAL = 5;
+
+  const exportAs = async (t) => {
+    await ExportDataset.asXlsx(t);
+  };
 
   /**
    * Updates the chart after a date is chosen by the user.
@@ -16,7 +19,7 @@ const handlers = (function () {
   async function onChangeDateHandler(date) {
     const newDate = date;
 
-    await control.updateStartAndEnd(newDate, true);
+    await control.updateStartAndEnd(newDate);
 
     control.updateAllPlots(true);
     control.updateURL();
@@ -38,7 +41,7 @@ const handlers = (function () {
    **/
   const updateTimeWindow = function (timeId) {
     control.undoStack().push({
-      action: control.stackActions.CHANGE_WINDOW_TIME,
+      action: StackAction.CHANGE_WINDOW_TIME,
       window: control.windowTime(),
     });
     control.updateTimeWindow(timeId);
@@ -48,14 +51,14 @@ const handlers = (function () {
    * Updates control.end () to the present instant and redraws all plots
    **/
   async function updateEndNow(button) {
-    if (!control.autoEnabled()) {
+    if (!control.isAutoUpdateEnabled()) {
       if (control.reference() === control.references.START) {
         control.updateTimeReference(control.references.END);
       }
 
       const now = await control.getDateNow();
 
-      await control.updateStartAndEnd(now, true);
+      await control.updateStartAndEnd(now);
 
       chartUtils.updateTimeAxis(
         control.chart(),
@@ -75,15 +78,14 @@ const handlers = (function () {
    * other words, it regresses the time window size into the past.
    **/
   async function backTimeWindow(button) {
-    if (!control.autoEnabled()) {
+    if (!control.isAutoUpdateEnabled()) {
       let date = control.start();
       if (control.reference() === control.references.END) {
         date = control.end();
       }
 
       await control.updateStartAndEnd(
-        new Date(date.getTime() - chartUtils.timeAxisPreferences[control.windowTime()].milliseconds),
-        true
+        new Date(date.getTime() - chartUtils.timeAxisPreferences[control.windowTime()].milliseconds)
       );
 
       chartUtils.updateTimeAxis(
@@ -103,15 +105,14 @@ const handlers = (function () {
    * Sets control.start () to control.end () and redraws all plots.
    **/
   async function forwTimeWindow(button) {
-    if (!control.autoEnabled()) {
+    if (!control.isAutoUpdateEnabled()) {
       let date = control.start();
       if (control.reference() === control.references.END) {
         date = control.end();
       }
 
       await control.updateStartAndEnd(
-        new Date(date.getTime() + chartUtils.timeAxisPreferences[control.windowTime()].milliseconds),
-        true
+        new Date(date.getTime() + chartUtils.timeAxisPreferences[control.windowTime()].milliseconds)
       );
 
       chartUtils.updateTimeAxis(
@@ -125,107 +126,19 @@ const handlers = (function () {
       control.updateAllPlots(true);
       control.updateURL();
 
-      ui.disableLoading();
+      control.disableLoading();
     }
-  }
-
-  async function handleGetValidPVs(pvList) {
-    const validPVs = [];
-    const promisses = pvList.map((x) => {
-      return archInterface.fetchMetadata(x);
-    });
-    await Promise.allSettled(promisses)
-      .then((results) => {
-        results.forEach((result) => {
-          if (!result) {
-            console.log(result);
-            return;
-          }
-          if (result.status !== "fulfilled") {
-            console.log("Promisse not fulfilled", result);
-            return;
-          }
-          try {
-            const data = result.value;
-            if (data == null) {
-              return;
-            }
-            if (data.paused !== "false") {
-              console.log("PV", data.pvName, "is paused.");
-              return;
-            }
-            if (data.scalar !== "true") {
-              console.log("PV", data.pvName, " is not a scalar value.");
-              return;
-            }
-            validPVs.push(data);
-          } catch (error) {
-            console.log("Failed to get metadata", error, result);
-          }
-        });
-      })
-      .finally(function () {
-        console.log("Valid PVs: ", validPVs.length);
-      });
-    return validPVs;
-  }
-
-  async function handleQuerySuccessRetrieval(data) {
-    const validPVs = [];
-
-    await handleGetValidPVs(data).then((pvs) => pvs.forEach((pv) => validPVs.push(pv)));
-
-    updateSearchResults(validPVs);
   }
 
   async function queryPVsRetrieval(e, val) {
-    if (e.which !== KEY_ENTER) return;
-
-    ui.enableLoading();
-    await archInterface
-      .query(val)
-      .then(async (data) => await handleQuerySuccessRetrieval(data))
-      .then(() => displaySearchResults())
-      .catch((e) => {
-        ui.toggleSearchWarning(`Failed to search PVs using ${val}`);
-        console.error(`Failed to search PVs using ${val}`, e);
-      })
-      .finally((e) => ui.disableLoading());
+    if (e.which !== KEY_ENTER) {
+      return;
+    }
+    QueryPVs(val);
   }
 
-  const handleFetchDataError = (xmlHttpRequest, textStatus, errorThrown) => {
-    ui.toggleSearchWarning("Connection failed with " + xmlHttpRequest + " -- " + textStatus + " -- " + errorThrown);
-  };
-
-  /**
-   * Event handler which is called when the user clicks over a PV to append it
-   **/
-  const appendPVHandler = function (e) {
-    const pv = e.target.innerText;
-    const pvIndex = control.getPlotIndex(pv);
-
-    if (pvIndex == null) {
-      control.appendPV(pv);
-    } else {
-      control.updatePlot(pvIndex);
-    }
-
-    control.chart().update(0, false);
-    ui.hideSearchedPVs();
-  };
-
   const plotSelectedPVs = (pvs) => {
-    //@todo: Add the possiblity to plot optimized PVs
-    pvs.forEach((pv) => {
-      const pvIndex = control.getPlotIndex(pv);
-      if (pvIndex === null) {
-        control.appendPV(pv);
-      } else {
-        control.updatePlot(pvIndex);
-      }
-    });
-    control.chart().update(0, false);
-    control.updateOptimizedWarning();
+    PlotPVs.plot(pvs);
   };
 
   /** ***** Scrolling function *******/
@@ -234,7 +147,7 @@ const handlers = (function () {
    **/
   const scrollChart = function (evt) {
     if (control.scrollingEnabled()) {
-      ui.enableLoading();
+      //     control.enableLoading();
       control.disableScrolling();
       const windowTimeNew =
         evt.deltaY > 0
@@ -243,15 +156,13 @@ const handlers = (function () {
       if (windowTimeNew !== control.windowTime()) {
         control.updateTimeWindow(windowTimeNew);
       }
-      ui.disableLoading();
+      //   control.disableLoading();
       control.enableScrolling();
     }
   };
 
   async function singleTipHandler(e) {
     control.toggleSingleTip();
-    document.cookie = "singleTip=" + control.singleTipEnabled() + "; SameSite=Strict"; // Concatenation necessary to fix issues with the web VPN
-    chartUtils.toggleTooltipBehavior(control.chart(), control.singleTipEnabled());
     return control.singleTipEnabled();
   }
 
@@ -362,35 +273,8 @@ const handlers = (function () {
   /**
    * Enables or disables plot auto refreshing.
    **/
-  async function autoRefreshingHandler(e) {
-    if (control.autoEnabled()) {
-      clearInterval(control.timer());
-    } else {
-      control.startTimer(
-        setInterval(async function () {
-          if (control.reference() === control.references.START) {
-            control.updateTimeReference(control.references.END);
-          }
-
-          const now = await control.getDateNow();
-
-          await control.updateStartAndEnd(now, true, true);
-
-          chartUtils.updateTimeAxis(
-            control.chart(),
-            chartUtils.timeAxisPreferences[control.windowTime()].unit,
-            chartUtils.timeAxisPreferences[control.windowTime()].unitStepSize,
-            control.start(),
-            control.end()
-          );
-
-          control.updateURL();
-          await control.updateAllPlots(false);
-        }, REFRESH_INTERVAL * 1000)
-      );
-    }
-
-    control.toggleAuto();
+  async function autoUpdateHandler(e) {
+    control.toggleAutoUpdate();
   }
 
   /** ***** Dragging and zoom functions *******/
@@ -399,7 +283,7 @@ const handlers = (function () {
    * Adjusts the global variables to perform a zoom in the chart.
    **/
   const zoomClickHandler = function (event) {
-    if (!control.autoEnabled()) {
+    if (!control.isAutoUpdateEnabled()) {
       if (control.zoomFlags().isZooming) {
         control.disableZoom();
       } else {
@@ -408,150 +292,78 @@ const handlers = (function () {
     }
   };
 
-  /**
-   * Shows or erases data table below the chart
-   **/
-  const toggleTable = function (evt) {
-    if (this.checked) {
-      ui.updateDataTable(control.chart().data.datasets, control.start(), control.end());
-      ui.showTable();
-    } else {
-      ui.resetTable();
-    }
-  };
-
-  function s2ab(s) {
-    if (typeof ArrayBuffer !== "undefined") {
-      const buf = new ArrayBuffer(s.length);
-      const view = new Uint8Array(buf);
-      for (let i = 0; i !== s.length; ++i) {
-        view[i] = s.charCodeAt(i) & 0xff;
-      }
-      return buf;
-    } else {
-      const buf = new Array(s.length);
-      for (let i = 0; i !== s.length; ++i) {
-        buf[i] = s.charCodeAt(i) & 0xff;
-      }
-      return buf;
-    }
-  }
-
-  const exportAs = function (t) {
-    if (control.autoEnabled()) {
-      return undefined;
-    }
-
-    const book = XLSXutils.book_new();
-
-    const sheetInfo = [];
-    for (let i = 0; i < control.chart().data.datasets.length; i++) {
-      const dataset = control.chart().data.datasets[i];
-      const pvName = dataset.label;
-      const metadata = dataset.pv.metadata;
-
-      const dataArray = control.chart().data.datasets[i].data.map(function (data) {
-        return {
-          x: data.x.toLocaleString("br-BR") + "." + data.x.getMilliseconds(),
-          y: data.y,
-        };
-      });
-
-      let sheetName = pvName.replace(new RegExp(":", "g"), "_");
-      if (sheetName.length > 31) {
-        sheetName = (i + 1).toString();
-      }
-      sheetInfo.push({
-        "Sheet Name": sheetName,
-        "PV Name": pvName,
-        ...metadata,
-      });
-      XLSXutils.book_append_sheet(book, XLSXutils.json_to_sheet(dataArray), sheetName);
-    }
-
-    // Sheet containing PV information.
-    XLSXutils.book_append_sheet(book, XLSXutils.json_to_sheet(sheetInfo), "Sheet Info");
-
-    const wbout = XLSXwrite(book, { bookType: t, type: "binary" });
-    try {
-      FileSaverSaveAs(new Blob([s2ab(wbout)], { type: "application/octet-stream" }), "export." + t);
-    } catch (e) {
-      if (typeof console != "undefined") {
-        console.log(e, wbout);
-      }
-    }
-
-    return wbout;
-  };
-
   async function undoHandler() {
-    if (control.undoStack().length > 0 && !control.autoEnabled()) {
+    if (control.undoStack().length > 0 && !control.isAutoUpdateEnabled()) {
       const undo = control.undoStack().pop();
 
       switch (undo.action) {
-        case control.stackActions.REMOVE_PV:
-          control.redoStack().push({ action: control.stackActions.REMOVE_PV, pv: undo.pv });
+        case StackAction.REMOVE_PV:
+          control.redoStack().push({ action: StackAction.REMOVE_PV, pv: undo.pv });
           control.appendPV(undo.pv, undo.optimized, true);
           break;
 
-        case control.stackActions.APPEND_PV: {
+        case StackAction.APPEND_PV: {
           const index = control.getPlotIndex(undo.pv);
 
           control.redoStack().push({
-            action: control.stackActions.APPEND_PV,
+            action: StackAction.APPEND_PV,
             pv: undo.pv,
             optimized: control.chart().data.datasets[index].pv.optimized,
           });
           control.removeDataset(index, true);
           break;
         }
-        case control.stackActions.CHANGE_WINDOW_TIME:
+
+        case StackAction.CHANGE_WINDOW_TIME: {
           control.redoStack().push({
-            action: control.stackActions.CHANGE_WINDOW_TIME,
+            action: StackAction.CHANGE_WINDOW_TIME,
             window: control.windowTime(),
           });
           control.updateTimeWindow(undo.window);
           break;
+        }
 
-        case control.stackActions.CHANGE_END_TIME:
+        case StackAction.CHANGE_END_TIME: {
           control.redoStack().push({
-            action: control.stackActions.CHANGE_END_TIME,
+            action: StackAction.CHANGE_END_TIME,
             endTime: control.end(),
           });
 
           control.updateTimeReference(control.references.END);
 
-          await control.updateStartAndEnd(undo.endTime, true, true);
+          await control.updateStartAndEnd(undo.endTime, true);
 
           // does not change the time window, only updates all plots
           control.updateTimeWindow(control.windowTime());
 
           break;
+        }
 
-        case control.stackActions.CHANGE_START_TIME:
+        case StackAction.CHANGE_START_TIME: {
           control.redoStack().push({
-            action: control.stackActions.CHANGE_START_TIME,
+            action: StackAction.CHANGE_START_TIME,
             startTime: control.start(),
           });
 
           control.updateTimeReference(control.references.START);
 
-          await control.updateStartAndEnd(undo.startTime, true, true);
+          await control.updateStartAndEnd(undo.startTime, true);
 
           // does not change the time window, only updates all plots
           control.updateTimeWindow(control.windowTime());
 
           break;
+        }
 
-        case control.stackActions.ZOOM:
+        case StackAction.ZOOM:
           control.redoStack().push({
-            action: control.stackActions.ZOOM,
+            action: StackAction.ZOOM,
             startTime: control.start(),
             endTime: control.end(),
             windowTime: control.windowTime(),
           });
 
-          await control.updateStartAndEnd(undo.endTime, true, true);
+          await control.updateStartAndEnd(undo.endTime, true);
 
           control.updateTimeWindow(undo.windowTime);
 
@@ -565,28 +377,28 @@ const handlers = (function () {
   }
 
   async function redoHandler() {
-    if (control.redoStack().length > 0 && !control.autoEnabled()) {
+    if (control.redoStack().length > 0 && !control.isAutoUpdateEnabled()) {
       const redo = control.redoStack().pop();
 
       switch (redo.action) {
-        case control.stackActions.REMOVE_PV:
+        case StackAction.REMOVE_PV:
           control.removeDataset(control.getPlotIndex(redo.pv));
           break;
 
-        case control.stackActions.APPEND_PV:
+        case StackAction.APPEND_PV:
           control.appendPV(redo.pv, redo.optimized);
           break;
 
-        case control.stackActions.CHANGE_WINDOW_TIME:
+        case StackAction.CHANGE_WINDOW_TIME:
           control.updateTimeWindow(redo.window);
           break;
 
-        case control.stackActions.CHANGE_START_TIME:
-          ui.enableLoading();
+        case StackAction.CHANGE_START_TIME:
+          control.enableLoading();
 
           control.updateTimeReference(control.references.START);
 
-          await control.updateStartAndEnd(redo.startTime, true);
+          await control.updateStartAndEnd(redo.startTime);
           control.updateAllPlots(true);
           control.updateURL();
 
@@ -600,12 +412,12 @@ const handlers = (function () {
 
           control.chart().update(0, false);
 
-          ui.disableLoading();
+          control.disableLoading();
 
           break;
 
-        case control.stackActions.CHANGE_END_TIME:
-          ui.enableLoading();
+        case StackAction.CHANGE_END_TIME:
+          control.enableLoading();
 
           control.updateTimeReference(control.references.END);
 
@@ -623,11 +435,11 @@ const handlers = (function () {
 
           control.chart().update(0, false);
 
-          ui.disableLoading();
+          control.disableLoading();
 
           break;
 
-        case control.stackActions.ZOOM:
+        case StackAction.ZOOM:
           // ui.toggleWindowButton (undefined, control.windowTime ());
 
           // Updates the chart attributes
@@ -667,7 +479,6 @@ const handlers = (function () {
   };
 
   return {
-    handleFetchDataError: handleFetchDataError,
     bodyCallback: bodyCallback,
     tooltipColorHandler: tooltipColorHandler,
 
@@ -677,15 +488,13 @@ const handlers = (function () {
     backTimeWindow: backTimeWindow,
     forwTimeWindow: forwTimeWindow,
     queryPVsRetrieval: queryPVsRetrieval,
-    appendPVHandler: appendPVHandler,
     plotSelectedPVs: plotSelectedPVs,
     scrollChart: scrollChart,
-    autoRefreshingHandler: autoRefreshingHandler,
+    autoUpdateHandler: autoUpdateHandler,
     singleTipHandler: singleTipHandler,
 
     zoomClickHandler: zoomClickHandler,
 
-    toggleTable: toggleTable,
     exportAs: exportAs,
     undoHandler: undoHandler,
     redoHandler: redoHandler,

@@ -1,5 +1,3 @@
-export const TIME_AXIS_ID = "x-axis-0";
-export const TIME_AXIS_INDEX = 0;
 export const TIME_IDS = {
   YEAR: 0,
   MONTH_9: 1,
@@ -71,7 +69,7 @@ export const TIME_AXIS_PREFERENCES = [
     milliseconds: 30 * 24 * 3600 * 1000,
     optimized: true,
     bins: 800,
-    id: TIME_IDS.MONTH,
+    id: TIME_IDS.MONTH_1,
   },
   {
     // 2 weeks
