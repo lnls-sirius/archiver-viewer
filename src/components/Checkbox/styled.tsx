@@ -32,9 +32,9 @@ interface ChecboxProps {
 export const CheckboxBox = styled.div<ChecboxProps>`
   display: inline-block;
   min-width: 16px;
-  min-width: 16px;
+  min-height: 16px;
   height: 16px;
-  height: 16px;
+  width: 16px;
   background: ${({ checked }) => (checked ? "blue" : "papayawhip")};
   border-radius: 3px;
   transition: all 150ms;
