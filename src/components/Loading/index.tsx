@@ -4,7 +4,7 @@ import { RootState } from "../../reducers";
 import * as S from "./styled";
 
 const Loading: React.FC = () => {
-  const visible = useSelector(({ chart: { loading } }: RootState) => loading);
+  const visible = useSelector(({ requests: { pending } }: RootState) => pending > 0);
 
   return (
     <S.LoadingWrapper $visible={visible}>
