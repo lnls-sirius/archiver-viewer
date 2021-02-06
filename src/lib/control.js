@@ -225,8 +225,6 @@ async function updateTimeWindow(window) {
     start,
     end
   );
-
-  //disableLoading();
 }
 
 async function getPVMetadata(pv) {
@@ -480,6 +478,18 @@ async function updatePlot(datasetIndex) {
   const first = dataset.data[0].x;
   const last = dataset.data[dataset.data.length - 1].x;
 
+  const trimDatasetStart = () => {
+    while (dataset.data.length > 0 && dataset.data[0].x.getTime() < start.getTime()) {
+      dataset.data.shift();
+    }
+  };
+
+  const trimDatasetEnd = () => {
+    for (let i = dataset.data.length - 1; dataset.data.length > 0 && dataset.data[i].x.getTime() > end.getTime(); i--) {
+      dataset.data.pop();
+    }
+  };
+
   // we need to append data to the beginning of the data set
   const isFistPointAfterTheStart = first.getTime() > start.getTime();
   if (isFistPointAfterTheStart) {
@@ -497,17 +507,6 @@ async function updatePlot(datasetIndex) {
     trimDatasetEnd();
   }
 
-  const trimDatasetEnd = () => {
-    for (let i = dataset.data.length - 1; dataset.data.length > 0 && dataset.data[i].x.getTime() > end.getTime(); i--) {
-      dataset.data.pop();
-    }
-  };
-
-  const trimDatasetStart = () => {
-    while (dataset.data.length > 0 && dataset.data[0].x.getTime() < start.getTime()) {
-      dataset.data.shift();
-    }
-  };
   await improveData(dataset.data);
 }
 
