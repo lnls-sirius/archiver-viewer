@@ -58,6 +58,8 @@ export const TableHeader = styled.th`
   margin-bottom: 5px;
   position: sticky;
   top: 0;
+  padding: 5px;
+  color: white;
 `;
 
 export const TableHead = styled.thead``;

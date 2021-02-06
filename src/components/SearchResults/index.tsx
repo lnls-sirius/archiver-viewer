@@ -77,7 +77,7 @@ const SearchResults: React.FC = () => {
           <S.TableWrapper>
             <S.Table>
               <S.TableHead>
-                <S.TableRow style={{ height: "1.2rem" }}>
+                <S.TableRow>
                   <S.TableHeader>n</S.TableHeader>
                   <S.TableHeader>Select</S.TableHeader>
                   <S.TableHeader>Name</S.TableHeader>
