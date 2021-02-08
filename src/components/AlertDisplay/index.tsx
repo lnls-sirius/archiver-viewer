@@ -28,26 +28,6 @@ class AlertDisplay extends React.Component<AlertProps, AlertStates> {
     this.state = { visible: true };
   }
 
-  /*
-  componentDidUpdate() {
-    const { entries } = this.props;
-    if (entries.length > 0) {
-      const lastID = entries[entries.length - 1].id;
-      if (lastID !== this.lastEntryID) {
-        this.lastEntryID = lastID;
-        this.setState({ visible: true }, () => {
-          if (this.displayTimer) {
-            clearTimeout(this.displayTimer);
-          }
-          setTimeout(() => {
-            console.log("Setting state visible false");
-            this.setState({ visible: false });
-          }, 5000);
-        });
-      }
-    }
-  }*/
-
   renderAlerts = (): JSX.Element[] => {
     const { entries } = this.props;
     const alerts: JSX.Element[] = [];
@@ -64,15 +44,7 @@ class AlertDisplay extends React.Component<AlertProps, AlertStates> {
 
   render() {
     const { visible } = this.state;
-    return (
-      <S.Wrapper $display={visible}>
-        {this.renderAlerts()}
-        <Alert level={MessageLevel.debug} title={"TEST"} message={"ttttttt!"} />
-        <Alert level={MessageLevel.info} title={"TEST"} message={"ttttttt!"} />
-        <Alert level={MessageLevel.warn} title={"TEST"} message={"ttttttt!"} />
-        <Alert level={MessageLevel.error} title={"TEST"} message={"ttttttt!"} />
-      </S.Wrapper>
-    );
+    return <S.Wrapper $display={visible}>{this.renderAlerts()}</S.Wrapper>;
   }
 }
 export default connect(mapStateToProps, null)(AlertDisplay);
