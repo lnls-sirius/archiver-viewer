@@ -30,7 +30,7 @@ const statusSlice = createSlice({
     addEntry: {
       reducer(state, action: PayloadAction<Entry>) {
         if (state.entries.length > MAX_HISTORY_LENGTH) {
-          state.entries = state.entries.splice(0, 1);
+          state.entries = state.entries.slice(1);
         } else {
           state.entries.push(action.payload);
         }
