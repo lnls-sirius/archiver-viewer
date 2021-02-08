@@ -7,10 +7,11 @@ interface AlertProps {
   level: MessageLevel;
   message: string;
   title: string;
+  extra: string;
 }
 
-const LIFETIME = 8000;
-const Alert: React.FC<AlertProps> = ({ level, message, title }) => {
+const LIFETIME = 3000;
+const Alert: React.FC<AlertProps> = ({ level, message, title, extra }) => {
   const [opacity, setOpacity] = useState(0);
   const [visible, setVisible] = useState(true);
   useEffect(() => {
@@ -25,7 +26,9 @@ const Alert: React.FC<AlertProps> = ({ level, message, title }) => {
 
   return visible ? (
     <S.Wrapper level={level} opacity={opacity}>
-      <S.Title>{title}</S.Title>
+      <S.Title>
+        {title} <S.Extra>{extra}</S.Extra>
+      </S.Title>
       <S.Message>{message}</S.Message>
     </S.Wrapper>
   ) : null;
