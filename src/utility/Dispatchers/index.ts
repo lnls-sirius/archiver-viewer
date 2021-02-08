@@ -1,3 +1,4 @@
 import RequestsDispatcher from "./Requests";
+import StatusDispatcher from "./Status";
 
-export { RequestsDispatcher };
+export { RequestsDispatcher, StatusDispatcher };

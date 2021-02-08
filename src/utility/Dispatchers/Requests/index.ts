@@ -1,5 +1,5 @@
-import RequestsDispatcherImpl from "./EventDispatcherImpl";
-import RequestsDispatcher from "./RequestsDispatcher";
+import RequestsDispatcherImpl from "./impl";
+import RequestsDispatcher from "./interface";
 
 const eventDispatch: RequestsDispatcher = new RequestsDispatcherImpl();
 export default eventDispatch;
