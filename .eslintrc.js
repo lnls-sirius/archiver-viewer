@@ -183,6 +183,12 @@ module.exports = {
         "@typescript-eslint/semi": ["error"],
       },
     },
+    {
+      files: ["**/*.tsx"],
+      rules: {
+        "react/prop-types": "off",
+      },
+    },
   ],
   globals: {
     $: false,
