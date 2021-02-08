@@ -2,11 +2,12 @@ import PlotPVs from "./interface";
 import control from "../../lib/control";
 import archInterface from "../../data-access";
 import chartUtils from "../../utility/chartUtils";
-import { RequestsDispatcher } from "../../utility/Dispatchers";
+import { RequestsDispatcher, StatusDispatcher } from "../../utility/Dispatchers";
+import Chart from "chart.js";
 
 class PlotPVsImpl implements PlotPVs {
   private update(): void {
-    control.chart().update(0, false);
+    (control.chart() as Chart).update({ duration: 0, easing: "linear", lazy: false });
     control.updateOptimizedWarning();
   }
 
@@ -51,7 +52,7 @@ class PlotPVsImpl implements PlotPVs {
       .catch((e) => {
         const msg = `Failure ${e}`;
         console.error(msg);
-        RequestsDispatcher.Error(msg);
+        StatusDispatcher.Error("Append PV: Fetch data", msg);
       })
       .finally(() => {
         RequestsDispatcher.DecrementActiveRequests();
@@ -61,22 +62,22 @@ class PlotPVsImpl implements PlotPVs {
     control.updateURL();
   }
 
-  plotPV(pv: string, optimize?: boolean, update?: boolean): void {
+  plotPV(pv: string, optimize?: boolean, updateChart?: boolean): void {
     const pvIndex = control.getPlotIndex(pv);
     const shouldUpdateExistingPV = pvIndex !== null;
 
     if (shouldUpdateExistingPV) {
       control.updatePlot(pvIndex);
     } else {
-      this.appendPV(pv);
+      this.appendPV(pv, optimize);
     }
-    if (update === true) {
+    if (updateChart === true) {
       this.update();
     }
   }
 
-  plot(pvs: string[]): void {
-    pvs.forEach((pv: string) => this.plotPV(pv));
+  plot(pvs: string[], optimize?: boolean): void {
+    pvs.forEach((pv: string) => this.plotPV(pv, optimize));
     this.update();
   }
 }

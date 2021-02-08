@@ -1,6 +1,6 @@
 import QueryPVsInterface from "./interface";
 import archInterface from "../../data-access";
-import { RequestsDispatcher } from "../../utility/Dispatchers";
+import { RequestsDispatcher, StatusDispatcher } from "../../utility/Dispatchers";
 import { actions } from "../../features/search";
 import store from "../../store";
 
@@ -78,9 +78,9 @@ const QueryPVsImpl: QueryPVsInterface = async (search: string): Promise<void> =>
       store.dispatch(actions.setSearchResultsVisible(true));
     })
     .catch((e) => {
-      const msg = `Failed to search PVs using ${search}`;
+      const msg = `Failed to search PVs using ${search} ${e}`;
       console.error(`Failed to search PVs using ${search}`, e);
-      RequestsDispatcher.Error(msg, e);
+      StatusDispatcher.Error("Query PV: PV validation", msg);
     });
 
   RequestsDispatcher.DecrementActiveRequests();

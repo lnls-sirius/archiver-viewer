@@ -1,5 +1,5 @@
 interface PlotPVs {
-  plot(pvs: string[]): void;
-  plotPV(pv: string, update?: boolean): void;
+  plot(pvs: string[], optimize?: boolean): void;
+  plotPV(pv: string, optimize?: boolean, updateChart?: boolean): void;
 }
 export default PlotPVs;
