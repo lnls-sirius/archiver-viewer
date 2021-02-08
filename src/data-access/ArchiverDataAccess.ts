@@ -24,19 +24,12 @@ export class ArchiverDataAccess implements DataAccess {
   }
 
   async getRemoteDate(): Promise<Date> {
-    const dateString: string | null = await axios
-      .get(`${this.BYPASS_URL}/date`, { timeout: 2000 })
-      .then((res) => {
-        if (res.status === 200) {
-          return res.data;
-        }
-        throw `Invalid response from date backend ${res.status}, ${res.data}`;
-      })
-      .catch((e) => {
-        console.warn(`Failed to get date from remote server ${e}`);
-        return null;
-      });
-
+    const dateString: string | null = await axios.get(`${this.BYPASS_URL}/date`, { timeout: 2000 }).then((res) => {
+      if (res.status === 200) {
+        return res.data;
+      }
+      throw `Invalid response from date backend ${res.status}, ${res.data}`;
+    });
     if (dateString) {
       return new Date(dateString);
     }
