@@ -1,4 +1,4 @@
-import Browser from "../Browser";
+import Browser from "../../utility/Browser";
 import control from "../../entities/Chart/Chart";
 import PlotPVs from "../../use-cases/PlotPVs";
 import chartUtils from "../../utility/chartUtils";

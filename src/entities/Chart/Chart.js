@@ -3,7 +3,10 @@
 import archInterface from "../../data-access";
 import chartUtils, { getDatasetIndex, hideDatasetByLabel, findAxisIndexById } from "../../utility/chartUtils";
 import { StatusDispatcher } from "../../utility/Dispatchers";
-
+import { StackAction as STACK_ACTIONS } from "../../controllers/ActionsStack/ActionsStackConstants";
+import Browser from "../../utility/Browser";
+import makeAutoUpdate from "./AutoUpdate";
+import store from "../../store";
 import {
   setDatasetOptimized,
   setSingleTooltip,
@@ -16,13 +19,6 @@ import {
   removeDataset as storeRemoveDataset,
 } from "../../features/chart/sliceChart";
 
-import store from "../../store";
-
-import { StackAction as STACK_ACTIONS } from "../../controllers/ActionsStack/ActionsStackConstants";
-import makeAutoUpdate from "./AutoUpdate";
-
-import Browser from "../../controllers/Browser";
-import { RequestsDispatcher } from "../../utility/Dispatchers";
 const REFERENCE = {
   START: false,
   END: true,
@@ -276,7 +272,7 @@ async function appendPV(pv, optimized, undo) {
     .catch((e) => {
       const msg = `Failure ${e}`;
       console.error(msg);
-      RequestsDispatcher.Error(msg);
+      StatusDispatcher.Error("Append PV", msg);
     });
   disableLoading();
   // -------------
@@ -542,7 +538,7 @@ async function fillDataFromLastToEnd(dataset, last) {
     .catch((e) => {
       const msg = `Failed to fill data from ${pvName} [${last} to ${end}], error ${e}`;
       console.error(msg);
-      RequestsDispatcher.Error(msg);
+      StatusDispatcher.Error("Fetch data", msg);
     });
 }
 
@@ -570,7 +566,7 @@ async function fillDataFromStartFirst(dataset, first) {
     .catch((e) => {
       const msg = `Failed to fill data from ${pvName} [${start} to ${first}], error ${e}`;
       console.error(msg);
-      RequestsDispatcher.Error(msg);
+      StatusDispatcher.Error("Fill data", msg);
     });
 }
 
