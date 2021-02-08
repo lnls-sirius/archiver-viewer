@@ -2,7 +2,6 @@
 import React from "react";
 import ReactDOM from "react-dom";
 
-import "jquery-browserify";
 import "chart.js";
 
 import "./css/reset.css";
