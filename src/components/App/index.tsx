@@ -8,12 +8,13 @@ import Loading from "../Loading";
 import Entries from "../Entries";
 import Series from "../Series";
 import SearchResults from "../SearchResults";
-
+import AlertDisplay from "../AlertDisplay";
 import * as S from "./styled";
 
 const App: React.FC = () => {
   return (
     <S.AppLayout>
+      <AlertDisplay />
       <S.HeaderWrapper>
         <Logo />
         <Intervals />
