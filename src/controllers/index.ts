@@ -1,4 +1,4 @@
-import ChartController from "../lib/control";
+import ChartController from "../entities/Chart/Chart";
 
 const chartController = ChartController;
 

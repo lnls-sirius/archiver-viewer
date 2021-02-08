@@ -14,7 +14,6 @@ import * as S from "./styled";
 const App: React.FC = () => {
   return (
     <S.AppLayout>
-      <AlertDisplay />
       <S.HeaderWrapper>
         <Logo />
         <Intervals />
@@ -22,6 +21,7 @@ const App: React.FC = () => {
       </S.HeaderWrapper>
       <SearchResults />
       <LineChart />
+      <AlertDisplay />
       <S.FooterWrapper>
         <Loading />
         <Entries />

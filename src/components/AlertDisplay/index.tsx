@@ -21,7 +21,7 @@ interface AlertStates {
 class AlertDisplay extends React.Component<AlertProps, AlertStates> {
   private displayTimer: any = null;
   private lastEntryID: number = null;
-  private MAX_ALERTS = 10;
+  private MAX_ALERTS = 1;
 
   constructor(props: AlertProps | Readonly<AlertProps>) {
     super(props);

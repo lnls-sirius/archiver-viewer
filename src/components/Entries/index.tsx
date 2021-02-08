@@ -2,7 +2,7 @@ import React from "react";
 import * as S from "./styled";
 import { useSelector } from "react-redux";
 import Checkbox from "../Checkbox";
-import { hideDataset, optimizeDataset, removeDatasetByLabel } from "../../lib/control";
+import { hideDataset, optimizeDataset, removeDatasetByLabel } from "../../entities/Chart/Chart";
 import { RootState } from "../../reducers";
 
 const Entries: React.FC = () => {

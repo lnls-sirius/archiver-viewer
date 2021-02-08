@@ -1,5 +1,5 @@
 import Browser from "../Browser";
-import control from "../../lib/control";
+import control from "../../entities/Chart/Chart";
 import PlotPVs from "../../use-cases/PlotPVs";
 import chartUtils from "../../utility/chartUtils";
 

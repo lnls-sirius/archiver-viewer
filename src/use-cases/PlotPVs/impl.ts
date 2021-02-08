@@ -1,5 +1,5 @@
 import PlotPVs from "./interface";
-import control from "../../lib/control";
+import control from "../../entities/Chart/Chart";
 import archInterface from "../../data-access";
 import chartUtils from "../../utility/chartUtils";
 import { RequestsDispatcher, StatusDispatcher } from "../../utility/Dispatchers";

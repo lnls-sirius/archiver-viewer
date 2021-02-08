@@ -1,5 +1,5 @@
 import chartUtils from "../utility/chartUtils";
-import control from "./control.js";
+import control from "../entities/Chart/Chart.js";
 
 import { StackAction } from "../controllers/ActionsStack/ActionsStackConstants";
 import QueryPVs from "../use-cases/QueryPVs";
@@ -50,7 +50,7 @@ const handlers = (function () {
   /**
    * Updates control.end () to the present instant and redraws all plots
    **/
-  async function updateEndNow(button) {
+  async function updateEndNow() {
     if (!control.isAutoUpdateEnabled()) {
       if (control.reference() === control.references.START) {
         control.updateTimeReference(control.references.END);
@@ -440,8 +440,6 @@ const handlers = (function () {
           break;
 
         case StackAction.ZOOM:
-          // ui.toggleWindowButton (undefined, control.windowTime ());
-
           // Updates the chart attributes
           control.updateStartTime(redo.startTime);
           control.updateEndTime(redo.endTime);

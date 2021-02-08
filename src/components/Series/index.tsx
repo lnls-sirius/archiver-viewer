@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import Checkbox from "../Checkbox";
 
-import { toggleAxisType } from "../../lib/control";
+import { toggleAxisType } from "../../entities/Chart/Chart";
 import { setAxisYLimitManual, setAxisYLimitMax, setAxisYLimitMin } from "../../features/chart/sliceChart";
 
 import * as S from "./styled";
