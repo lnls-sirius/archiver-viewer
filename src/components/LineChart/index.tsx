@@ -12,6 +12,7 @@ import { StackAction } from "../../controllers/ActionsStack/ActionsStackConstant
 import { options } from "./config";
 import { initialState, getAverageDateFromEvent, LineChartProps, LineChartStates } from "./contents";
 import { RootState } from "../../reducers";
+import UrlLoader from "../../controllers/UrlLoader";
 
 const mapStateToProps = (state: RootState) => {
   const { autoScroll, zooming, singleTooltip } = state.chart;
@@ -39,6 +40,7 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
   componentDidMount() {
     this.chart = new Chart(this.chartDOMRef.current, { type: "line", options });
     control.init(this.chart);
+    UrlLoader.load();
   }
 
   handleScrollChart = (e: React.WheelEvent<HTMLCanvasElement>) => {
