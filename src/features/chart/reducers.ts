@@ -98,11 +98,14 @@ export function setDatasetVisible(state: ChartState, action: any): void {
   const { index, visible } = action.payload;
   state.datasets[index].visible = visible;
 }
-export function setDatasetOptimized(state: ChartState, action: any): void {
+export function setDatasetOptimized(
+  state: ChartState,
+  action: PayloadAction<{ index: number; optimized: boolean }>
+): void {
   const { index, optimized } = action.payload;
   state.datasets[index].pv.optimized = optimized;
 }
-export function removeDataset(state: ChartState, action: any): void {
+export function removeDataset(state: ChartState, action: PayloadAction<{ idx: number; removeAxis: any }>): void {
   const { idx, removeAxis } = action.payload;
   state.datasets.splice(idx, 1);
 
@@ -122,9 +125,6 @@ export function removeDataset(state: ChartState, action: any): void {
 /** @todo: Remove from dataset (by pvName?)*/
 export function addActionToStack(state: ChartState, action: any): void {
   state.actionsStack.push(action.payload);
-}
-export function setLoading(state: ChartState, action: any): void {
-  state.loading = action.payload;
 }
 export function setWindowTime(state: ChartState, action: any): void {
   state.windowTime = action.payload;

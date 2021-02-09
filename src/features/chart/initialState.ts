@@ -4,7 +4,6 @@ export interface ChartState {
   autoScroll: boolean;
   dataAxis: any[]; // @todo: Transform into an object
   datasets: any[]; // @todo: Transform into an object
-  loading: boolean;
   singleTooltip: boolean;
   timeEnd: string;
   timeReferenceEnd: boolean;
@@ -18,7 +17,6 @@ const initialState: ChartState = {
   autoScroll: false,
   dataAxis: [], // @todo: Transform into an object
   datasets: [], // @todo: Transform into an object
-  loading: false,
   singleTooltip: true,
   timeEnd: null,
   timeReferenceEnd: true,

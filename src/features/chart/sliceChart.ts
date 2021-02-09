@@ -29,7 +29,6 @@ export const {
   setTimeReferenceEnd,
   setTimeStart,
   setWindowTime,
-  setZooming,
 } = chartSlice.actions;
 
 export const actions = chartSlice.actions;
