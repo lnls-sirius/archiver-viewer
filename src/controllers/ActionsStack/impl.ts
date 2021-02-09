@@ -1,9 +1,5 @@
-import ActionsStackInterface, {
-  StackRedoInterface,
-  StackUndoInterface,
-  ActionPayloadInterface,
-} from "./ActionsStackInterface";
-import { StackAction } from "./ActionsStackConstants";
+import ActionsStackInterface, { StackRedoInterface, StackUndoInterface, ActionPayloadInterface } from "./interface";
+import { StackAction } from "./constants";
 
 class ActionStackHandler implements ActionsStackInterface {
   private stack: ActionPayloadInterface[] = [];
