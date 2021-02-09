@@ -24,13 +24,13 @@ class UrlLoaderImpl implements UrlLoader {
     } else {
       await control.updateStartAndEnd(new Date());
     }
-    const windowTime: number = control.windowTime();
+    const windowTime: number = control.getWindowTime();
     chartUtils.updateTimeAxis(
-      control.chart(),
+      control.getChart(),
       chartUtils.timeAxisPreferences[windowTime].unit,
       chartUtils.timeAxisPreferences[windowTime].unitStepSize,
-      control.start(),
-      control.end()
+      control.getStart(),
+      control.getEnd()
     );
 
     for (let i = 0; i < pvs.length; i++) {
