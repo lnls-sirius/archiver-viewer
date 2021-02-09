@@ -2,7 +2,7 @@
 
 import archInterface from "../../data-access";
 import chartUtils, { hideDatasetByLabel, findAxisIndexById } from "../../utility/chartUtils";
-import { StatusDispatcher } from "../../utility/Dispatchers";
+import { RequestsDispatcher, StatusDispatcher } from "../../utility/Dispatchers";
 import { StackAction as STACK_ACTIONS } from "../../controllers/ActionsStack/constants";
 import Browser from "../../utility/Browser";
 import makeAutoUpdate from "./AutoUpdate";
@@ -411,6 +411,7 @@ class ChartImpl {
       return await this.updateEmptyDataset(datasetIndex, dataset);
     }
 
+    RequestsDispatcher.IncrementActiveRequests();
     // Gets the time of the first and last element of the dataset
     const first = (dataset.data[0] as any).x;
     const last = (dataset.data[dataset.data.length - 1] as any).x;
@@ -449,6 +450,7 @@ class ChartImpl {
     }
 
     this.improveData(dataset.data);
+    RequestsDispatcher.DecrementActiveRequests();
   }
 
   optimizeAllGraphs(): void {
