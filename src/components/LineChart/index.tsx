@@ -5,9 +5,9 @@ import { Chart } from "chart.js";
 import * as S from "./styled";
 
 import chartUtils from "../../utility/chartUtils";
-import handlers from "../../lib/handlers";
-import control from "../../controllers";
-import { StackAction } from "../../controllers/ActionsStack/ActionsStackConstants";
+import handlers from "../../controllers/handlers";
+import control, { REFERENCE } from "../../controllers";
+import { StackAction } from "../../controllers/ActionsStack/constants";
 
 import { options } from "./config";
 import { initialState, getAverageDateFromEvent, LineChartProps, LineChartStates } from "./contents";
@@ -44,7 +44,7 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
   }
 
   handleScrollChart = (e: React.WheelEvent<HTMLCanvasElement>) => {
-    handlers.scrollChart(e);
+    handlers.scrollChart(e.deltaY);
   };
 
   setZoomBoxInitialState = (evt: MouseEvent) => {
@@ -67,13 +67,13 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
 
   startDragging = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const evt = e.nativeEvent;
-    control.updateDragEndTime(control.end());
+    control.updateDragEndTime(control.getEnd());
 
     this.setState(
       {
         isDragging: true,
         dragOffsetX: evt.offsetX,
-        dragEndTime: control.end(),
+        dragEndTime: control.getEnd(),
       },
       () => this.setZoomBoxInitialState(evt)
     );
@@ -100,16 +100,20 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
     const evt = e.nativeEvent;
     const { dragOffsetX } = this.state;
     const offsetX = dragOffsetX - evt.offsetX;
-    let newDate = new Date(
-      control.end().getTime() +
-        (offsetX * chartUtils.timeAxisPreferences[control.windowTime()].milliseconds) / this.chart.width
-    );
+    const windowTime = control.getWindowTime();
 
-    if (control.reference() === control.references.START) {
-      newDate = new Date(
-        control.start().getTime() +
-          (offsetX * chartUtils.timeAxisPreferences[control.windowTime()].milliseconds) / this.chart.width
-      );
+    const ms = chartUtils.timeAxisPreferences[windowTime].milliseconds;
+
+    const endTime = control.getEnd();
+    const startTime = control.getStart();
+
+    const endTimeMs = endTime.getTime();
+    const startTimeMs = startTime.getTime();
+
+    let newDate = new Date(endTimeMs + (offsetX * ms) / this.chart.width);
+
+    if (control.getReference() === REFERENCE.START) {
+      newDate = new Date(startTimeMs + (offsetX * ms) / this.chart.width);
     }
     this.setState({ dragOffsetX: evt.offsetX });
 
@@ -117,10 +121,10 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
 
     chartUtils.updateTimeAxis(
       this.chart,
-      chartUtils.timeAxisPreferences[control.windowTime()].unit,
-      chartUtils.timeAxisPreferences[control.windowTime()].unitStepSize,
-      control.start(),
-      control.end()
+      chartUtils.timeAxisPreferences[windowTime].unit,
+      chartUtils.timeAxisPreferences[windowTime].unitStepSize,
+      startTime,
+      endTime
     );
 
     this.chart.update(this.updateProps);
@@ -154,11 +158,22 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
     control.updateURL();
     this.chart.update(this.updateProps);
 
-    control.undoStack().push({
+    control.undoStackPush({
       action: StackAction.CHANGE_END_TIME,
       endTime: dragEndTime,
     });
   };
+
+  // Chooses the x axis time scale
+  decreaseTimeWindowWhileTimeWindowIsLargerThanStartEndDelta(minWindowTime: number) {
+    let i = 0;
+    const startEndDeltaTimeMs = control.getEnd().getTime() - control.getStart().getTime();
+
+    while (startEndDeltaTimeMs < chartUtils.timeAxisPreferences[i].milliseconds && i < minWindowTime) {
+      i++;
+    }
+    control.updateTimeWindow(i);
+  }
 
   handleStopDragZoom = async (evt: MouseEvent) => {
     const zoomTime2 = getAverageDateFromEvent(this.chart, evt);
@@ -168,33 +183,23 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
         console.warn(`Invalid time range  ${zoomTime1} ${zoomTime2}`);
         return;
       }
-      control.undoStack().push({
+      control.undoStackPush({
         action: StackAction.ZOOM,
-        startTime: control.start(),
-        endTime: control.end(),
-        windowTime: control.windowTime(),
+        startTime: control.getStart(),
+        endTime: control.getEnd(),
+        windowTime: control.getWindowTime(),
       });
 
       // Checks which zoom times should be used as start time or end time
       if (zoomTime1 < zoomTime2) {
-        control.updateStartTime(zoomTime1);
-        control.updateEndTime(zoomTime2);
+        control.setStart(zoomTime1);
+        control.setEnd(zoomTime2);
       } else {
-        control.updateStartTime(zoomTime2);
-        control.updateEndTime(zoomTime1);
+        control.setStart(zoomTime2);
+        control.setEnd(zoomTime1);
       }
 
-      // Chooses the x axis time scale
-      let i = 0;
-      while (
-        control.end().getTime() - control.start().getTime() < chartUtils.timeAxisPreferences[i].milliseconds &&
-        i < chartUtils.timeIDs.SEG_30
-      ) {
-        i++;
-      }
-
-      control.updateTimeWindow(i);
-
+      this.decreaseTimeWindowWhileTimeWindowIsLargerThanStartEndDelta(chartUtils.timeIDs.SEG_30);
       control.updateOptimizedWarning();
       control.disableZoom();
     });

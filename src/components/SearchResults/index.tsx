@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from "react-redux";
 import * as S from "./styled";
 
 import Modal from "../Modal";
-import handlers from "../../lib/handlers";
+import handlers from "../../controllers/handlers";
 import SearchResult from "../SearchResult";
 import { actions as searchActions, SearchResult as SearchResultData } from "../../features/search";
 import { RootState } from "../../reducers";

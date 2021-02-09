@@ -2,11 +2,11 @@ import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import Checkbox from "../Checkbox";
 
-import { toggleAxisType } from "../../entities/Chart/Chart";
 import { setAxisYLimitManual, setAxisYLimitMax, setAxisYLimitMin } from "../../features/chart/sliceChart";
 
 import * as S from "./styled";
 import { RootState } from "../../reducers";
+import ChartController from "../../controllers/Chart";
 
 const KEY_ENTER = 13;
 const Series: React.FC = () => {
@@ -15,11 +15,11 @@ const Series: React.FC = () => {
   const [yMinState, setYMin] = useState("");
   const [yMaxState, setYMax] = useState("");
 
-  const handleYMin = (e: any, id: any) => {
+  const handleYMin = (e: any, _name: string) => {
     setYMin(e.target.value);
   };
 
-  const handleYMax = (e: any, id: any) => {
+  const handleYMax = (e: any, _name: string) => {
     setYMax(e.target.value);
   };
 
@@ -44,14 +44,18 @@ const Series: React.FC = () => {
       dispatch(setAxisYLimitMax({ id: id, yMax: val }));
     }
   };
-
   return (
     <S.SeriesWrapper>
-      {dataAxis.map(({ id, type, display, yMin, yMax, yLimitManual, isLog }) => {
+      {dataAxis.map(({ id, yMin, yMax, yLimitManual, isLog }) => {
         return (
           <S.SerieWrapper key={id}>
             Chart Series: <S.SerieName>{id}</S.SerieName>
-            <Checkbox text="Log" tooltip="Logarithmic axis" checked={isLog} onClick={() => toggleAxisType(id)} />
+            <Checkbox
+              text="Log"
+              tooltip="Logarithmic axis"
+              checked={isLog}
+              onClick={() => ChartController.toggleAxisType(id)}
+            />
             <Checkbox
               text="Manual Y Limit"
               tooltip="Manually define Y limits"

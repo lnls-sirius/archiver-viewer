@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import handlers from "../../lib/handlers";
+import handlers from "../../controllers/handlers";
 import * as S from "./styled";
 
 const Search: React.FC = () => {
@@ -10,7 +10,9 @@ const Search: React.FC = () => {
   };
 
   const handleSubmit = (e: React.KeyboardEvent) => {
-    handlers.queryPVsRetrieval(e, value);
+    if (e.key === "Enter") {
+      handlers.queryPVsRetrieval(value);
+    }
   };
 
   return (

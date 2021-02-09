@@ -4,14 +4,16 @@ import { useSelector } from "react-redux";
 import * as S from "./styled";
 
 import chartUtils from "../../utility/chartUtils";
-import handlers from "../../lib/handlers";
+import handlers from "../../controllers/handlers";
 import { RootState } from "../../reducers";
 
 const Intervals: React.FC = () => {
   const windowTime = useSelector(({ chart: { windowTime } }: RootState) => windowTime);
 
   const handleUpdateWindowTime = (windowTimeId: number) => handlers.updateTimeWindow(windowTimeId);
-  const handleScrollChart = (e: React.WheelEvent) => handlers.scrollChart(e);
+  const handleScrollChart = (e: React.WheelEvent) => {
+    handlers.scrollChart(e.deltaY);
+  };
 
   return (
     <S.IntervalsWarpper onWheel={handleScrollChart}>
