@@ -34,8 +34,8 @@ export const Title = styled.h1`
 export const Message = styled.p`
   font-size: 0.95rem;
 `;
-export const Extra = styled.p`
+export const Extra = styled.span`
   padding: 5px;
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   font-weight: 400;
 `;
