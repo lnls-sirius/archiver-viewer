@@ -23,12 +23,12 @@ export const {
   setDatasetFetching,
   setDatasetOptimized,
   setDatasetVisible,
-  setLoading,
   setSingleTooltip,
   setTimeEnd,
   setTimeReferenceEnd,
   setTimeStart,
   setWindowTime,
+  setZooming,
 } = chartSlice.actions;
 
 export const actions = chartSlice.actions;
