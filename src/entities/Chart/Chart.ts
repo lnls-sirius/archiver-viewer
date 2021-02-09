@@ -462,7 +462,7 @@ class ChartImpl {
   }
 
   async fillDataFromLastToEnd(dataset: Chart.ChartDataSets, last: Date) {
-    const pvName = (dataset as any).name;
+    const pvName = dataset.label;
     await archInterface
       .fetchData(pvName, last, this.end, false)
       .then((res) => {
@@ -478,7 +478,7 @@ class ChartImpl {
               fistPointDate = data[0].x;
             }
           }
-          dataset.data.push(data as any);
+          dataset.data.push(...(data as any));
         }
       })
       .catch((e) => {
@@ -506,7 +506,7 @@ class ChartImpl {
               firstPointDate = data[0].x;
             }
           }
-          dataset.data.unshift(data as any);
+          dataset.data.unshift(...(data as any));
         }
       })
       .catch((e) => {
@@ -537,7 +537,9 @@ class ChartImpl {
       });
     });
 
-    await Promise.all(promisses).catch((error) => console.exception(`Failed to update all plots ${error.message}`));
+    await Promise.all(promisses).catch((error) => {
+      console.error(`Failed to update all plots ${error.message}`, error);
+    });
   }
 
   /**

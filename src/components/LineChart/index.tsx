@@ -156,7 +156,7 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
 
     control.updateAllPlots(true);
     control.updateURL();
-    this.chart.update(this.updateProps);
+ //   this.chart.update(this.updateProps);
 
     control.undoStackPush({
       action: StackAction.CHANGE_END_TIME,
