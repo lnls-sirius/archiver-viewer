@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
 
-import handlers from "../../lib/handlers";
+import handlers from "../../controllers/handlers";
 import Seach from "../Search";
 
 import {
@@ -52,9 +52,9 @@ class Controls extends Component<ControlsReduxProps, ControlsState> {
     };
   }
 
-  handleDateChange = (e: any) => {
-    handlers.onChangeDateHandler(e);
-    this.setState({ startDate: e });
+  handleDateChange = (date: Date) => {
+    handlers.onChangeDateHandler(date);
+    this.setState({ startDate: date });
   };
 
   handleTimeRefChange = (e: any) => {
@@ -151,7 +151,7 @@ class Controls extends Component<ControlsReduxProps, ControlsState> {
             icon={faFileExcel}
             title="Export as xlsx"
             className="header-controls"
-            onClick={async () => await handlers.exportAs("xlsx")}
+            onClick={async () => await handlers.exportAsXlsx()}
             size="lg"
           />
           <S.ControlIcon
