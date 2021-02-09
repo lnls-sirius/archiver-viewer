@@ -11,8 +11,6 @@ module.exports = {
     index: path.join(__dirname, "src/index.tsx"),
     "data-access": path.join(__dirname, "src/data-access/index.ts"),
     controllers: path.join(__dirname, "src/controllers/index.ts"),
-    "chart-control": path.join(__dirname, "src/lib/control.js"),
-    handlers: path.join(__dirname, "src/lib/handlers.js"),
   },
   optimization: {
     minimize: isEnvProduction,
