@@ -246,34 +246,8 @@ const appendDataset = function (chart: any, data: any, bins: any, precision: any
   );
 };
 
-/** Get dataset index by it's label */
-export const getDatasetIndex = (label: any, chart: any) => {
-  // Find dataset index and yAxis
-  let datasetIndex: any = null;
-  chart.data.datasets.forEach((e: any, i: number) => {
-    if (datasetIndex !== null) {
-      return;
-    }
-    if (e.label === label) {
-      datasetIndex = i;
-    }
-  });
-  if (datasetIndex === null) {
-    // Failed to obtain dataset info
-    console.error(`Failed to get dataset index of label ${label}`);
-  }
-  return datasetIndex;
-};
-
 /** Hide a dataset by it's label */
-export const hideDatasetByLabel = (label: any, chart: any) => {
-  const datasetIndex = getDatasetIndex(label, chart);
-  if (datasetIndex === null) {
-    // Failed to obtain dataset info
-    console.error(`Failed to obtain dataset index of label ${label}`);
-    return;
-  }
-
+export function hideDatasetByLabel(datasetIndex: number, chart: any) {
   // Update visibility status
   const meta = chart.getDatasetMeta(datasetIndex);
   const { yAxisID } = meta;
@@ -293,9 +267,9 @@ export const hideDatasetByLabel = (label: any, chart: any) => {
   chart.update(0, false);
   // @todo: Update store at control.js
   store.dispatch(setDatasetVisible({ index: datasetIndex, visible: !meta.hidden }));
-};
+}
 
-const hidesAxis = function (metadata: any, chart: any) {
+function hidesAxis(metadata: any, chart: any) {
   if (metadata.hidden) {
     yAxisUseCounter[metadata.yAxisID]++;
     chart.scales[metadata.yAxisID].options.display = true;
@@ -307,7 +281,7 @@ const hidesAxis = function (metadata: any, chart: any) {
       chart.scales[metadata.yAxisID].options.display = false;
     }
   }
-};
+}
 
 /**
  * Decides if a y axis should be displayed or not.
@@ -341,7 +315,7 @@ const labelCallback = function (label: any, chart: any) {
   return `${labelText}: ${displayValue}`;
 };
 
-const toggleTooltipBehavior = (chart: any, isSingleTooltipEnabled: boolean) => {
+function toggleTooltipBehavior(chart: any, isSingleTooltipEnabled: boolean) {
   if (isSingleTooltipEnabled) {
     chart.options.tooltips.position = "nearest";
     chart.options.tooltips.mode = "nearest";
@@ -361,7 +335,7 @@ const toggleTooltipBehavior = (chart: any, isSingleTooltipEnabled: boolean) => {
   }
 
   chart.update();
-};
+}
 
 const reboundTooltip = (x: any, y: any, tooltip: any, factor: any): any => {
   const tooltipWidth = tooltip.width;
@@ -397,11 +371,11 @@ export default {
   axisPositionLeft: (): any => axisPositionLeft,
 
   /* Setters */
-  toggleTooltipBehavior: toggleTooltipBehavior,
+  toggleTooltipBehavior,
   updateAxisPositionLeft: (a: any): any => {
     axisPositionLeft = a;
   },
-  toggleAxisType: toggleAxisType,
+  toggleAxisType,
   updateTimeAxis: updateTimeAxis,
   appendDataAxis: appendDataAxis,
   appendDataset: appendDataset,
