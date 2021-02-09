@@ -7,7 +7,7 @@ import Chart from "chart.js";
 
 class PlotPVsImpl implements PlotPVs {
   private update(): void {
-    (control.chart() as Chart).update({ duration: 0, easing: "linear", lazy: false });
+    (control.getChart() as Chart).update({ duration: 0, easing: "linear", lazy: false });
     control.updateOptimizedWarning();
   }
 
@@ -21,9 +21,9 @@ class PlotPVsImpl implements PlotPVs {
   }
 
   private async appendPV(pv: string, optimize?: boolean): Promise<void> {
-    const start: Date = control.start();
-    const end: Date = control.end();
-    const windowTime: number = control.windowTime();
+    const start: Date = control.getStart();
+    const end: Date = control.getEnd();
+    const windowTime: number = control.getWindowTime();
 
     const metadata = await this.getPVMetadata(pv);
 
@@ -47,7 +47,7 @@ class PlotPVsImpl implements PlotPVs {
         if (res.data.length === 0) {
           throw `No data for ${name} was received from server in the interval ${start} to ${end}.`;
         }
-        chartUtils.appendDataset(control.chart(), control.improveData(data), bins, parseInt(PREC) + 1, metadata);
+        chartUtils.appendDataset(control.getChart(), control.improveData(data), bins, parseInt(PREC) + 1, metadata);
       })
       .catch((e) => {
         const msg = `Failure ${e}`;
