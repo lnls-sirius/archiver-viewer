@@ -1,25 +1,25 @@
 import React from "react";
-import { useDispatch } from "react-redux";
-import { actions as actionsSearch, SearchResult } from "../../features/search";
 import * as S from "./styled";
-
+import { SearchResult } from "../../features/search";
+import { SearchDispatcher } from "../../utility/Dispatchers";
 import Checkbox from "../Checkbox";
 
 interface SearchResultProps extends SearchResult {
   idx: string;
   key: string;
+  selected: boolean;
+  pvName: string;
 }
 
 const SearchResult: React.FC<SearchResultProps> = (props: SearchResultProps) => {
   const { DBRType, PREC, applianceIdentity, hostName, idx, pvName, samplingPeriod, units, selected } = props;
-  const dispatch = useDispatch();
   return (
     <S.TableRow>
       <S.TableData>{idx}</S.TableData>
       <S.TableData>
         <Checkbox
           checked={selected}
-          onClick={() => dispatch(actionsSearch.doSelectSearchResult({ selected: !selected, pvName: pvName }))}
+          onClick={() => SearchDispatcher.doSelectSearchResults({ selected: !selected, pvName: pvName })}
         />
       </S.TableData>
       <S.TableData>{pvName}</S.TableData>

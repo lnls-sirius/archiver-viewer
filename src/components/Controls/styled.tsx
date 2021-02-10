@@ -47,3 +47,13 @@ export const ControlSelect = styled.select`
   margin-right: 0.4rem;
   height: 1.75rem;
 `;
+export const TimeDisplay = styled.span`
+  margin: 0 15px 0 15px;
+`;
+export const TimeDisplayDate = styled.span`
+  margin: 0 5px 0 5px;
+  font-weight: 500;
+`;
+export const TimeDisplayText = styled.span`
+  font-weight: 300;
+`;

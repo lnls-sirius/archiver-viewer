@@ -10,6 +10,7 @@ export interface LineChartStates {
   zoomTime1: Date;
   zoomTime2: Date;
   dragEndTime: Date;
+  dragStartTime: Date;
   isDragging: boolean;
 }
 export interface LineChartProps {
@@ -31,6 +32,7 @@ export const initialState: LineChartStates = {
   zoomTime2: null,
   dragOffsetX: 0,
   dragEndTime: null,
+  dragStartTime: null,
 };
 
 export const getAverageDateFromEvent = (chart: Chart, evt: DragEvent | MouseEvent): Date => {

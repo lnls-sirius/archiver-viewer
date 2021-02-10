@@ -7,7 +7,7 @@ import * as S from "./styled";
 import chartUtils from "../../utility/chartUtils";
 import handlers from "../../controllers/handlers";
 import control, { REFERENCE } from "../../controllers";
-import { StackAction } from "../../controllers/ActionsStack/constants";
+import { StackActionEnum } from "../../entities/Chart/StackAction/constants";
 
 import { options } from "./config";
 import { initialState, getAverageDateFromEvent, LineChartProps, LineChartStates } from "./contents";
@@ -67,12 +67,11 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
 
   startDragging = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const evt = e.nativeEvent;
-    control.updateDragEndTime(control.getEnd());
-
     this.setState(
       {
         isDragging: true,
         dragOffsetX: evt.offsetX,
+        dragStartTime: control.getStart(),
         dragEndTime: control.getEnd(),
       },
       () => this.setZoomBoxInitialState(evt)
@@ -98,36 +97,20 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
 
   handleDoDataDrag = async (e: React.MouseEvent) => {
     const evt = e.nativeEvent;
-    const { dragOffsetX } = this.state;
+    const { dragOffsetX, dragEndTime, dragStartTime } = this.state;
     const offsetX = dragOffsetX - evt.offsetX;
     const windowTime = control.getWindowTime();
 
     const ms = chartUtils.timeAxisPreferences[windowTime].milliseconds;
 
-    const endTime = control.getEnd();
-    const startTime = control.getStart();
+    const endTimeMs = dragEndTime.getTime();
+    const startTimeMs = dragStartTime.getTime();
 
-    const endTimeMs = endTime.getTime();
-    const startTimeMs = startTime.getTime();
+    const newDragEndTime = new Date(endTimeMs + (offsetX * ms) / this.chart.width);
+    const newDragStartTime = new Date(startTimeMs + (offsetX * ms) / this.chart.width);
+    this.setState({ dragOffsetX: evt.offsetX, dragEndTime: newDragEndTime, dragStartTime: newDragStartTime });
 
-    let newDate = new Date(endTimeMs + (offsetX * ms) / this.chart.width);
-
-    if (control.getReference() === REFERENCE.START) {
-      newDate = new Date(startTimeMs + (offsetX * ms) / this.chart.width);
-    }
-    this.setState({ dragOffsetX: evt.offsetX });
-
-    await control.updateStartAndEnd(newDate);
-
-    chartUtils.updateTimeAxis(
-      this.chart,
-      chartUtils.timeAxisPreferences[windowTime].unit,
-      chartUtils.timeAxisPreferences[windowTime].unitStepSize,
-      startTime,
-      endTime
-    );
-
-    this.chart.update(this.updateProps);
+    this.updateChartTimeAxis(newDragStartTime, newDragEndTime);
   };
 
   /**
@@ -152,17 +135,38 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
   };
 
   handleStopDragData = async () => {
-    const { dragEndTime } = this.state;
+    const { dragEndTime, dragStartTime } = this.state;
 
+    let newDate = control.getReference() === REFERENCE.START ? dragStartTime : dragEndTime;
+    const now = new Date();
+    if (newDate > now) {
+      newDate = now;
+    }
+
+    this.updateChartTimeAxis(dragStartTime, dragEndTime > now ? now : dragEndTime);
+
+    await control.updateStartAndEnd(newDate);
     control.updateAllPlots(false);
     control.updateURL();
- //   this.chart.update(this.updateProps);
 
     control.undoStackPush({
-      action: StackAction.CHANGE_END_TIME,
-      endTime: dragEndTime,
+      action: StackActionEnum.CHANGE_END_TIME,
+      endTime: newDate,
     });
   };
+
+  private updateChartTimeAxis(newDragStartTime: Date, newDragEndTime: Date) {
+    const windowTime = control.getWindowTime();
+    chartUtils.updateTimeAxis(
+      this.chart,
+      chartUtils.timeAxisPreferences[windowTime].unit,
+      chartUtils.timeAxisPreferences[windowTime].unitStepSize,
+      newDragStartTime,
+      newDragEndTime
+    );
+
+    this.chart.update(this.updateProps);
+  }
 
   // Chooses the x axis time scale
   decreaseTimeWindowWhileTimeWindowIsLargerThanStartEndDelta(minWindowTime: number) {
@@ -184,7 +188,7 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
         return;
       }
       control.undoStackPush({
-        action: StackAction.ZOOM,
+        action: StackActionEnum.ZOOM,
         startTime: control.getStart(),
         endTime: control.getEnd(),
         windowTime: control.getWindowTime(),

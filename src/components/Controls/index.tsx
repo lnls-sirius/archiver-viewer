@@ -15,6 +15,7 @@ import {
   faCarSide,
   faList,
 } from "@fortawesome/free-solid-svg-icons";
+import { IconProp, SizeProp } from "@fortawesome/fontawesome-svg-core";
 
 import * as S from "./styled";
 import { RootState } from "../../reducers";
@@ -25,10 +26,12 @@ interface ControlsReduxProps {
   singleTooltip: boolean;
   timeReferenceEnd: boolean;
   pending: number;
+  timeEnd: string;
+  timeStart: string;
 }
 const mapStateToProps = (state: RootState): ControlsReduxProps => {
   const {
-    chart: { autoScroll, zooming, singleTooltip, timeReferenceEnd },
+    chart: { autoScroll, zooming, singleTooltip, timeReferenceEnd, timeEnd, timeStart },
     requests: { pending },
   } = state;
 
@@ -38,18 +41,87 @@ const mapStateToProps = (state: RootState): ControlsReduxProps => {
     singleTooltip,
     timeReferenceEnd,
     pending,
+    timeEnd,
+    timeStart,
   };
 };
 
 interface ControlsState {
   startDate: Date;
 }
+interface ControlItemProps {
+  icon: IconProp;
+  title: string;
+  onClick(e?: any): void;
+  size: SizeProp;
+  isActive?(): boolean;
+}
 class Controls extends Component<ControlsReduxProps, ControlsState> {
+  private items: ControlItemProps[];
   constructor(props: ControlsReduxProps) {
     super(props);
     this.state = {
       startDate: new Date(),
     };
+    this.items = [
+      {
+        icon: faBackward,
+        title: "Backward",
+        onClick: () => handlers.backTimeWindow(),
+        size: "lg",
+      },
+      {
+        icon: faCircle,
+        title: "Now",
+        onClick: () => handlers.updateEndNow(),
+        size: "lg",
+      },
+      {
+        icon: faForward,
+        title: "Forward",
+        onClick: () => handlers.forwTimeWindow(),
+        size: "lg",
+      },
+      {
+        icon: faUndo,
+        title: "Undo action",
+        onClick: () => handlers.undoHandler(),
+        size: "lg",
+      },
+      {
+        icon: faRedo,
+        title: "Redo action",
+        onClick: () => handlers.redoHandler(),
+        size: "lg",
+      },
+      {
+        icon: faCarSide,
+        title: "Auto scroll",
+        onClick: handlers.autoUpdateHandler,
+        isActive: () => this.props.autoScroll,
+        size: "lg",
+      },
+      {
+        icon: faSearchPlus,
+        title: "Zoom",
+        onClick: handlers.zoomClickHandler,
+        isActive: () => this.props.zooming,
+        size: "lg",
+      },
+      {
+        icon: faFileExcel,
+        title: "Export as xlsx",
+        onClick: async () => await handlers.exportAsXlsx(),
+        size: "lg",
+      },
+      {
+        icon: faList,
+        title: "Show all in tooltip",
+        onClick: handlers.singleTipHandler,
+        isActive: () => this.props.singleTooltip,
+        size: "lg",
+      },
+    ];
   }
 
   handleDateChange = (date: Date) => {
@@ -68,8 +140,7 @@ class Controls extends Component<ControlsReduxProps, ControlsState> {
 
     return (
       <S.ControlsGroupWrapper>
-        <span style={{ padding: "0 5px 0 5px", fontWeight: 500 }}>{`${pending}`}</span>
-
+        <span style={{ padding: "0 5px 0 5px", fontWeight: 500 }}>{`${pending !== 0 ? pending : ""}`}</span>
         <Seach />
         <S.DatePickerWrapper
           title="Start/end timestamp"
@@ -88,79 +159,33 @@ class Controls extends Component<ControlsReduxProps, ControlsState> {
       </S.ControlsGroupWrapper>
     );
   };
+
+  renderControlIcons() {
+    return this.items.map(({ icon, onClick, size, title, isActive }, index) => {
+      let active: boolean;
+      if (isActive === undefined) {
+        active = false;
+      } else {
+        active = isActive();
+      }
+
+      return <S.ControlIcon icon={icon} title={title} onClick={onClick} size={size} $isActive={active} key={index} />;
+    });
+  }
+
   render() {
-    const { zooming, autoScroll, singleTooltip } = this.props;
+    const { timeEnd, timeStart } = this.props;
     return (
       <S.ControlsWrapper>
         {this.renderLeftGroup()}
         <S.ControlsGroupWrapper>
-          <S.ControlIcon
-            icon={faBackward}
-            title="Backward"
-            onClick={() => {
-              handlers.backTimeWindow();
-            }}
-            size="lg"
-          />
-          <S.ControlIcon
-            icon={faCircle}
-            title="Now"
-            onClick={() => {
-              handlers.updateEndNow();
-            }}
-            size="lg"
-          />
-          <S.ControlIcon
-            icon={faForward}
-            title="Forward"
-            onClick={() => {
-              handlers.forwTimeWindow();
-            }}
-            size="lg"
-          />
-
-          <S.ControlIcon
-            icon={faUndo}
-            title="Undo action"
-            className="header-controls"
-            onClick={() => handlers.undoHandler()}
-            size="lg"
-          />
-          <S.ControlIcon
-            icon={faRedo}
-            title="Redo action"
-            className="header-controls"
-            onClick={() => handlers.redoHandler()}
-            size="lg"
-          />
-          <S.ControlIcon
-            icon={faCarSide}
-            title="Auto scroll"
-            onClick={handlers.autoUpdateHandler}
-            $isActive={autoScroll}
-            size="lg"
-          />
-          <S.ControlIcon
-            icon={faSearchPlus}
-            title="Zoom"
-            onClick={handlers.zoomClickHandler}
-            $isActive={zooming}
-            size="lg"
-          />
-          <S.ControlIcon
-            icon={faFileExcel}
-            title="Export as xlsx"
-            className="header-controls"
-            onClick={async () => await handlers.exportAsXlsx()}
-            size="lg"
-          />
-          <S.ControlIcon
-            icon={faList}
-            title="Show all in tooltip"
-            onClick={handlers.singleTipHandler}
-            $isActive={singleTooltip}
-            size="lg"
-          />
+          {this.renderControlIcons()}
+          <S.TimeDisplay>
+            <S.TimeDisplayText>{"from"}</S.TimeDisplayText>
+            <S.TimeDisplayDate>{`${timeStart}`}</S.TimeDisplayDate>
+            <S.TimeDisplayText>{"to"}</S.TimeDisplayText>
+            <S.TimeDisplayDate>{`${timeEnd}`}</S.TimeDisplayDate>
+          </S.TimeDisplay>
         </S.ControlsGroupWrapper>
       </S.ControlsWrapper>
     );
