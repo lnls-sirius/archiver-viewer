@@ -49,7 +49,7 @@
             break;
           }
         }
-        if (i != 0 && i != (url.length - 1)) {
+        if (i != 0 && i != url.length - 1) {
           args = url.slice(i);
         }
         window.location.href =
@@ -60,17 +60,5 @@
 
   <body>
     <div id="root"></div>
-    <!-- HEADER section: PV search text box and logo images -->
-    <div id="warning">
-      <h4>No PVs corresponding to the search string have been found.</h4>
-    </div>
-    <!-- HEADER section end -->
-
-    <div id="obs">
-      <h4>
-        In order to reduce the data amount retrieved from server, an optimization is used. Each point corresponds to an
-        average calculated over its neighborhood.
-      </h4>
-    </div>
   </body>
 </html>

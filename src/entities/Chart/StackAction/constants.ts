@@ -1,0 +1,8 @@
+export enum StackActionEnum {
+  REMOVE_PV,
+  APPEND_PV,
+  CHANGE_WINDOW_TIME,
+  CHANGE_END_TIME,
+  CHANGE_START_TIME,
+  ZOOM,
+}

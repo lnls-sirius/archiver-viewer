@@ -7,7 +7,11 @@ import CompressionPlugin from "compression-webpack-plugin";
 const isEnvProduction = process.env.NODE_ENV === "production";
 
 module.exports = {
-  entry: path.join(__dirname, "src", "index.js"),
+  entry: {
+    index: path.join(__dirname, "src/index.tsx"),
+    "data-access": path.join(__dirname, "src/data-access/index.ts"),
+    controllers: path.join(__dirname, "src/controllers/index.ts"),
+  },
   optimization: {
     minimize: isEnvProduction,
     splitChunks: {
@@ -27,19 +31,24 @@ module.exports = {
   },
   output: {
     path: path.join(__dirname, "build"),
-    filename: "index.bundle.js",
+    filename: "[name].bundle.js",
   },
   mode: isEnvProduction ? "production" : "development",
   devtool: isEnvProduction ? "" : "inline-source-map",
   resolve: {
     modules: [path.resolve(__dirname, "src"), "node_modules"],
-    extensions: [".js", ".jsx", ".json"],
+    extensions: [".js", ".jsx", ".json", ".tsx", ".ts"],
   },
   devServer: {
     contentBase: path.join(__dirname, "src"),
   },
   module: {
     rules: [
+      {
+        test: /\.tsx?$/,
+        use: "ts-loader",
+        exclude: /node_modules/,
+      },
       {
         test: /\.jsx?$/,
         exclude: /node_modules/,
