@@ -42,12 +42,12 @@ let axisPositionLeft = true;
 /**
  * Updates chart's time axes, but does not updates it by calling update(0, false).
  **/
-const updateTimeAxis = function (chart: any, unit: any, unitStepSize: any, from: Date, to: Date): void {
+function updateTimeAxis(chart: any, unit: any, unitStepSize: any, from: Date, to: Date): void {
   chart.options.scales.xAxes[TimeAxisIndex].time.unit = unit;
   chart.options.scales.xAxes[TimeAxisIndex].time.stepSize = unitStepSize;
   chart.options.scales.xAxes[TimeAxisIndex].time.min = from;
   chart.options.scales.xAxes[TimeAxisIndex].time.max = to;
-};
+}
 
 /** Custom tick settings for pressure readings */
 const tickPressureCallback = (label: any) => {
@@ -376,12 +376,12 @@ export default {
     axisPositionLeft = a;
   },
   toggleAxisType,
-  updateTimeAxis: updateTimeAxis,
-  appendDataAxis: appendDataAxis,
-  appendDataset: appendDataset,
-  hidesAxis: hidesAxis,
-  legendCallback: legendCallback,
-  labelCallback: labelCallback,
-  reboundTooltip: reboundTooltip,
-  randomColorGenerator: randomColorGenerator,
+  updateTimeAxis,
+  appendDataAxis,
+  appendDataset,
+  hidesAxis,
+  legendCallback,
+  labelCallback,
+  reboundTooltip,
+  randomColorGenerator,
 };

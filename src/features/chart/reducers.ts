@@ -141,9 +141,29 @@ export function setSingleTooltip(state: ChartState, action: any): void {
 export function setTimeReferenceEnd(state: ChartState, action: any): void {
   state.timeReferenceEnd = action.payload;
 }
-export function setTimeStart(state: ChartState, action: any): void {
-  state.timeStart = action.payload;
-}
-export function setTimeEnd(state: ChartState, action: any): void {
-  state.timeEnd = action.payload;
-}
+export const setTimeStart = {
+  reducer(state: ChartState, action: PayloadAction<string>): void {
+    state.timeStart = action.payload;
+  },
+  prepare(data: Date) {
+    return {
+      payload: data.toLocaleString(),
+    };
+  },
+};
+export const setTimeEnd = {
+  reducer(state: ChartState, action: PayloadAction<string>): void {
+    state.timeEnd = action.payload;
+  },
+  prepare(data: Date) {
+    return {
+      payload: data.toLocaleString(),
+    };
+  },
+};
+/*
+export function setTimeStartEnd(state: ChartState, action: PayloadAction<{ start: Date; end: Date }>): void {
+  const { start, end } = action.payload;
+  state.timeEnd = end;
+  state.timeStart = start;
+}*/
