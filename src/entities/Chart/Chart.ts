@@ -3,56 +3,39 @@
 import archInterface from "../../data-access";
 import chartUtils, { hideDatasetByLabel, findAxisIndexById } from "../../utility/chartUtils";
 import { RequestsDispatcher, StatusDispatcher } from "../../utility/Dispatchers";
-import { StackAction as STACK_ACTIONS } from "../../controllers/ActionsStack/constants";
 import Browser from "../../utility/Browser";
-import makeAutoUpdate from "./AutoUpdate";
 import store from "../../store";
 import {
   setDatasetOptimized,
   setSingleTooltip,
-  setTimeEnd,
   setTimeReferenceEnd,
-  setTimeStart,
   setWindowTime,
   setZooming,
   removeDataset as storeRemoveDataset,
 } from "../../features/chart/sliceChart";
 import Chart from "chart.js";
-import AutoUpdate from "./AutoUpdate/interface";
+
+import makeChartActionsStack, { StackActionEnum, StackAction, ChartActionsStack } from "./StackAction";
+import makeAutoUpdate, { AutoUpdate } from "./AutoUpdate";
+import makeChartTime, { ChartTime } from "./Time";
 
 export enum REFERENCE {
   START = 0,
   END = 1,
 }
-
-interface DragFlags {
-  dragStarted: boolean;
-  updateOnComplete: boolean;
-  endTime?: Date;
-  x?: number;
-}
 interface ZoomFlags {
   isZooming: boolean;
   hasBegan: boolean;
 }
-interface StackAction {
-  action: STACK_ACTIONS;
-  pv?: string;
-  endTime?: Date;
-  startTime?: Date;
-  optimized?: boolean;
-  windowTime?: number;
-}
-
 class ChartImpl {
   /* chartjs instance reference */
   private chart: Chart = null;
-  private start: Date;
-  private end: Date;
+  // private start: Date;
+  // private end: Date;
   private reference = REFERENCE.END; // Reference time end
   private windowTime = chartUtils.timeIDs.MIN10;
 
-  private AutoUpdate: AutoUpdate; // Auto update module
+  private autoUpdate: AutoUpdate; // Auto update module
 
   private singleTipEnabled = true;
   private scrollingEnabled = true;
@@ -61,16 +44,9 @@ class ChartImpl {
   private cachedDate: Date = null;
   private lastFetch: Date = null;
 
-  private dragFlags: DragFlags = {
-    dragStarted: false,
-    updateOnComplete: true,
-    endTime: undefined,
-  };
-
-  private undoStack: StackAction[];
-  private redoStack: StackAction[];
-
   private datasetLatestFetchRequestTime: { [key: number]: any };
+  private stack: ChartActionsStack;
+  private time: ChartTime;
 
   private zoomFlags: ZoomFlags = {
     isZooming: false,
@@ -78,14 +54,14 @@ class ChartImpl {
   };
 
   constructor() {
-    this.AutoUpdate = makeAutoUpdate(async () => {
-      this.autoUpdateFunction();
-    });
-
-    this.redoStack = [];
-    this.undoStack = [];
-
+    this.time = makeChartTime();
+    this.stack = makeChartActionsStack();
+    this.autoUpdate = makeAutoUpdate(async () => this.autoUpdateFunction());
     this.datasetLatestFetchRequestTime = {};
+  }
+
+  update(settings?: Chart.ChartUpdateProps) {
+    this.chart.update(settings);
   }
 
   /** Get dataset index by it's label */
@@ -109,13 +85,11 @@ class ChartImpl {
 
   /* start and end timedates */
   setStart(time: Date): void {
-    store.dispatch(setTimeStart(time.toString()));
-    this.start = time;
+    this.time.setStart(time);
   }
 
   setEnd(time: Date): void {
-    store.dispatch(setTimeEnd(time.toString()));
-    this.end = time;
+    this.time.setEnd(time);
   }
 
   updateTimeWindowOnly(time: number): void {
@@ -126,7 +100,7 @@ class ChartImpl {
   /* Control flags */
   // -----------------------------------------------------------
   isAutoUpdateEnabled(): boolean {
-    return this.AutoUpdate.isEnabled();
+    return this.autoUpdate.isEnabled();
   }
   async autoUpdateFunction(): Promise<void> {
     if (this.reference === REFERENCE.START) {
@@ -141,14 +115,14 @@ class ChartImpl {
       this.chart,
       chartUtils.timeAxisPreferences[this.windowTime].unit,
       chartUtils.timeAxisPreferences[this.windowTime].unitStepSize,
-      this.start,
-      this.end
+      this.time.getStart(),
+      this.time.getEnd()
     );
     this.updateURL();
     await this.updateAllPlots(false);
   }
   toggleAutoUpdate(): void {
-    this.AutoUpdate.toggle();
+    this.autoUpdate.toggle();
   }
   // -----------------------------------------------------------
 
@@ -199,7 +173,7 @@ class ChartImpl {
           }
         }
         if (updateChart) {
-          this.chart.update();
+          this.update();
         }
       });
     });
@@ -209,20 +183,27 @@ class ChartImpl {
     this.updateTimeWindowOnly(window);
 
     if (this.windowTime < chartUtils.timeIDs.MIN_30) {
-      if (this.AutoUpdate.isEnabled()) {
-        this.AutoUpdate.setDisabled();
+      if (this.autoUpdate.isEnabled()) {
+        this.autoUpdate.setDisabled();
       }
     }
 
     if (this.reference === REFERENCE.END) {
-      this.start = new Date(this.end.getTime() - chartUtils.timeAxisPreferences[this.windowTime].milliseconds);
+      this.time.setStart(
+        new Date(this.time.getEnd().getTime() - chartUtils.timeAxisPreferences[this.windowTime].milliseconds)
+      );
     } else if (this.reference === REFERENCE.START) {
       const now = await this.getDateNow();
 
-      if (this.start.getTime() + chartUtils.timeAxisPreferences[this.windowTime].milliseconds <= now.getTime()) {
-        this.end = new Date(this.start.getTime() + chartUtils.timeAxisPreferences[this.windowTime].milliseconds);
+      if (
+        this.time.getStart().getTime() + chartUtils.timeAxisPreferences[this.windowTime].milliseconds <=
+        now.getTime()
+      ) {
+        this.time.setEnd(
+          new Date(this.time.getStart().getTime() + chartUtils.timeAxisPreferences[this.windowTime].milliseconds)
+        );
       } else {
-        this.end = now;
+        this.time.setEnd(now);
       }
     }
 
@@ -233,8 +214,8 @@ class ChartImpl {
       this.chart,
       chartUtils.timeAxisPreferences[this.windowTime].unit,
       chartUtils.timeAxisPreferences[this.windowTime].unitStepSize,
-      this.start,
-      this.end
+      this.time.getStart(),
+      this.time.getEnd()
     );
   }
 
@@ -266,7 +247,7 @@ class ChartImpl {
   async updateEndTime(date: Date, now: Date): Promise<void> {
     // const end = getEnd();
     let newEnd: Date;
-    if (!this.end) {
+    if (!this.time.getEnd()) {
       newEnd = date;
     }
     if (date.getTime() <= now.getTime()) {
@@ -277,16 +258,16 @@ class ChartImpl {
     const newStartDate = new Date(newEnd.getTime() - chartUtils.timeAxisPreferences[this.windowTime].milliseconds);
 
     if (newEnd) {
-      this.end = newEnd;
+      this.time.setEnd(newEnd);
     }
-    this.start = newStartDate;
+    this.time.setStart(newStartDate);
   }
 
   async updateStartTime(date: Date, now: Date) {
     let newStart;
     let newEnd;
 
-    if (!this.start) {
+    if (!this.time.getStart()) {
       newStart = now;
     }
     const isStartDatePlusWindowTimeSmallerThanNow =
@@ -307,10 +288,10 @@ class ChartImpl {
       newEnd = now;
     }
     if (newStart) {
-      this.start = newStart;
+      this.time.setStart(newStart);
     }
     if (newEnd) {
-      this.end = newEnd;
+      this.time.setEnd(newEnd);
     }
   }
   async updateStartAndEnd(date: Date, undo?: boolean): Promise<void> {
@@ -323,12 +304,12 @@ class ChartImpl {
 
     if (isEndTime) {
       if (undo) {
-        this.undoStack.push({ action: STACK_ACTIONS.CHANGE_END_TIME, endTime: this.end });
+        this.stack.undoStackPush({ action: StackActionEnum.CHANGE_END_TIME, endTime: this.time.getEnd() });
       }
       await this.updateEndTime(date, now);
     } else {
       if (undo) {
-        this.undoStack.push({ action: STACK_ACTIONS.CHANGE_START_TIME, startTime: this.start });
+        this.stack.undoStackPush({ action: StackActionEnum.CHANGE_START_TIME, startTime: this.time.getStart() });
       }
       await this.updateStartTime(date, now);
     }
@@ -355,16 +336,16 @@ class ChartImpl {
       const first = data[0];
       const last = data[data.length - 1];
 
-      if (first.x.getTime() > this.start.getTime()) {
+      if (first.x.getTime() > this.time.getStart().getTime()) {
         unshiftData.push({
-          x: this.start,
+          x: this.time.getStart(),
           y: first.y,
         });
       }
 
-      if (last.x.getTime() < this.end.getTime()) {
+      if (last.x.getTime() < this.time.getEnd().getTime()) {
         data.push({
-          x: this.end,
+          x: this.time.getEnd(),
           y: last.y,
         });
       }
@@ -385,7 +366,7 @@ class ChartImpl {
 
     // @todo: Enable loading
     await archInterface
-      .fetchData(dataset.label, this.start, this.end, (dataset as any).pv.optimized, bins)
+      .fetchData(dataset.label, this.time.getStart(), this.time.getEnd(), (dataset as any).pv.optimized, bins)
       .then((res) => {
         const { data } = res;
         const isTheLatestFetchRequest = this.datasetLatestFetchRequestTime[datasetIndex] === thisDatasetRequestTime;
@@ -407,33 +388,36 @@ class ChartImpl {
   async updatePlot(datasetIndex: number): Promise<any> {
     // If the dataset is already empty, no verification is needed. All optimized request must be pass this condition.
     const dataset = this.chart.data.datasets[datasetIndex];
-    if (dataset.data.length === 0) {
-      return await this.updateEmptyDataset(datasetIndex, dataset);
-    }
 
     RequestsDispatcher.IncrementActiveRequests();
+    if (dataset.data.length === 0) {
+      await this.updateEmptyDataset(datasetIndex, dataset);
+      RequestsDispatcher.DecrementActiveRequests();
+      return;
+    }
+
     // Gets the time of the first and last element of the dataset
     const first = (dataset.data[0] as any).x;
     const last = (dataset.data[dataset.data.length - 1] as any).x;
 
     const trimDatasetStart = () => {
-      while (dataset.data.length > 0 && (dataset.data[0] as any).x.getTime() < this.start.getTime()) {
+      while (dataset.data.length > 0 && (dataset.data[0] as any).x.getTime() < this.time.getStart().getTime()) {
         dataset.data.shift();
       }
     };
 
-    function trimDatasetEnd() {
+    const trimDatasetEnd = () => {
       for (
         let i = dataset.data.length - 1;
-        dataset.data.length > 0 && (dataset.data[i] as any).x.getTime() > this.end.getTime();
+        dataset.data.length > 0 && (dataset.data[i] as any).x.getTime() > this.time.getEnd().getTime();
         i--
       ) {
         dataset.data.pop();
       }
-    }
+    };
 
     // we need to append data to the beginning of the data set
-    const isFistPointAfterTheStart = first.getTime() > this.start.getTime();
+    const isFistPointAfterTheStart = first.getTime() > this.time.getStart().getTime();
     if (isFistPointAfterTheStart) {
       // Fetches data from the start to the first measure's time
       await this.fillDataFromStartFirst(dataset, first);
@@ -442,7 +426,7 @@ class ChartImpl {
     }
 
     // we need to append data to the end of the data set
-    const isLastPointBeforeTheEnd = last.getTime() < this.end.getTime();
+    const isLastPointBeforeTheEnd = last.getTime() < this.time.getEnd().getTime();
     if (isLastPointBeforeTheEnd) {
       await this.fillDataFromLastToEnd(dataset, last);
     } else {
@@ -453,7 +437,7 @@ class ChartImpl {
     if (dataset.data.length === 0) {
       StatusDispatcher.Info(
         `Empty dataset ${dataset.label}`,
-        `No data available for the time interval [${this.start}, ${this.end}]`
+        `No data available for the time interval [${this.time.getStart()}, ${this.time.getEnd()}]`
       );
     }
     RequestsDispatcher.DecrementActiveRequests();
@@ -472,7 +456,7 @@ class ChartImpl {
   async fillDataFromLastToEnd(dataset: Chart.ChartDataSets, last: Date) {
     const pvName = dataset.label;
     await archInterface
-      .fetchData(pvName, last, this.end, false)
+      .fetchData(pvName, last, this.time.getEnd(), false)
       .then((res) => {
         const { data } = res;
 
@@ -490,7 +474,7 @@ class ChartImpl {
         }
       })
       .catch((e) => {
-        const msg = `Failed to fill data from ${pvName} [${last} to ${this.end}], error ${e}`;
+        const msg = `Failed to fill data from ${pvName} [${last} to ${this.time.getEnd()}], error ${e}`;
         console.error(msg);
         StatusDispatcher.Error("Fetch data", msg);
       });
@@ -499,7 +483,7 @@ class ChartImpl {
   async fillDataFromStartFirst(dataset: Chart.ChartDataSets, first: Date) {
     const pvName = dataset.label;
     await archInterface
-      .fetchData(dataset.label, this.start, first, false)
+      .fetchData(dataset.label, this.time.getStart(), first, false)
       .then((res) => {
         const { data } = res;
         // Appends new data into the dataset
@@ -518,7 +502,7 @@ class ChartImpl {
         }
       })
       .catch((e) => {
-        const msg = `Failed to fill data from ${pvName} [${this.start} to ${first}], error ${e}`;
+        const msg = `Failed to fill data from ${pvName} [${this.time.getStart()} to ${first}], error ${e}`;
         console.error(msg);
         StatusDispatcher.Error("Fill data", msg);
       });
@@ -541,7 +525,7 @@ class ChartImpl {
       }
 
       await this.updatePlot(i).then(() => {
-        this.chart.update();
+        this.update();
       });
     });
 
@@ -570,12 +554,12 @@ class ChartImpl {
   updateURL(): void {
     const { bins } = chartUtils.timeAxisPreferences[this.windowTime];
     const datasets = this.chart.data.datasets;
-    Browser.updateAddress(datasets, bins, this.start, this.end);
+    Browser.updateAddress(datasets, bins, this.time.getStart(), this.time.getEnd());
   }
 
   getNewTimeWindow(): number {
-    const endTime = this.end.getTime();
-    const startTime = this.start.getTime();
+    const endTime = this.time.getEnd().getTime();
+    const startTime = this.time.getStart().getTime();
 
     function getCurrentWindowTime(id: number) {
       return chartUtils.timeAxisPreferences[id].milliseconds;
@@ -647,7 +631,7 @@ class ChartImpl {
     await this.updatePlot(datasetIndex)
       .then(() => {
         this.updateURL();
-        this.chart.update();
+        this.update();
         console.log("Plot update at index", datasetIndex);
       })
       .catch((e) => {
@@ -660,14 +644,15 @@ class ChartImpl {
     const datasetIndex = this.getDatasetIndex(name);
     this.removeDataset(datasetIndex, false);
   }
+
   removeDataset(datasetIndex: number, undo?: boolean): void {
     console.log("Remove index", datasetIndex, this.chart.data.datasets);
     chartUtils.yAxisUseCounter()[this.chart.data.datasets[datasetIndex].yAxisID]--;
     chartUtils.colorStack().push(this.chart.data.datasets[datasetIndex].backgroundColor);
 
     if (!undo || undo === undefined) {
-      this.undoStack.push({
-        action: STACK_ACTIONS.REMOVE_PV,
+      this.stack.undoStackPush({
+        action: StackActionEnum.REMOVE_PV,
         pv: this.chart.data.datasets[datasetIndex].label,
         optimized: (this.chart.data.datasets[datasetIndex] as any).pv.optimized,
       });
@@ -693,7 +678,7 @@ class ChartImpl {
     }
 
     this.chart.data.datasets.splice(datasetIndex, 1);
-    this.chart.update({ duration: 0, lazy: false, easing: "linear" });
+    this.update({ duration: 0, lazy: false, easing: "linear" });
     this.updateURL();
     this.updateOptimizedWarning();
 
@@ -702,7 +687,7 @@ class ChartImpl {
 
   hideAxis(event: { data: { datasetIndex: number } }): void {
     chartUtils.hidesAxis(this.chart.getDatasetMeta(event.data.datasetIndex), this.chart);
-    this.chart.update({ duration: 0, lazy: false, easing: "linear" });
+    this.update({ duration: 0, lazy: false, easing: "linear" });
   }
 
   toggleAxisType(axisId: string): void {
@@ -727,10 +712,10 @@ class ChartImpl {
     return this.chart;
   }
   getStart(): Date {
-    return this.start;
+    return this.time.getStart();
   }
   getEnd(): Date {
-    return this.end;
+    return this.time.getEnd();
   }
   getReference(): REFERENCE {
     return this.reference;
@@ -746,17 +731,17 @@ class ChartImpl {
   }
 
   redoStackPop(): StackAction {
-    return this.redoStack.pop();
+    return this.stack.redoStackPop();
   }
   redoStackPush(state: StackAction): void {
-    this.redoStack.push(state);
+    this.stack.redoStackPush(state);
   }
 
   undoStackPop(): StackAction {
-    return this.undoStack.pop();
+    return this.stack.undoStackPop();
   }
   undoStackPush(state: StackAction): void {
-    this.undoStack.push(state);
+    this.stack.undoStackPush(state);
   }
 
   getWindowTime(): number {
@@ -772,19 +757,6 @@ class ChartImpl {
   }
   enableScrolling() {
     this.scrollingEnabled = true;
-  }
-
-  startDrag() {
-    this.dragFlags.dragStarted = true;
-  }
-  stopDrag() {
-    this.dragFlags.dragStarted = false;
-  }
-  updateDragEndTime(t: Date) {
-    this.dragFlags.endTime = t;
-  }
-  updateDragOffsetX(x: number): void {
-    this.dragFlags.x = x;
   }
 
   enableZoom() {

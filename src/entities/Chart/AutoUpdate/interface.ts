@@ -1,4 +1,4 @@
-export default interface AutoUpdateInterface {
+export interface AutoUpdate {
   isEnabled(): boolean;
   setEnabled(): void;
   setDisabled(): void;

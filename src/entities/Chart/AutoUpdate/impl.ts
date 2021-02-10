@@ -1,11 +1,11 @@
-import AutoUpdateInterface from "./interface";
+import { AutoUpdate } from "./interface";
 import AutoUpdateFunctionInterface from "./funcInterface";
 
 import store from "../../../store";
 import { actions } from "../../../features/chart";
 
 const { setAutoScroll } = actions;
-class AutoUpdateImpl implements AutoUpdateInterface {
+class AutoUpdateImpl implements AutoUpdate {
   private state = false;
   private UPDATE_INTERVAL = 5 * 1000;
   private timerRef: any;
