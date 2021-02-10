@@ -136,6 +136,9 @@ export class ArchiverDataAccess implements DataAccess {
         if (res.status !== 200) {
           throw `Request ${jsonurl} return invalid status code ${res}`;
         }
+        if (res.data.length === 0) {
+          throw `Request returned an empty array, probably due to an invalid range for the url ${jsonurl}`;
+        }
         return res.data[0];
       });
 
