@@ -20,7 +20,6 @@ export const options: Chart.ChartOptions = {
   },
   tooltips: {
     mode: "nearest",
-    axis: "x",
     intersect: false,
     custom: handlers.tooltipColorHandler,
     cornerRadius: 5,

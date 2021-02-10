@@ -771,13 +771,13 @@ class ChartImpl {
 }
 
 const chartEntity = new ChartImpl();
-
+/*
 const originalGetPixelForValue = (Chart.scaleService as any).constructors.linear.prototype.getPixelForValue;
 (Chart.scaleService as any).constructors.linear.prototype.getPixelForValue = function (value: any) {
   const pixel = originalGetPixelForValue.call(this, value);
   return Math.min(2147483647, Math.max(-2147483647, pixel));
 };
-
+*/
 const parentEventHandler = (Chart as any).Controller.prototype.eventHandler;
 (Chart as any).Controller.prototype.eventHandler = function () {
   // This is not a duplicate of the cursor positioner, this handler is called when a tooltip's datapoint index does not change.
