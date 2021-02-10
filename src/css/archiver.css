@@ -1,0 +1,475 @@
+/* ------------------- */
+button {
+  cursor: pointer;
+  border: none;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.dataset-info {
+  border-width: 1px;
+  border-style: solid;
+  border-color: lightgrey;
+  padding: 10px;
+}
+.dataset-info input {
+}
+.dataset-info .color-picker {
+  margin: 0 10 0 0;
+}
+.dataset-info .color-picker input[type="color"] {
+  border: none;
+  opacity: 0;
+  width: 20px;
+  height: 20px;
+  margin: 0px;
+}
+.dataset-info button {
+  font-family: Arial;
+  text-align: center;
+  font-size: 12px;
+  font-weight: bold;
+}
+.dataset-info button[name="info"] {
+}
+.dataset-info button[name="remove"] {
+  background-color: red;
+}
+
+/* Customize the label (the container) */
+.container {
+  display: inline;
+  position: relative;
+  padding-left: 30px;
+  cursor: pointer;
+  font-size: 12px;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  margin: 10px 0px 10px 0px;
+}
+
+/* Hide the browser's default checkbox */
+.container input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+/* Create a custom checkbox */
+.checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 25px;
+  width: 25px;
+  background-color: #eee;
+}
+
+/* On mouse-over, add a grey background color */
+.container:hover input ~ .checkmark {
+  background-color: #ccc;
+}
+
+/* When the checkbox is checked, add a blue background */
+.container input:checked ~ .checkmark {
+  background-color: grey;
+}
+
+/* Create the checkmark/indicator (hidden when not checked) */
+.checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+/* Show the checkmark when checked */
+.container input:checked ~ .checkmark:after {
+  display: block;
+}
+
+/* Style the checkmark/indicator */
+.container .checkmark:after {
+  left: 9px;
+  top: 5px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 3px 3px 0;
+  -webkit-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+  transform: rotate(45deg);
+}
+
+#header {
+  position: relative;
+  height: 100px;
+  width: 90%;
+  margin-top: 25px;
+  margin-left: 5%;
+}
+
+#header_title {
+  position: relative;
+}
+
+#header_title input {
+}
+
+.header_logo {
+  height: 50px;
+  float: right;
+}
+
+#warning {
+  padding: 10px 0 10px 0;
+  margin: 0 50 0 50;
+  top: 23px;
+  font-size: 14px;
+  border-width: 0px;
+  border-style: solid;
+  border-color: rgba(255, 0, 0, 0.3);
+  border-radius: 5px;
+  background-color: rgba(255, 0, 0, 0.3);
+}
+
+#warning h4 {
+  margin: 0;
+  margin-left: 20px;
+  margin-right: 20px;
+}
+
+#canvas_area {
+  position: relative;
+
+  top: 10px;
+  width: 95%;
+  height: 65%;
+
+  padding-left: 2.5%;
+}
+
+#date {
+  position: relative;
+  font-size: 14px;
+  font-weight: bold;
+  color: #666;
+  margin: 0 0 0 5px;
+  left: 15%;
+  top: 5px;
+  height: 35px;
+  width: 70%;
+}
+
+#date input.date {
+  width: 150px;
+}
+#date input.hh {
+  width: 35px;
+}
+
+#date span {
+  margin: 0 2px 0 2px;
+  padding: 9px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: lightgrey;
+  cursor: pointer;
+}
+
+#date span:not(.disabled):hover {
+  background-color: lightgray !important;
+}
+
+#archived_PVs {
+  position: fixed;
+
+  background-color: white;
+
+  display: none;
+
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 5px;
+  border-color: lightgrey;
+
+  top: 50px;
+  left: 7.5%;
+
+  width: 85%;
+}
+
+#archived_PVs_header {
+  background-color: lightgrey;
+
+  height: 50px;
+}
+
+#archived_PVs_header h2 {
+  margin: 0;
+  padding: 15px 0 15px 15px;
+  font-size: 14px;
+  font-weight: bold;
+  width: 75%;
+  display: inline;
+}
+
+#archived_PVs_header button {
+  font-weight: bold;
+  position: relative;
+  display: inline;
+  margin: 10px;
+  background-color: #008cba;
+  border: none;
+  color: white;
+  padding: 5px 15px;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  height: 30px;
+}
+
+#archived_PVs_header button.selectAll {
+  background-color: green;
+}
+
+#archived_PVs_header button.deselectAll {
+  background-color: #f44336;
+}
+
+#archived_PVs table {
+  width: 100%;
+}
+
+.footer-box:last-child {
+  margin-right: 30px;
+}
+
+.footer-box-wrapper {
+  display: block;
+}
+
+.footer-box {
+  display: inline-block;
+  width: 138px;
+}
+
+.footer-input {
+  width: 150px;
+  height: 35px;
+}
+
+#archived_PVs table tr td {
+  padding: 15px 5px 15px 5px;
+  height: 50px;
+  font-size: 14px;
+}
+
+#archived_PVs table tr td label {
+  position: relative;
+  top: -2px;
+}
+
+#archived_PVs span.change {
+  position: relative;
+
+  height: 20px;
+  width: 20px;
+
+  margin: 0 2px 5px 2px;
+  padding: 2px;
+
+  border-width: 1px;
+  border-style: solid;
+  border-color: lightgrey;
+  border-radius: 5px;
+
+  text-align: center;
+
+  cursor: pointer;
+  float: right;
+
+  right: 50%;
+}
+
+#archived_PVs span.change:hover {
+  background-color: lightgray;
+}
+
+#data_table_area {
+  position: relative;
+
+  width: 95%;
+
+  margin-top: 45px;
+  padding-left: 2.5%;
+
+  font-size: 14px;
+
+  font-weight: bold;
+}
+
+#data_table_area .data_table {
+  font-size: 14px;
+
+  display: none;
+
+  border-width: 2px;
+  border-style: solid;
+  border-color: lightgrey;
+}
+
+#data_table_area .data_table tr td {
+  padding: 5px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: lightgrey;
+}
+
+#data_table_area .data_table tr td.pvTime {
+  background-color: lightgrey;
+  font-weight: bold;
+}
+
+#data_table_area h2 {
+  margin-top: 20px;
+  margin-bottom: 0px;
+
+  padding: 15px 0 15px 15px;
+
+  background-color: lightgrey;
+
+  font-size: 14px;
+
+  font-weight: bold;
+}
+
+#obs {
+  background-color: lightblue;
+  border-color: lightgrey;
+  border-radius: 5px;
+  border-style: solid;
+  border-width: 1px;
+  font-size: 14px;
+  left: 15%;
+  margin: 0 0 10 0;
+  padding: 10px 0 10px 0;
+  position: relative;
+  top: 20px;
+  width: 70%;
+}
+
+#obs h4 {
+  padding: 0;
+  font-weight: 500;
+  margin: 0;
+  margin-left: 25px;
+}
+
+#canvas_area span.selection_box {
+  display: none;
+  position: absolute;
+  background: lightblue;
+  border-color: blue;
+  border-width: 1px;
+  border-style: solid;
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+#data_pv_info {
+  position: relative;
+  width: 95%;
+  margin-top: 15px;
+  padding-left: 2.5%;
+}
+
+#data_pv_info tr td {
+  padding: 5px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: lightgrey;
+
+  font-size: 12px;
+  color: #666;
+  font-weight: bold;
+}
+
+#data_pv_info tr td label {
+  position: relative;
+  top: -3px;
+}
+
+#data_axis {
+  position: relative;
+  width: 95%;
+  margin-top: 15px;
+  padding-left: 2.5%;
+}
+
+#data_axis tr td {
+  padding: 5px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: lightgrey;
+
+  font-size: 12px;
+  color: #666;
+  font-weight: bold;
+}
+
+#data_axis tr td label {
+  position: relative;
+  top: -3px;
+}
+
+/* Tooltip container */
+.tooltip {
+  position: relative;
+  display: inline-block;
+  border-bottom: 1px dotted black; /* If you want dots under the hoverable text */
+}
+
+/* Tooltip text */
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 120px;
+  background-color: #555;
+  color: #fff;
+  text-align: center;
+  padding: 5px 0;
+  border-radius: 6px;
+
+  /* Position the tooltip text */
+  position: absolute;
+  z-index: 1;
+  bottom: 125%;
+  left: 50%;
+  margin-left: -60px;
+
+  /* Fade in tooltip */
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+/* Tooltip arrow */
+.tooltip .tooltiptext::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #555 transparent transparent transparent;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+  opacity: 1;
+}

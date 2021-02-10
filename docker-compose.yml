@@ -1,0 +1,33 @@
+version: "3.7"
+services:
+  devel:
+    image: node:12.19.0-stretch
+    working_dir: /viewer
+    user: "1000:1000"
+    command: bash -c 'set -x; [[ ! -d node_modules || "$FORCE_INSTALL"=true ]] && npm install --loglevel verbose; npm run start;'
+    stdin_open: true # without this node doesn't start
+    ports:
+      - 8080:8080
+    environment:
+      NODE_ENV: development
+      FORCE_INSTALL: "false"
+    volumes:
+      - '.:/viewer'
+
+  build:
+    image: node:12.19.0-stretch
+    working_dir: /viewer
+    user: "1000:1000"
+    command: bash -c 'set -x; [[ ! -d node_modules || "$FORCE_INSTALL"=true ]] && npm install --loglevel verbose; npm run build;'
+    environment:
+      FORCE_INSTALL: "false"
+    volumes:
+      - '.:/viewer'
+
+  release:
+    image: lnlscon/archiver-viewer:v1.0
+    build:
+      context: "."
+    ports:
+      - 8080:80
+
