@@ -1,9 +1,10 @@
 import control, { REFERENCE } from "../entities/Chart/Chart";
 import chartUtils from "../utility/chartUtils";
-import { StackAction } from "./ActionsStack/constants";
+import { StackActionEnum } from "../entities/Chart/StackAction/constants";
 import QueryPVs from "../use-cases/QueryPVs";
 import PlotPVs from "../use-cases/PlotPVs";
 import ExportDataset from "../use-cases/ExportDataset";
+import { StatusDispatcher } from "../utility/Dispatchers";
 
 async function exportAsXlsx(): Promise<void> {
   await ExportDataset.asXlsx();
@@ -30,7 +31,7 @@ async function onChangeDateHandler(date: Date): Promise<void> {
  **/
 function updateTimeWindow(timeId: number): void {
   control.undoStackPush({
-    action: StackAction.CHANGE_WINDOW_TIME,
+    action: StackActionEnum.CHANGE_WINDOW_TIME,
     windowTime: control.getWindowTime(),
   });
   control.updateTimeWindow(timeId);
@@ -253,12 +254,14 @@ async function autoUpdateHandler(): Promise<void> {
  * Adjusts the global variables to perform a zoom in the chart.
  **/
 function zoomClickHandler(): void {
-  if (!control.isAutoUpdateEnabled()) {
-    if (control.getZoomFlags().isZooming) {
-      control.disableZoom();
-    } else {
-      control.enableZoom();
-    }
+  if (control.isAutoUpdateEnabled()) {
+    StatusDispatcher.Warning("Zoom disabled", "Cannot zoom while auto update is enabled");
+    return;
+  }
+  if (control.getZoomFlags().isZooming) {
+    control.disableZoom();
+  } else {
+    control.enableZoom();
   }
 }
 
@@ -271,19 +274,19 @@ async function undoHandler(): Promise<void> {
     }
 
     switch (undo.action) {
-      case StackAction.REMOVE_PV:
+      case StackActionEnum.REMOVE_PV:
         // 1- Add the PV back
-        control.redoStackPush({ action: StackAction.REMOVE_PV, pv: undo.pv });
+        control.redoStackPush({ action: StackActionEnum.REMOVE_PV, pv: undo.pv });
         PlotPVs.plotPV(undo.pv, undo.optimized);
-        control.undoStackPush({ action: StackAction.APPEND_PV, pv: undo.pv });
+        control.undoStackPush({ action: StackActionEnum.APPEND_PV, pv: undo.pv });
         break;
 
-      case StackAction.APPEND_PV: {
+      case StackActionEnum.APPEND_PV: {
         // Remove the PV
         const index = control.getPlotIndex(undo.pv);
         const optimized = (control.getChart().data.datasets[index] as any).pv.optimized;
         control.redoStackPush({
-          action: StackAction.APPEND_PV,
+          action: StackActionEnum.APPEND_PV,
           pv: undo.pv,
           optimized,
         });
@@ -291,18 +294,18 @@ async function undoHandler(): Promise<void> {
         break;
       }
 
-      case StackAction.CHANGE_WINDOW_TIME: {
+      case StackActionEnum.CHANGE_WINDOW_TIME: {
         control.redoStackPush({
-          action: StackAction.CHANGE_WINDOW_TIME,
+          action: StackActionEnum.CHANGE_WINDOW_TIME,
           windowTime: control.getWindowTime(),
         });
         control.updateTimeWindow(undo.windowTime);
         break;
       }
 
-      case StackAction.CHANGE_END_TIME: {
+      case StackActionEnum.CHANGE_END_TIME: {
         control.redoStackPush({
-          action: StackAction.CHANGE_END_TIME,
+          action: StackActionEnum.CHANGE_END_TIME,
           endTime: control.getEnd(),
         });
         control.updateTimeReference(REFERENCE.END);
@@ -312,9 +315,9 @@ async function undoHandler(): Promise<void> {
         break;
       }
 
-      case StackAction.CHANGE_START_TIME: {
+      case StackActionEnum.CHANGE_START_TIME: {
         control.redoStackPush({
-          action: StackAction.CHANGE_START_TIME,
+          action: StackActionEnum.CHANGE_START_TIME,
           startTime: control.getStart(),
         });
 
@@ -325,9 +328,9 @@ async function undoHandler(): Promise<void> {
         break;
       }
 
-      case StackAction.ZOOM:
+      case StackActionEnum.ZOOM:
         control.redoStackPush({
-          action: StackAction.ZOOM,
+          action: StackActionEnum.ZOOM,
           startTime: control.getStart(),
           endTime: control.getEnd(),
           windowTime: control.getWindowTime(),
@@ -337,7 +340,7 @@ async function undoHandler(): Promise<void> {
         control.updateTimeWindow(undo.windowTime);
         break;
     }
-    control.getChart().update({ duration: 0, easing: "linear", lazy: false });
+    control.update({ duration: 0, easing: "linear", lazy: false });
   }
 }
 
@@ -349,19 +352,19 @@ async function redoHandler(): Promise<void> {
     }
 
     switch (redo.action) {
-      case StackAction.REMOVE_PV:
+      case StackActionEnum.REMOVE_PV:
         control.removeDataset(control.getPlotIndex(redo.pv));
         break;
 
-      case StackAction.APPEND_PV:
+      case StackActionEnum.APPEND_PV:
         PlotPVs.plotPV(redo.pv, redo.optimized);
         break;
 
-      case StackAction.CHANGE_WINDOW_TIME:
+      case StackActionEnum.CHANGE_WINDOW_TIME:
         control.updateTimeWindow(redo.windowTime);
         break;
 
-      case StackAction.CHANGE_START_TIME: {
+      case StackActionEnum.CHANGE_START_TIME: {
         control.updateTimeReference(REFERENCE.START);
 
         await control.updateStartAndEnd(redo.startTime);
@@ -375,7 +378,7 @@ async function redoHandler(): Promise<void> {
 
         break;
       }
-      case StackAction.CHANGE_END_TIME: {
+      case StackActionEnum.CHANGE_END_TIME: {
         control.updateTimeReference(REFERENCE.END);
 
         await control.updateStartAndEnd(redo.endTime, true);
@@ -388,7 +391,7 @@ async function redoHandler(): Promise<void> {
 
         break;
       }
-      case StackAction.ZOOM: {
+      case StackActionEnum.ZOOM: {
         // Updates the chart attributes
         control.setStart(redo.startTime);
         control.setEnd(redo.endTime);
@@ -401,7 +404,7 @@ async function redoHandler(): Promise<void> {
         control.updateAllPlots(true);
         control.updateURL();
 
-        control.getChart().update({ duration: 0, easing: "linear", lazy: false });
+        control.update({ duration: 0, easing: "linear", lazy: false });
 
         control.updateOptimizedWarning();
 
@@ -409,7 +412,7 @@ async function redoHandler(): Promise<void> {
       }
     }
 
-    control.getChart().update({ duration: 0, easing: "linear", lazy: false });
+    control.update({ duration: 0, easing: "linear", lazy: false });
   }
 }
 

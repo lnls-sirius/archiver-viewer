@@ -1,5 +1,5 @@
 import ActionsStackInterface, { StackRedoInterface, StackUndoInterface, ActionPayloadInterface } from "./interface";
-import { StackAction } from "./constants";
+import { StackActionEnum } from "../../entities/Chart/StackAction/constants";
 
 class ActionStackHandler implements ActionsStackInterface {
   private stack: ActionPayloadInterface[] = [];
