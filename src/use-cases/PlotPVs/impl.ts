@@ -45,7 +45,7 @@ class PlotPVsImpl implements PlotPVs {
         } = res;
 
         if (res.data.length === 0) {
-          throw `No data for ${name} was received from server in the interval ${start} to ${end}.`;
+          throw `No data for ${name} was received from server in the interval ${start.toLocaleString()} to ${end.toLocaleString()}.`;
         }
         chartUtils.appendDataset(control.getChart(), control.improveData(data), bins, parseInt(PREC) + 1, metadata);
       })

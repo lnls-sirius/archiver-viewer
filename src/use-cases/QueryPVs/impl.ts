@@ -1,8 +1,6 @@
 import QueryPVsInterface from "./interface";
 import archInterface from "../../data-access";
-import { RequestsDispatcher, StatusDispatcher } from "../../utility/Dispatchers";
-import { actions } from "../../features/search";
-import store from "../../store";
+import { RequestsDispatcher, StatusDispatcher, SearchDispatcher } from "../../utility/Dispatchers";
 
 function checkValidPV(pvMetadata: any): string {
   if (pvMetadata == null) {
@@ -65,8 +63,7 @@ async function filterMetadata(data: string[]): Promise<void> {
       }
     })
   );
-
-  store.dispatch(actions.setSearchResults(validPVsMetadata));
+  SearchDispatcher.setSearchResults(validPVsMetadata);
 }
 
 const QueryPVsImpl: QueryPVsInterface = async (search: string): Promise<void> => {
@@ -75,12 +72,12 @@ const QueryPVsImpl: QueryPVsInterface = async (search: string): Promise<void> =>
     .query(search)
     .then(async (data) => await filterMetadata(data))
     .then(() => {
-      store.dispatch(actions.setSearchResultsVisible(true));
+      SearchDispatcher.setSearchResultsVisible(true);
     })
     .catch((e) => {
       const msg = `Failed to search PVs using ${search} ${e}`;
-      console.error(`Failed to search PVs using ${search}`, e);
-      StatusDispatcher.Error("Query PV: PV validation", msg);
+      console.error(msg, e);
+      StatusDispatcher.Error("Query PV", msg);
     });
 
   RequestsDispatcher.DecrementActiveRequests();
