@@ -154,7 +154,7 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
   handleStopDragData = async () => {
     const { dragEndTime } = this.state;
 
-    control.updateAllPlots(true);
+    control.updateAllPlots(false);
     control.updateURL();
  //   this.chart.update(this.updateProps);
 

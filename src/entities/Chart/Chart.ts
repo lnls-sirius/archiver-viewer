@@ -450,6 +450,12 @@ class ChartImpl {
     }
 
     this.improveData(dataset.data);
+    if (dataset.data.length === 0) {
+      StatusDispatcher.Info(
+        `Empty dataset ${dataset.label}`,
+        `No data available for the time interval [${this.start}, ${this.end}]`
+      );
+    }
     RequestsDispatcher.DecrementActiveRequests();
   }
 
