@@ -9,6 +9,7 @@ import Entries from "../Entries";
 import Series from "../Series";
 import SearchResults from "../SearchResults";
 import AlertDisplay from "../AlertDisplay";
+import Footer from "../Footer";
 import * as S from "./styled";
 
 const App: React.FC = () => {
@@ -26,6 +27,7 @@ const App: React.FC = () => {
         <Loading />
         <Entries />
         <Series />
+        <Footer />
       </S.FooterWrapper>
     </S.AppLayout>
   );
