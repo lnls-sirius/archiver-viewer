@@ -3,9 +3,15 @@ export interface ChartController {
   removeDataset(name: string): Promise<void>;
   hideDataset(name: string): void;
   toggleAxisType(name: string): void;
+
+  setAxisYMin(axisId: string, value: number): void;
+  setAxisYMax(axisId: string, value: number): void;
+  setAxisYManual(axisId: string, manual: boolean): void;
 }
 
 import chart from "../../entities/Chart/Chart";
+import store from "../../store";
+import { setAxisYLimitManual, setAxisYLimitMax, setAxisYLimitMin } from "../../features/chart/sliceChart";
 
 class ChartControllerImpl implements ChartController {
   private async optimizeDataset(label: string, optimize: boolean): Promise<void> {
@@ -26,6 +32,23 @@ class ChartControllerImpl implements ChartController {
 
   async setDatasetOptimized(name: string, optimized: boolean): Promise<void> {
     this.optimizeDataset(name, optimized);
+  }
+
+  setAxisYMin(axisId: string, value?: number) {
+    chart.setAxisYMin(axisId, value);
+    store.dispatch(setAxisYLimitMin({ id: axisId, yMin: value }));
+  }
+
+  setAxisYMax(axisId: string, value?: number) {
+    chart.setAxisYMax(axisId, value);
+    store.dispatch(setAxisYLimitMax({ id: axisId, yMax: value }));
+  }
+
+  setAxisYManual(axisId: string, manual: boolean) {
+    if (!manual) {
+      chart.setAxisYAuto(axisId);
+    }
+    store.dispatch(setAxisYLimitManual({ id: axisId, yLimitManual: manual, yMin: "", yMax: "" }));
   }
 }
 

@@ -2,8 +2,6 @@ import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import Checkbox from "../Checkbox";
 
-import { setAxisYLimitManual, setAxisYLimitMax, setAxisYLimitMin } from "../../features/chart/sliceChart";
-
 import * as S from "./styled";
 import { RootState } from "../../reducers";
 import ChartController from "../../controllers/Chart";
@@ -11,7 +9,7 @@ import ChartController from "../../controllers/Chart";
 const KEY_ENTER = 13;
 const Series: React.FC = () => {
   const dataAxis = useSelector(({ chart: { dataAxis } }: RootState) => dataAxis);
-  const dispatch = useDispatch();
+  // const dispatch = useDispatch();
   const [yMinState, setYMin] = useState("");
   const [yMaxState, setYMax] = useState("");
 
@@ -30,8 +28,12 @@ const Series: React.FC = () => {
 
     const val = parseFloat(yMinState);
     if (val) {
-      dispatch(setAxisYLimitMin({ id: id, yMin: val }));
+      ChartController.setAxisYMin(id, val);
     }
+  };
+
+  const handleSubmitYManual = (id: string, manual: boolean) => {
+    ChartController.setAxisYManual(id, manual);
   };
 
   const handleSubmitYMax = (e: any, id: any) => {
@@ -41,7 +43,7 @@ const Series: React.FC = () => {
 
     const val = parseFloat(yMaxState);
     if (val) {
-      dispatch(setAxisYLimitMax({ id: id, yMax: val }));
+      ChartController.setAxisYMax(id, val);
     }
   };
   return (
@@ -60,7 +62,7 @@ const Series: React.FC = () => {
               text="Manual Y Limit"
               tooltip="Manually define Y limits"
               checked={yLimitManual}
-              onClick={() => dispatch(setAxisYLimitManual({ id: id, yLimitManual: !yLimitManual }))}
+              onClick={() => handleSubmitYManual(id, !yLimitManual)}
             />
             <S.InputWarpper>
               <S.Input

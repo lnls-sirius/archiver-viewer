@@ -140,43 +140,52 @@ class ChartImpl {
 
   init(c: Chart): void {
     this.chart = c;
-    this.doSubscriptions();
     this.loadTooltipSettings();
   }
 
-  private doSubscriptions() {
-    store.subscribe(() => {
-      /** Chart Min/Max Limits */
-      const dataAxis = store.getState().chart.dataAxis;
+  setAxisYAuto(axisName: string) {
+    const i = findAxisIndexById(this.chart, axisName);
+    if (i === null) {
+      return;
+    }
+    const axis = this.chart.options.scales.yAxes[i];
+    delete axis.ticks.max;
+    delete axis.ticks.min;
+    this.update();
+  }
 
-      dataAxis.forEach(({ id, yLimitManual, yMin, yMax }) => {
-        let updateChart = false;
+  setAxisYMax(axisName: string, value: any) {
+    const i = findAxisIndexById(this.chart, axisName);
+    if (i === null) {
+      return;
+    }
+    const axis = this.chart.options.scales.yAxes[i];
 
-        const i = findAxisIndexById(this.chart, id);
-        if (i === null) {
-          return;
-        }
-        const axis = this.chart.options.scales.yAxes[i];
+    if (value === undefined) {
+      delete axis.ticks.max;
+    } else {
+      if (!("max" in axis.ticks) || ("max" in axis.ticks && value !== axis.ticks.max)) {
+        axis.ticks.max = value;
+      }
+    }
+    this.update();
+  }
 
-        if (!yLimitManual) {
-          delete axis.ticks.max;
-          delete axis.ticks.min;
-          updateChart = true;
-        } else {
-          if (yMin && (!("min" in axis.ticks) || ("min" in axis.ticks && yMin !== axis.ticks.min))) {
-            updateChart = true;
-            axis.ticks.min = yMin;
-          }
-          if (yMax && (!("max" in axis.ticks) || ("max" in axis.ticks && yMax !== axis.ticks.max))) {
-            updateChart = true;
-            axis.ticks.max = yMax;
-          }
-        }
-        if (updateChart) {
-          this.update();
-        }
-      });
-    });
+  setAxisYMin(axisName: string, value: any) {
+    const i = findAxisIndexById(this.chart, axisName);
+    if (i === null) {
+      return;
+    }
+    const axis = this.chart.options.scales.yAxes[i];
+
+    if (value === undefined) {
+      delete axis.ticks.min;
+    } else {
+      if (!("min" in axis.ticks) || ("min" in axis.ticks && value !== axis.ticks.min)) {
+        axis.ticks.min = value;
+      }
+    }
+    this.update();
   }
 
   async updateTimeWindow(window: number): Promise<void> {

@@ -247,7 +247,7 @@ const appendDataset = function (chart: any, data: any, bins: any, precision: any
 };
 
 /** Hide a dataset by it's label */
-export function hideDatasetByLabel(datasetIndex: number, chart: any) {
+export function hideDatasetByLabel(datasetIndex: number, chart: any): void {
   // Update visibility status
   const meta = chart.getDatasetMeta(datasetIndex);
   const { yAxisID } = meta;
