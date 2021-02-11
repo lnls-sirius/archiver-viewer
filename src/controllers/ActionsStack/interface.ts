@@ -16,7 +16,9 @@ export interface StackRedoInterface {
   doZoom(): void;
 }
 
-export interface ActionPayloadInterface {}
+export interface ActionPayloadInterface {
+  //
+}
 
 interface ActionsStackInterface {
   getUndoHandler(): StackUndoInterface;

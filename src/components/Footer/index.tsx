@@ -6,10 +6,10 @@ const Footer: React.FC = () => {
     <S.FooterWrapper>
       <S.FooterText>
         For further information, refer to the &nbsp;
-        <S.FooterLink href="https://github.com/lnls-sirius/archiver-viewer/tree/devel" target="_blank">
+        <S.FooterLink href="https://github.com/lnls-sirius/archiver-viewer" target="_blank">
           project&apos;s official website
         </S.FooterLink>
-        &nbsp; or send an email to claudio.carneiro@cnpem.br or eduardo.coelho@cnpem.br.
+        &nbsp;or contact GAS.
       </S.FooterText>
     </S.FooterWrapper>
   );

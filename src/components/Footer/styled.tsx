@@ -13,7 +13,7 @@ export const FooterWrapper = styled.footer`
 `;
 export const FooterText = styled.p`
   display: inline-block;
-  font-size: 1.1rem;
+  font-size: 0.9rem;
   font-weight: 300;
   margin: 2px 2px;
 `;
