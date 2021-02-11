@@ -29,7 +29,7 @@ export const addToDataAxis = {
     };
   },
 };
-export function setAxisYLimitMin(state: ChartState, action: any): void {
+export function setAxisYLimitMin(state: ChartState, action: PayloadAction<{ id: string; yMin: number }>): void {
   const { id, yMin } = action.payload;
   state.dataAxis.forEach((e) => {
     if (e.id === id) {
@@ -37,7 +37,7 @@ export function setAxisYLimitMin(state: ChartState, action: any): void {
     }
   });
 }
-export function setAxisYLimitMax(state: ChartState, action: any): void {
+export function setAxisYLimitMax(state: ChartState, action: PayloadAction<{ id: string; yMax: number }>): void {
   const { id, yMax } = action.payload;
   state.dataAxis.forEach((e) => {
     if (e.id === id) {
@@ -45,15 +45,20 @@ export function setAxisYLimitMax(state: ChartState, action: any): void {
     }
   });
 }
-export function setAxisYLimitManual(state: ChartState, action: any): void {
-  const { id, yLimitManual } = action.payload;
+export function setAxisYLimitManual(
+  state: ChartState,
+  action: PayloadAction<{ id: string; yLimitManual: boolean; yMin: string; yMax: string }>
+): void {
+  const { id, yLimitManual, yMin, yMax } = action.payload;
   state.dataAxis.forEach((e) => {
     if (e.id === id) {
       e.yLimitManual = yLimitManual;
+      e.yMin = yMin;
+      e.yMax = yMax;
     }
   });
 }
-export function setAxisTypeLog(state: ChartState, action: any): void {
+export function setAxisTypeLog(state: ChartState, action: PayloadAction<{ id: string; isLog: boolean }>): void {
   const { id, isLog } = action.payload;
   state.dataAxis.forEach((e) => {
     if (e.id === id) {
@@ -76,25 +81,8 @@ export const addToDataset = {
     };
   },
 };
-export function clearDatasetFetching(state: ChartState, action: any): void {
-  const { idx } = action.payload;
-  if (idx > state.datasets.length) {
-    console.warn(`Invalid dataset index ${idx}`);
-    return;
-  }
-  state.datasets[idx].fetching = false;
-  state.datasets[idx].fetchTime = null;
-}
-export function setDatasetFetching(state: ChartState, action: any): void {
-  const { idx, time } = action.payload;
-  if (idx > state.datasets.length) {
-    console.warn(`Invalid dataset index ${idx}`);
-    return;
-  }
-  state.datasets[idx].fetching = true;
-  state.datasets[idx].fetchTime = time.getTime();
-}
-export function setDatasetVisible(state: ChartState, action: any): void {
+
+export function setDatasetVisible(state: ChartState, action: PayloadAction<{ index: number; visible: boolean }>): void {
   const { index, visible } = action.payload;
   state.datasets[index].visible = visible;
 }
