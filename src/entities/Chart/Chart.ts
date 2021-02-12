@@ -128,7 +128,7 @@ class ChartImpl {
 
   updateTimeReference(r: number): void {
     this.reference = r;
-    store.dispatch(setTimeReferenceEnd(this.reference));
+    store.dispatch(setTimeReferenceEnd(this.reference === REFERENCE.END));
   }
   isSingleTipEnabled(): boolean {
     return this.singleTipEnabled;
