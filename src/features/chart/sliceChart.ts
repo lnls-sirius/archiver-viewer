@@ -9,7 +9,6 @@ const chartSlice = createSlice({
 });
 
 export const {
-  addActionToStack,
   addToDataAxis,
   addToDataset,
   doRemoveDataAxis,

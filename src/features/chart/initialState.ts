@@ -1,6 +1,5 @@
 import { TIME_IDS } from "../../lib/timeAxisPreferences";
 export interface ChartState {
-  actionsStack: any[];
   autoScroll: boolean;
   dataAxis: any[]; // @todo: Transform into an object
   datasets: any[]; // @todo: Transform into an object
@@ -13,7 +12,6 @@ export interface ChartState {
 }
 
 const initialState: ChartState = {
-  actionsStack: [],
   autoScroll: false,
   dataAxis: [], // @todo: Transform into an object
   datasets: [], // @todo: Transform into an object
