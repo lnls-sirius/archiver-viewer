@@ -9,7 +9,6 @@ import ChartController from "../../controllers/Chart";
 const KEY_ENTER = 13;
 const Series: React.FC = () => {
   const dataAxis = useSelector(({ chart: { dataAxis } }: RootState) => dataAxis);
-  // const dispatch = useDispatch();
   const [yMinState, setYMin] = useState("");
   const [yMaxState, setYMax] = useState("");
 

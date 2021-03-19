@@ -2,17 +2,8 @@
 
 import archInterface from "../../data-access";
 import chartUtils, { hideDatasetByLabel, findAxisIndexById } from "../../utility/chartUtils";
-import { RequestsDispatcher, StatusDispatcher } from "../../utility/Dispatchers";
+import { RequestsDispatcher, StatusDispatcher, ChartDispatcher } from "../../utility/Dispatchers";
 import Browser from "../../utility/Browser";
-import store from "../../store";
-import {
-  setDatasetOptimized,
-  setSingleTooltip,
-  setTimeReferenceEnd,
-  setWindowTime,
-  setZooming,
-  removeDataset as storeRemoveDataset,
-} from "../../features/chart/sliceChart";
 import Chart from "chart.js";
 
 import makeChartActionsStack, { StackActionEnum, StackAction, ChartActionsStack } from "./StackAction";
@@ -23,15 +14,15 @@ export enum REFERENCE {
   START = 0,
   END = 1,
 }
+
 interface ZoomFlags {
   isZooming: boolean;
   hasBegan: boolean;
 }
+
 class ChartImpl {
   /* chartjs instance reference */
   private chart: Chart = null;
-  // private start: Date;
-  // private end: Date;
   private reference = REFERENCE.END; // Reference time end
   private windowTime = chartUtils.timeIDs.MIN10;
 
@@ -94,7 +85,7 @@ class ChartImpl {
 
   updateTimeWindowOnly(time: number): void {
     this.windowTime = time;
-    store.dispatch(setWindowTime(this.windowTime));
+    ChartDispatcher.setWindowTime(this.windowTime);
   }
 
   /* Control flags */
@@ -102,6 +93,7 @@ class ChartImpl {
   isAutoUpdateEnabled(): boolean {
     return this.autoUpdate.isEnabled();
   }
+
   async autoUpdateFunction(): Promise<void> {
     if (this.reference === REFERENCE.START) {
       this.updateTimeReference(REFERENCE.END);
@@ -121,6 +113,7 @@ class ChartImpl {
     this.updateURL();
     await this.updateAllPlots(false);
   }
+
   toggleAutoUpdate(): void {
     this.autoUpdate.toggle();
   }
@@ -128,14 +121,16 @@ class ChartImpl {
 
   updateTimeReference(r: number): void {
     this.reference = r;
-    store.dispatch(setTimeReferenceEnd(this.reference));
+    ChartDispatcher.setTimeReferenceEnd(this.reference === REFERENCE.END);
   }
+
   isSingleTipEnabled(): boolean {
     return this.singleTipEnabled;
   }
+
   setSingleTipEnabled(enabled: boolean) {
     this.singleTipEnabled = enabled;
-    store.dispatch(setSingleTooltip(this.singleTipEnabled));
+    ChartDispatcher.setSingleTooltipEnabled(enabled);
   }
 
   init(c: Chart): void {
@@ -457,8 +452,7 @@ class ChartImpl {
       const bins = this.shouldOptimizeRequest((dataset as any).pv.samplingPeriod, (dataset as any).pv.type);
       const optimized = bins < 0 ? false : true;
       (dataset as any).pv.optimized = optimized;
-
-      store.dispatch(setDatasetOptimized({ index: i, optimized: optimized }));
+      ChartDispatcher.setDatasetOptimized(i, optimized);
     });
   }
 
@@ -646,7 +640,8 @@ class ChartImpl {
       .catch((e) => {
         console.log(`Failed to update plot at index ${datasetIndex}, ${e}`);
       });
-    store.dispatch(setDatasetOptimized({ index: datasetIndex, optimized: optimize }));
+
+    ChartDispatcher.setDatasetOptimized(datasetIndex, optimize);
   }
 
   removeDatasetByName(name: string): void {
@@ -691,7 +686,7 @@ class ChartImpl {
     this.updateURL();
     this.updateOptimizedWarning();
 
-    store.dispatch(storeRemoveDataset({ idx: datasetIndex, removeAxis: removeAxis }));
+    ChartDispatcher.doRemoveDataset(datasetIndex, removeAxis);
   }
 
   hideAxis(event: { data: { datasetIndex: number } }): void {
@@ -770,12 +765,12 @@ class ChartImpl {
 
   enableZoom() {
     this.zoomFlags.isZooming = true;
-    store.dispatch(setZooming(true));
+    ChartDispatcher.setZooming(true);
   }
 
   disableZoom() {
     this.zoomFlags.isZooming = false;
-    store.dispatch(setZooming(false));
+    ChartDispatcher.setZooming(false);
   }
 }
 

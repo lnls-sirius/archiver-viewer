@@ -1,5 +1,5 @@
 import { DataAccessFactory } from "./interface";
-import { ArchiverDataAccess } from "./ArchiverDataAccess";
+import { ArchiverDataAccess } from "./impl";
 
 const ArchiverDataAccessFactory: DataAccessFactory = () => {
   return new ArchiverDataAccess();

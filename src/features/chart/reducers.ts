@@ -110,23 +110,19 @@ export function removeDataset(state: ChartState, action: PayloadAction<{ idx: nu
     }
   }
 }
-/** @todo: Remove from dataset (by pvName?)*/
-export function addActionToStack(state: ChartState, action: any): void {
-  state.actionsStack.push(action.payload);
-}
-export function setWindowTime(state: ChartState, action: any): void {
+export function setWindowTime(state: ChartState, action: PayloadAction<number>): void {
   state.windowTime = action.payload;
 }
-export function setAutoScroll(state: ChartState, action: any): void {
+export function setAutoScroll(state: ChartState, action: PayloadAction<boolean>): void {
   state.autoScroll = action.payload;
 }
-export function setZooming(state: ChartState, action: any): void {
+export function setZooming(state: ChartState, action: PayloadAction<boolean>): void {
   state.zooming = action.payload;
 }
-export function setSingleTooltip(state: ChartState, action: any): void {
+export function setSingleTooltip(state: ChartState, action: PayloadAction<boolean>): void {
   state.singleTooltip = action.payload;
 }
-export function setTimeReferenceEnd(state: ChartState, action: any): void {
+export function setTimeReferenceEnd(state: ChartState, action: PayloadAction<boolean>): void {
   state.timeReferenceEnd = action.payload;
 }
 export const setTimeStart = {

@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 
 import * as S from "./styled";
 
 import Modal from "../Modal";
 import handlers from "../../controllers/handlers";
 import SearchResult from "../SearchResult";
-import { actions as searchActions, SearchResult as SearchResultData } from "../../features/search";
+import { SearchResult as SearchResultData } from "../../features/search";
 import { RootState } from "../../reducers";
+import { SearchDispatcher } from "../../utility/Dispatchers";
 
 const RenderSearchResultsElements = (results: { [key: string]: SearchResultData }): JSX.Element[] => {
   const elements: JSX.Element[] = [];
@@ -19,8 +20,6 @@ const RenderSearchResultsElements = (results: { [key: string]: SearchResultData 
 };
 
 const SearchResults: React.FC = () => {
-  const dispatch = useDispatch();
-
   const selectSearchIsVisible = (state: RootState) => state.search.visible;
   const selectSearchResults = (state: RootState) => state.search.results;
 
@@ -29,15 +28,22 @@ const SearchResults: React.FC = () => {
 
   const [isModalVisible, setModalVisible] = useState(visible);
 
-  const selectAll = () => dispatch(searchActions.doSelectAllResults());
-  const deselectAll = () => dispatch(searchActions.doDeselectAllResults());
+  const selectAll = () => {
+    SearchDispatcher.doDeselectAllResults();
+  };
+
+  const deselectAll = () => {
+    SearchDispatcher.doDeselectAllResults();
+  };
 
   const setVisible = () => {
     if (visible) {
       setModalVisible(false); // Fade out modal fist
-      setTimeout(() => dispatch(searchActions.setSearchResultsVisible(false)), 250); // Destroy component
+      setTimeout(() => {
+        SearchDispatcher.setSearchResultsVisible(false);
+      }, 250); // Destroy component
     } else {
-      dispatch(searchActions.setSearchResultsVisible(true));
+      SearchDispatcher.setSearchResultsVisible(true);
     }
   };
 
