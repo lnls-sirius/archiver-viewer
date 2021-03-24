@@ -1,4 +1,4 @@
-import chartUtils from "../../utility/chartUtils";
+// import chartUtils from "../../utility/chartUtils";
 import { TimeAxisID } from "../../utility/TimeAxis/TimeAxisConstants";
 import handlers from "../../controllers/handlers";
 import Chart from "chart.js";
@@ -26,25 +26,7 @@ export const options: Chart.ChartOptions = {
     caretSize: 0,
     position: "cursor",
     callbacks: {
-      label: chartUtils.labelCallback,
       beforeBody: handlers.bodyCallback,
-      /*
-      labelColor: function (tooltipItem, chart) {
-        const { yLabel } = tooltipItem;
-        if (isNaN(yLabel as number)) {
-          return {
-            borderColor: "rgba(255,255,255,1)",
-            backgroundColor: "rgba(255,255,255,1)",
-          };
-        }
-        const meta = chart.getDatasetMeta(tooltipItem.datasetIndex);
-        const activeElement = meta.data[tooltipItem.index];
-        const view = activeElement._view;
-        return {
-          borderColor: view.borderColor,
-          backgroundColor: view.backgroundColor,
-        };
-      },*/
     },
   },
   hover: {
@@ -95,6 +77,5 @@ export const options: Chart.ChartOptions = {
   },
   legend: {
     display: false,
-    //   onClick: chartUtils.legendCallback,
   },
 };
