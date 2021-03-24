@@ -58,27 +58,6 @@ function legendCallback(e: any, legendItem: any) {
   this.chart.update(0, false);
 }
 
-/**
- * Edits tooltip's label before printing them in the screen.
- **/
-function labelCallback(label: any, chart: any) {
-  const pvPrecision = chart.datasets[label.datasetIndex].pv.precision;
-  const labelText = chart.datasets[label.datasetIndex].label;
-  const value = label.yLabel;
-
-  let displayValue = "";
-
-  if (pvPrecision > 4) {
-    displayValue = value.toExponential(3);
-  } else if (value !== 0 && Math.abs(value) < Math.pow(10, -pvPrecision)) {
-    displayValue = value.toExponential(Math.min(3, pvPrecision));
-  } else {
-    displayValue = value.toExponential(pvPrecision);
-  }
-
-  return `${labelText}: ${displayValue}`;
-}
-
 function reboundTooltip(x: any, y: any, tooltip: any, factor: any): any {
   const tooltipWidth = tooltip.width;
   const tooltipHeight = tooltip.height;
@@ -107,6 +86,5 @@ export default {
   timeIDs: TIME_IDS,
 
   legendCallback,
-  labelCallback,
   reboundTooltip,
 };
