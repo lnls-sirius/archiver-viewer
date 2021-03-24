@@ -143,7 +143,7 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
       newDate = now;
     }
 
-    this.updateChartTimeAxis(dragStartTime, dragEndTime > now ? now : dragEndTime);
+    // this.updateChartTimeAxis(dragStartTime, dragEndTime > now ? now : dragEndTime);
 
     await control.updateStartAndEnd(newDate);
     control.updateAllPlots(false);
@@ -156,15 +156,7 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
   };
 
   private updateChartTimeAxis(newDragStartTime: Date, newDragEndTime: Date) {
-    const windowTime = control.getWindowTime();
-    chartUtils.updateTimeAxis(
-      this.chart,
-      chartUtils.timeAxisPreferences[windowTime].unit,
-      chartUtils.timeAxisPreferences[windowTime].unitStepSize,
-      newDragStartTime,
-      newDragEndTime
-    );
-
+    control.updateTimeAxis(newDragStartTime, newDragEndTime);
     this.chart.update(this.updateProps);
   }
 
