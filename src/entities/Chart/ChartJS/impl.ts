@@ -294,7 +294,6 @@ class ChartJSControllerImpl implements ChartJSController {
     });
     this.chart.update();
 
-    // @todo: Append to data Axis
     ChartDispatcher.addAxisY(dataAxisSettings);
   }
 
@@ -352,8 +351,33 @@ class ChartJSControllerImpl implements ChartJSController {
     ChartDispatcher.addDataset(newDatasetInfo);
   }
 
+  private removeDataAxis(yAxisID: string): null | string {
+    if (!(yAxisID in this.dataAxes)) {
+      throw new Error(`Impossible to remove yAxis ${yAxisID}, axis does not exists`);
+    }
+
+    const axis = this.dataAxes[yAxisID];
+
+    axis.counter--;
+
+    if (axis.counter > 0) {
+      return null;
+    }
+
+    for (let i = 1; i < this.chart.options.scales.yAxes.length; i++) {
+      if (this.chart.options.scales.yAxes[i].id === yAxisID) {
+        delete this.dataAxes[yAxisID];
+        this.chart.options.scales.yAxes.splice(i, 1);
+        console.log(`Removing Axis ${yAxisID}`);
+        return yAxisID;
+      }
+    }
+    console.warn(`Axis ${yAxisID} could not be found`);
+    return null;
+  }
+
   removeDataset(datasetIndex: number): void {
-    console.log("Remove index", datasetIndex, this.chart.data.datasets);
+    console.log(`Removing dataset ${datasetIndex}`, this.chart.data.datasets);
     const { label, yAxisID } = this.chart.data.datasets[datasetIndex];
 
     if (label === undefined) {
@@ -361,25 +385,11 @@ class ChartJSControllerImpl implements ChartJSController {
     }
 
     const dataset = this.datasets[label];
-    const axis = this.dataAxes[yAxisID];
 
+    const removeAxis = this.removeDataAxis(yAxisID);
     colorStack.push(dataset.backgroundColor);
 
-    axis.counter--;
-
-    let removeAxis = null;
-    if (axis.counter <= 0) {
-      console.log("Removing Axis");
-
-      for (let i = 1; i < this.chart.options.scales.yAxes.length; i++) {
-        if (this.chart.options.scales.yAxes[i].id === yAxisID) {
-          this.chart.options.scales.yAxes.splice(i, 1);
-          removeAxis = yAxisID;
-          break;
-        }
-      }
-    }
-
+    delete this.datasets[label];
     this.chart.data.datasets.splice(datasetIndex, 1);
     this.chart.update({ duration: 0, lazy: false, easing: "linear" });
 
