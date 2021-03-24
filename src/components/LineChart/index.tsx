@@ -143,15 +143,17 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
       newDate = now;
     }
 
-    // this.updateChartTimeAxis(dragStartTime, dragEndTime > now ? now : dragEndTime);
+    // Update time axis in order to sync with the new range and enforce min/max
+    this.updateChartTimeAxis(dragStartTime, dragEndTime > now ? now : dragEndTime);
 
     await control.updateStartAndEnd(newDate);
-    control.updateAllPlots(false);
-    control.updateURL();
+    await control.updateAllPlots(false).then(() => {
+      control.updateURL();
 
-    control.undoStackPush({
-      action: StackActionEnum.CHANGE_END_TIME,
-      endTime: newDate,
+      control.undoStackPush({
+        action: StackActionEnum.CHANGE_END_TIME,
+        endTime: newDate,
+      });
     });
   };
 

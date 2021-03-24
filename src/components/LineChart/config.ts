@@ -15,6 +15,8 @@ export const options: Chart.ChartOptions = {
       hoverRadius: 0,
     },
     line: {
+      cubicInterpolationMode: "monotone",
+      stepped: true,
       tension: 0, // disable belzier curves
     },
   },
