@@ -21,21 +21,24 @@ const Entries: React.FC = () => {
 
   return (
     <S.EntriesWrapper>
-      {datasets.map(({ label, yAxisID, backgroundColor, visible, pv: { optimized } }, i) => {
+      {datasets.map(({ label, yAxisID, backgroundColor, visible, pv: { optimized, bins } }) => {
         return (
-          <S.EntryGroup key={i}>
-            <S.Color $bgcolor={backgroundColor} onClick={() => hideDataset(label)}>
+          <S.EntryGroup key={label}>
+            <S.Color title="Dataset visibility" $bgcolor={backgroundColor} onClick={() => hideDataset(label)}>
               {visible ? <S.VisibleIndicator /> : <S.HiddenIndicator />}
             </S.Color>
-            <S.Text>{label}</S.Text>
-            <S.EguText>{yAxisID}</S.EguText>
+            <S.Text title="PV name">{label}</S.Text>
+            <S.EguText title="y axis label">{yAxisID}</S.EguText>
             <Checkbox
               onClick={() => optimizeHandler(label, !optimized)}
               checked={optimized}
               text="Optimize?"
               tooltip="Uncheck if you want raw data from the server"
             />
-            <S.Button onClick={() => removeDataset(label)}>Remove</S.Button>
+            {optimized ? <a title="Number of points when optimizing">{bins}</a> : null}
+            <S.Button title="Remove dataset" onClick={() => removeDataset(label)}>
+              Remove
+            </S.Button>
           </S.EntryGroup>
         );
       })}
