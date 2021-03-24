@@ -1,20 +1,22 @@
 import QueryPVsInterface from "./interface";
 import archInterface from "../../data-access";
 import { RequestsDispatcher, StatusDispatcher, SearchDispatcher } from "../../utility/Dispatchers";
+import control from "../../entities/Chart";
+import { ArchiverMetadata } from "../../data-access/interface";
 
-function checkValidPV(pvMetadata: any): string {
+function isValidPVMetadata(pvMetadata: ArchiverMetadata): boolean {
   if (pvMetadata == null) {
-    return;
+    return false;
   }
-  if (pvMetadata.paused !== "false") {
+  if (pvMetadata.paused) {
     console.log("PV", pvMetadata.pvName, "is paused.");
-    return;
+    return false;
   }
-  if (pvMetadata.scalar !== "true") {
+  if (!pvMetadata.scalar) {
     console.log("PV", pvMetadata.pvName, " is not a scalar value.");
-    return;
+    return false;
   }
-  return pvMetadata;
+  return true;
 }
 
 function isPromisseFulfilled(result: any): boolean {
@@ -28,8 +30,8 @@ function isPromisseFulfilled(result: any): boolean {
   return true;
 }
 
-async function getValidPVs(pvList: string[]): Promise<any[]> {
-  const validPVMetadata: string[] = [];
+async function getValidPVs(pvList: string[]): Promise<ArchiverMetadata[]> {
+  const validPVMetadata: ArchiverMetadata[] = [];
   const promisses = pvList.map((x) => {
     return archInterface.fetchMetadata(x);
   });
@@ -41,9 +43,8 @@ async function getValidPVs(pvList: string[]): Promise<any[]> {
         }
 
         const pvMetadata = result.value;
-        const pv = checkValidPV(pvMetadata);
-        if (pv !== null || pv !== undefined) {
-          validPVMetadata.push(pv);
+        if (isValidPVMetadata(pvMetadata)) {
+          validPVMetadata.push(pvMetadata);
         }
       });
     })
@@ -56,10 +57,11 @@ async function getValidPVs(pvList: string[]): Promise<any[]> {
 async function filterMetadata(data: string[]): Promise<void> {
   const validPVsMetadata: any[] = [];
 
-  await getValidPVs(data).then((pvs) =>
-    pvs.forEach((pvMetadata) => {
-      if (pvMetadata) {
-        validPVsMetadata.push(pvMetadata);
+  await getValidPVs(data).then((pvsMeta) =>
+    pvsMeta.forEach((metadata) => {
+      if (metadata) {
+        const shouldOptimize = control.shouldOptimizeRequest(metadata.samplingPeriod, metadata.DBRType);
+        validPVsMetadata.push({ ...metadata, optimize: shouldOptimize > 0 }); // @todo: Fixme! Enforce type safety
       }
     })
   );
