@@ -1,8 +1,29 @@
 import { ChartDispatcher } from "./interface";
 import store from "../../../store";
 import { actions } from "../../../features/chart";
+import { DataAxis, DatasetInfo } from "../../../entities/Chart/ChartJS";
 
 class ChartDispatcherImpl implements ChartDispatcher {
+  setDatasetVisible(index: number, visible: boolean): void {
+    store.dispatch(actions.setDatasetVisible({ index, visible }));
+  }
+
+  addDataset(dataset: DatasetInfo): void {
+    store.dispatch(
+      actions.addToDataset({
+        ...dataset,
+        pv: {
+          ...dataset.pv,
+        },
+      })
+    );
+  }
+  addAxisY(dataAxisSettings: DataAxis): void {
+    store.dispatch(actions.addToDataAxis(dataAxisSettings));
+  }
+  setAxisYType(axisId: string, type: "linear" | "logarithmic"): void {
+    store.dispatch(actions.setAxisTypeLog({ id: axisId, isLog: type === "logarithmic" }));
+  }
   setWindowTime(windowTime: number): void {
     store.dispatch(actions.setWindowTime(windowTime));
   }
