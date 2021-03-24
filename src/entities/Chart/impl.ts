@@ -317,6 +317,7 @@ class ChartImpl implements ChartController {
    * Updates a plot of index pvIndex.
    **/
   async updateEmptyDataset(datasetIndex: number) {
+    console.info(`Update empty dataset ${datasetIndex}`);
     RequestsDispatcher.IncrementActiveRequests();
     const {
       label,
@@ -334,7 +335,7 @@ class ChartImpl implements ChartController {
         if (data.length > 0) {
           const _data = improveData(data, this.getStart(), this.getEnd());
           const dataset = this.chartjs.getDatasetByIndex(datasetIndex);
-          Array.prototype.push.apply(dataset.data, _data);
+          dataset.data = _data;
           this.chartjs.update();
         }
         this.datasetLatestFetchRequestTime[datasetIndex] = null;
