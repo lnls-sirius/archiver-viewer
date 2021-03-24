@@ -1,14 +1,18 @@
 /* eslint-disable radix */
 
 import archInterface from "../../data-access";
-import chartUtils, { hideDatasetByLabel, findAxisIndexById } from "../../utility/chartUtils";
+import chartUtils from "../chartUtils";
 import { RequestsDispatcher, StatusDispatcher, ChartDispatcher } from "../../utility/Dispatchers";
 import Browser from "../../utility/Browser";
+import { improveData } from "../../utility/data";
 import Chart from "chart.js";
 
 import makeChartActionsStack, { StackActionEnum, StackAction, ChartActionsStack } from "./StackAction";
 import makeAutoUpdate, { AutoUpdate } from "./AutoUpdate";
 import makeChartTime, { ChartTime } from "./Time";
+import makeChartJSController, { ChartJSController } from "./ChartJS";
+import { ArchiverMetadata } from "../../data-access/interface";
+import { OptimizeDataError } from "../../utility/errors";
 
 export enum REFERENCE {
   START = 0,
@@ -20,7 +24,12 @@ interface ZoomFlags {
   hasBegan: boolean;
 }
 
-class ChartImpl {
+interface ChartController {
+  appendDataset(data: any[], optimized: boolean, bins: number, metadata: ArchiverMetadata): void;
+  updateTimeAxis(start?: Date, end?: Date): void;
+}
+
+class ChartImpl implements ChartController {
   /* chartjs instance reference */
   private chart: Chart = null;
   private reference = REFERENCE.END; // Reference time end
@@ -38,6 +47,7 @@ class ChartImpl {
   private datasetLatestFetchRequestTime: { [key: number]: any };
   private stack: ChartActionsStack;
   private time: ChartTime;
+  private chartjs: ChartJSController;
 
   private zoomFlags: ZoomFlags = {
     isZooming: false,
@@ -51,27 +61,35 @@ class ChartImpl {
     this.datasetLatestFetchRequestTime = {};
   }
 
+  updateTimeAxis(start?: Date, end?: Date): void {
+    if (start === undefined) {
+      start = this.time.getStart();
+    }
+    if (end === undefined) {
+      end = this.time.getEnd();
+    }
+    // @todo: This should be a private method... more refactoring needed
+    const { unit, unitStepSize } = chartUtils.timeAxisPreferences[this.windowTime];
+    this.chartjs.updateTimeAxis(unit, unitStepSize, start, end);
+  }
+
+  appendDataset(data: any[], optimized: boolean, bins: number, metadata: ArchiverMetadata): void {
+    this.chartjs.appendDataset(data, optimized, bins, metadata);
+  }
+
+  init(c: Chart): void {
+    this.chart = c;
+    this.chartjs = makeChartJSController(c);
+    this.loadTooltipSettings();
+  }
+
   update(settings?: Chart.ChartUpdateProps) {
-    this.chart.update(settings);
+    this.chartjs.update(settings);
   }
 
   /** Get dataset index by it's label */
   private getDatasetIndex(label: string): number {
-    // Find dataset index and yAxis
-    let datasetIndex: any = null;
-    this.chart.data.datasets.forEach((e: any, i: number) => {
-      if (datasetIndex !== null) {
-        return;
-      }
-      if (e.label === label) {
-        datasetIndex = i;
-      }
-    });
-    if (datasetIndex === null) {
-      // Failed to obtain dataset info
-      console.error(`Failed to get dataset index of label ${label}`);
-    }
-    return datasetIndex;
+    return this.chartjs.getDatasetIndex(label);
   }
 
   /* start and end timedates */
@@ -103,13 +121,8 @@ class ChartImpl {
 
     await this.updateStartAndEnd(now, true);
 
-    chartUtils.updateTimeAxis(
-      this.chart,
-      chartUtils.timeAxisPreferences[this.windowTime].unit,
-      chartUtils.timeAxisPreferences[this.windowTime].unitStepSize,
-      this.time.getStart(),
-      this.time.getEnd()
-    );
+    const { unit, unitStepSize } = chartUtils.timeAxisPreferences[this.windowTime];
+    this.chartjs.updateTimeAxis(unit, unitStepSize, this.time.getStart(), this.time.getEnd());
     this.updateURL();
     await this.updateAllPlots(false);
   }
@@ -133,54 +146,16 @@ class ChartImpl {
     ChartDispatcher.setSingleTooltipEnabled(enabled);
   }
 
-  init(c: Chart): void {
-    this.chart = c;
-    this.loadTooltipSettings();
-  }
-
   setAxisYAuto(axisName: string) {
-    const i = findAxisIndexById(this.chart, axisName);
-    if (i === null) {
-      return;
-    }
-    const axis = this.chart.options.scales.yAxes[i];
-    delete axis.ticks.max;
-    delete axis.ticks.min;
-    this.update();
+    this.chartjs.setAxisYAuto(axisName);
   }
 
-  setAxisYMax(axisName: string, value: any) {
-    const i = findAxisIndexById(this.chart, axisName);
-    if (i === null) {
-      return;
-    }
-    const axis = this.chart.options.scales.yAxes[i];
-
-    if (value === undefined) {
-      delete axis.ticks.max;
-    } else {
-      if (!("max" in axis.ticks) || ("max" in axis.ticks && value !== axis.ticks.max)) {
-        axis.ticks.max = value;
-      }
-    }
-    this.update();
+  setAxisYMax(axisName: string, value: number) {
+    this.chartjs.setAxisYMax(axisName, value);
   }
 
-  setAxisYMin(axisName: string, value: any) {
-    const i = findAxisIndexById(this.chart, axisName);
-    if (i === null) {
-      return;
-    }
-    const axis = this.chart.options.scales.yAxes[i];
-
-    if (value === undefined) {
-      delete axis.ticks.min;
-    } else {
-      if (!("min" in axis.ticks) || ("min" in axis.ticks && value !== axis.ticks.min)) {
-        axis.ticks.min = value;
-      }
-    }
-    this.update();
+  setAxisYMin(axisName: string, value: number) {
+    this.chartjs.setAxisYMin(axisName, value);
   }
 
   async updateTimeWindow(window: number): Promise<void> {
@@ -214,13 +189,9 @@ class ChartImpl {
     this.optimizeAllGraphs();
     this.updateAllPlots(true);
     this.updateURL();
-    chartUtils.updateTimeAxis(
-      this.chart,
-      chartUtils.timeAxisPreferences[this.windowTime].unit,
-      chartUtils.timeAxisPreferences[this.windowTime].unitStepSize,
-      this.time.getStart(),
-      this.time.getEnd()
-    );
+
+    const { unit, unitStepSize } = chartUtils.timeAxisPreferences[this.windowTime];
+    this.chartjs.updateTimeAxis(unit, unitStepSize, this.time.getStart(), this.time.getEnd());
   }
 
   /**
@@ -230,9 +201,16 @@ class ChartImpl {
     if (type === "DBR_SCALAR_ENUM") {
       return -1;
     }
+    const maxSamplesPerSecond = 1 / _samplingPeriod;
+    const timeIntervalSeconds = (this.getEnd().getTime() - this.getStart().getTime()) / 1000;
+    const estimateSamples = timeIntervalSeconds * maxSamplesPerSecond;
 
-    if (this.windowTime < chartUtils.timeIDs.HOUR2) {
-      return chartUtils.timeAxisPreferences[this.windowTime].bins;
+    const windowWidthPixels = window.innerWidth;
+    // const maxPoints = windowWidthPixels;
+    const maxPoints = 1200; // Hardcoded...
+
+    if (estimateSamples > maxPoints) {
+      return maxPoints;
     }
 
     return -1;
@@ -320,10 +298,11 @@ class ChartImpl {
   }
 
   updateOptimizedWarning(): void {
-    let canOptimize = 0;
+    let canOptimize = false;
 
     for (let i = 0; i < this.chart.data.datasets.length; i++) {
-      canOptimize |= (this.chart.data.datasets[i] as any).pv.optimized;
+      const label = this.chart.data.datasets[i].label;
+      canOptimize = this.chartjs.getDatasetSettings(label).pv.optimized || canOptimize;
     }
 
     if (canOptimize) {
@@ -333,70 +312,52 @@ class ChartImpl {
     }
   }
 
-  improveData(data: any[]): any[] {
-    // WHY!?!
-    const unshiftData = [];
-    if (data.length > 0) {
-      const first = data[0];
-      const last = data[data.length - 1];
-
-      if (first.x.getTime() > this.time.getStart().getTime()) {
-        unshiftData.push({
-          x: this.time.getStart(),
-          y: first.y,
-        });
-      }
-
-      if (last.x.getTime() < this.time.getEnd().getTime()) {
-        data.push({
-          x: this.time.getEnd(),
-          y: last.y,
-        });
-      }
-    }
-    data.unshift(...unshiftData);
-    return data;
-  }
-
   /**
    * Updates a plot of index pvIndex.
    **/
-
-  async updateEmptyDataset(datasetIndex: number, dataset: Chart.ChartDataSets) {
-    const bins = chartUtils.timeAxisPreferences[this.windowTime].bins;
+  async updateEmptyDataset(datasetIndex: number) {
+    RequestsDispatcher.IncrementActiveRequests();
+    const {
+      label,
+      pv: { bins, optimized },
+    } = this.chartjs.getDatasetSettingsByIndex(datasetIndex);
 
     const thisDatasetRequestTime = new Date().getTime();
     this.datasetLatestFetchRequestTime[datasetIndex] = thisDatasetRequestTime;
 
-    // @todo: Enable loading
-    await archInterface
-      .fetchData(dataset.label, this.time.getStart(), this.time.getEnd(), (dataset as any).pv.optimized, bins)
-      .then((res) => {
-        const { data } = res;
-        const isTheLatestFetchRequest = this.datasetLatestFetchRequestTime[datasetIndex] === thisDatasetRequestTime;
+    try {
+      const { data } = await archInterface.fetchData(label, this.time.getStart(), this.time.getEnd(), optimized, bins);
+      const isTheLatestFetchRequest = this.datasetLatestFetchRequestTime[datasetIndex] === thisDatasetRequestTime;
 
-        if (isTheLatestFetchRequest) {
-          if (data.length > 0) {
-            Array.prototype.push.apply(dataset.data, this.improveData(data));
-          }
-          this.datasetLatestFetchRequestTime[datasetIndex] = null;
+      if (isTheLatestFetchRequest) {
+        if (data.length > 0) {
+          const _data = improveData(data, this.getStart(), this.getEnd());
+          const dataset = this.chartjs.getDatasetByIndex(datasetIndex);
+          Array.prototype.push.apply(dataset.data, _data);
+          this.chartjs.update();
         }
-      })
-      .catch((e) => {
-        const msg = `Failed to fetch ${dataset.label} data, error ${e}`;
+        this.datasetLatestFetchRequestTime[datasetIndex] = null;
+      }
+    } catch (e) {
+      if (e instanceof OptimizeDataError) {
+        this.chartjs.setDatasetOptimized(label, false);
+        this.updateEmptyDataset(datasetIndex);
+      } else {
+        const msg = `Failed to fetch ${label} data, error ${e}`;
         StatusDispatcher.Error("Archiver data acquisition", msg);
         console.error(msg);
-      });
+      }
+    } finally {
+      RequestsDispatcher.DecrementActiveRequests();
+    }
   }
 
   async updatePlot(datasetIndex: number): Promise<any> {
     // If the dataset is already empty, no verification is needed. All optimized request must be pass this condition.
     const dataset = this.chart.data.datasets[datasetIndex];
 
-    RequestsDispatcher.IncrementActiveRequests();
     if (dataset.data.length === 0) {
-      await this.updateEmptyDataset(datasetIndex, dataset);
-      RequestsDispatcher.DecrementActiveRequests();
+      await this.updateEmptyDataset(datasetIndex);
       return;
     }
 
@@ -405,7 +366,7 @@ class ChartImpl {
     const last = (dataset.data[dataset.data.length - 1] as any).x;
 
     const trimDatasetStart = () => {
-      while (dataset.data.length > 0 && (dataset.data[0] as any).x.getTime() < this.time.getStart().getTime()) {
+      while (dataset.data.length > 1 && (dataset.data[0] as any).x.getTime() < this.time.getStart().getTime()) {
         dataset.data.shift();
       }
     };
@@ -413,7 +374,7 @@ class ChartImpl {
     const trimDatasetEnd = () => {
       for (
         let i = dataset.data.length - 1;
-        dataset.data.length > 0 && (dataset.data[i] as any).x.getTime() > this.time.getEnd().getTime();
+        dataset.data.length > 1 && (dataset.data[i] as any).x.getTime() > this.time.getEnd().getTime();
         i--
       ) {
         dataset.data.pop();
@@ -437,26 +398,34 @@ class ChartImpl {
       trimDatasetEnd();
     }
 
-    this.improveData(dataset.data);
+    const _data = improveData(dataset.data, this.getStart(), this.getEnd());
+    dataset.data = _data;
+
     if (dataset.data.length === 0) {
       StatusDispatcher.Info(
         `Empty dataset ${dataset.label}`,
         `No data available for the time interval [${this.time.getStart()}, ${this.time.getEnd()}]`
       );
     }
-    RequestsDispatcher.DecrementActiveRequests();
   }
 
+  /** Mark graphs to be optimized */
   optimizeAllGraphs(): void {
-    this.chart.data.datasets.forEach((dataset, i) => {
-      const bins = this.shouldOptimizeRequest((dataset as any).pv.samplingPeriod, (dataset as any).pv.type);
-      const optimized = bins < 0 ? false : true;
-      (dataset as any).pv.optimized = optimized;
-      ChartDispatcher.setDatasetOptimized(i, optimized);
+    this.chart.data.datasets.forEach((dataset) => {
+      const {
+        label,
+        pv: { samplingPeriod },
+      } = this.chartjs.getDatasetSettings(dataset.label);
+
+      if (this.shouldOptimizeRequest(samplingPeriod, label)) {
+        this.chartjs.setDatasetOptimized(label, true);
+      }
     });
   }
 
   async fillDataFromLastToEnd(dataset: Chart.ChartDataSets, last: Date) {
+    RequestsDispatcher.IncrementActiveRequests();
+
     const pvName = dataset.label;
     await archInterface
       .fetchData(pvName, last, this.time.getEnd(), false)
@@ -480,11 +449,15 @@ class ChartImpl {
         const msg = `Failed to fill data from ${pvName} [${last} to ${this.time.getEnd()}], error ${e}`;
         console.error(msg);
         StatusDispatcher.Error("Fetch data", msg);
+      })
+      .finally(() => {
+        RequestsDispatcher.DecrementActiveRequests();
       });
   }
 
   async fillDataFromStartFirst(dataset: Chart.ChartDataSets, first: Date) {
     const pvName = dataset.label;
+    RequestsDispatcher.IncrementActiveRequests();
     await archInterface
       .fetchData(dataset.label, this.time.getStart(), first, false)
       .then((res) => {
@@ -508,6 +481,9 @@ class ChartImpl {
         const msg = `Failed to fill data from ${pvName} [${this.time.getStart()} to ${first}], error ${e}`;
         console.error(msg);
         StatusDispatcher.Error("Fill data", msg);
+      })
+      .finally(() => {
+        RequestsDispatcher.DecrementActiveRequests();
       });
   }
 
@@ -523,8 +499,9 @@ class ChartImpl {
     this.updateOptimizedWarning();
 
     const promisses = this.chart.data.datasets.map(async (dataset, i) => {
-      if ((dataset as any).pv.optimized || reset) {
-        dataset.data.length = 0;
+      const label = dataset.label;
+      if (this.chartjs.getDatasetSettings(label).pv.optimized || reset) {
+        dataset.data = [];
       }
 
       await this.updatePlot(i).then(() => {
@@ -584,7 +561,9 @@ class ChartImpl {
 
     this.setSingleTipEnabled(singleTipCookie === "true" || singleTipCookie == null);
 
-    chartUtils.toggleTooltipBehavior(this.chart, this.singleTipEnabled);
+    this.chartjs.toggleTooltipBehavior(this.singleTipEnabled);
+
+    //    chartUtils.toggleTooltipBehavior(this.chart, this.singleTipEnabled);
   }
 
   shouldGetDateFromRemote() {
@@ -627,9 +606,9 @@ class ChartImpl {
   }
 
   async optimizePlot(datasetLabel: string, optimize: boolean) {
-    const datasetIndex = this.getDatasetIndex(datasetLabel);
-    (this.chart.data.datasets[datasetIndex] as any).pv.optimized = optimize;
-    this.chart.data.datasets[datasetIndex].data.length = 0;
+    this.chartjs.setDatasetOptimized(datasetLabel, optimize);
+
+    const datasetIndex = this.chartjs.getDatasetIndex(datasetLabel);
 
     await this.updatePlot(datasetIndex)
       .then(() => {
@@ -640,8 +619,6 @@ class ChartImpl {
       .catch((e) => {
         console.log(`Failed to update plot at index ${datasetIndex}, ${e}`);
       });
-
-    ChartDispatcher.setDatasetOptimized(datasetIndex, optimize);
   }
 
   removeDatasetByName(name: string): void {
@@ -650,67 +627,49 @@ class ChartImpl {
   }
 
   removeDataset(datasetIndex: number, undo?: boolean): void {
-    console.log("Remove index", datasetIndex, this.chart.data.datasets);
-    chartUtils.yAxisUseCounter()[this.chart.data.datasets[datasetIndex].yAxisID]--;
-    chartUtils.colorStack().push(this.chart.data.datasets[datasetIndex].backgroundColor);
+    const {
+      label,
+      pv: { optimized },
+    } = this.chartjs.getDatasetSettingsByIndex(datasetIndex);
 
     if (!undo || undo === undefined) {
       this.stack.undoStackPush({
         action: StackActionEnum.REMOVE_PV,
-        pv: this.chart.data.datasets[datasetIndex].label,
-        optimized: (this.chart.data.datasets[datasetIndex] as any).pv.optimized,
+        pv: label,
+        optimized: optimized,
       });
     }
 
-    const yAxis = this.chart.data.datasets[datasetIndex].yAxisID;
-    const yAxisUseCount = chartUtils.yAxisUseCounter()[yAxis];
-    let removeAxis = null;
-    if (yAxisUseCount === 0) {
-      console.log("Removing Axis");
-      delete chartUtils.yAxisUseCounter()[yAxis];
-      (this.chart as any).scales[yAxis].options.display = false;
-      chartUtils.updateAxisPositionLeft((this.chart as any).scales[yAxis].position === "left");
-      delete (this.chart as any).scales[yAxis];
-
-      for (let i = 1; i < this.chart.options.scales.yAxes.length; i++) {
-        if (this.chart.options.scales.yAxes[i].id === yAxis) {
-          this.chart.options.scales.yAxes.splice(i, 1);
-          removeAxis = yAxis;
-          break;
-        }
-      }
-    }
-
-    this.chart.data.datasets.splice(datasetIndex, 1);
-    this.update({ duration: 0, lazy: false, easing: "linear" });
+    this.chartjs.removeDataset(datasetIndex);
     this.updateURL();
     this.updateOptimizedWarning();
-
-    ChartDispatcher.doRemoveDataset(datasetIndex, removeAxis);
-  }
-
-  hideAxis(event: { data: { datasetIndex: number } }): void {
-    chartUtils.hidesAxis(this.chart.getDatasetMeta(event.data.datasetIndex), this.chart);
-    this.update({ duration: 0, lazy: false, easing: "linear" });
   }
 
   toggleAxisType(axisId: string): void {
-    return chartUtils.toggleAxisType(this.chart, axisId);
+    this.chartjs.toggleAxisType(axisId);
+    //   return chartUtils.toggleAxisType(this.chart, axisId);
   }
 
-  hideDataset(label: any): void {
-    const datasetIndex = this.getDatasetIndex(label);
+  hideDataset(label: string): void {
+    this.chartjs.hideDataset(label);
+    /*   const datasetIndex = this.getDatasetIndex(label);
     if (datasetIndex === undefined || datasetIndex === null) {
       return;
     }
-    return hideDatasetByLabel(datasetIndex, this.chart);
+    return hideDatasetByIndex(this.chart, datasetIndex, label);*/
   }
 
   toggleSingleTip(): void {
     this.setSingleTipEnabled(!this.isSingleTipEnabled());
+    this.chartjs.toggleTooltipBehavior(this.isSingleTipEnabled());
+
     Browser.setCookie("singleTip", this.isSingleTipEnabled() ? "true" : "false", 1);
+
+    /*   this.setSingleTipEnabled(!this.isSingleTipEnabled());
     chartUtils.toggleTooltipBehavior(this.chart, this.isSingleTipEnabled());
+    */
   }
+
   /* Getters */
   getChart(): Chart {
     return this.chart;
@@ -775,13 +734,6 @@ class ChartImpl {
 }
 
 const chartEntity = new ChartImpl();
-/*
-const originalGetPixelForValue = (Chart.scaleService as any).constructors.linear.prototype.getPixelForValue;
-(Chart.scaleService as any).constructors.linear.prototype.getPixelForValue = function (value: any) {
-  const pixel = originalGetPixelForValue.call(this, value);
-  return Math.min(2147483647, Math.max(-2147483647, pixel));
-};
-*/
 const parentEventHandler = (Chart as any).Controller.prototype.eventHandler;
 (Chart as any).Controller.prototype.eventHandler = function () {
   // This is not a duplicate of the cursor positioner, this handler is called when a tooltip's datapoint index does not change.
