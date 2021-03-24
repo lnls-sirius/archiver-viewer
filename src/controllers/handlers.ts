@@ -1,4 +1,4 @@
-import control, { REFERENCE } from "../entities/Chart/Chart";
+import control, { REFERENCE } from "../entities/Chart";
 import chartUtils from "../utility/chartUtils";
 import { StackActionEnum } from "../entities/Chart/StackAction/constants";
 import QueryPVs from "../use-cases/QueryPVs";
@@ -20,10 +20,7 @@ async function onChangeDateHandler(date: Date): Promise<void> {
 
   control.updateAllPlots(true);
   control.updateURL();
-  const windowTime = control.getWindowTime();
-  const { unit, unitStepSize } = chartUtils.timeAxisPreferences[windowTime];
-
-  chartUtils.updateTimeAxis(control.getChart(), unit, unitStepSize, control.getStart(), control.getEnd());
+  control.updateTimeAxis();
 }
 
 /**
@@ -49,11 +46,7 @@ async function updateEndNow(): Promise<void> {
     const now = await control.getDateNow();
 
     await control.updateStartAndEnd(now);
-    const windowTime = control.getWindowTime();
-    const { unit, unitStepSize } = chartUtils.timeAxisPreferences[windowTime];
-
-    chartUtils.updateTimeAxis(control.getChart(), unit, unitStepSize, control.getStart(), control.getEnd());
-
+    control.updateTimeAxis();
     control.updateAllPlots(true);
     control.updateURL();
   }
@@ -75,8 +68,7 @@ async function backTimeWindow(): Promise<any> {
 
     await control.updateStartAndEnd(new Date(date.getTime() - milliseconds));
 
-    chartUtils.updateTimeAxis(control.getChart(), unit, unitStepSize, control.getStart(), control.getEnd());
-
+    control.updateTimeAxis();
     control.updateAllPlots(true);
     control.updateURL();
   }
@@ -99,8 +91,7 @@ async function forwTimeWindow(): Promise<any> {
 
     await control.updateStartAndEnd(new Date(date.getTime() + milliseconds));
 
-    chartUtils.updateTimeAxis(control.getChart(), unit, unitStepSize, control.getStart(), control.getEnd());
-
+    control.updateTimeAxis();
     control.updateAllPlots(true);
     control.updateURL();
   }
@@ -110,7 +101,7 @@ async function queryPVsRetrieval(val: string): Promise<void> {
   QueryPVs(val);
 }
 
-function plotSelectedPVs(pvs: string[]): void {
+function plotSelectedPVs(pvs: { name: string; optimize: boolean }[]): void {
   PlotPVs.plot(pvs);
 }
 
@@ -277,7 +268,7 @@ async function undoHandler(): Promise<void> {
       case StackActionEnum.REMOVE_PV:
         // 1- Add the PV back
         control.redoStackPush({ action: StackActionEnum.REMOVE_PV, pv: undo.pv });
-        PlotPVs.plotPV(undo.pv, undo.optimized);
+        PlotPVs.plotPV({ name: undo.pv, optimize: undo.optimized });
         control.undoStackPush({ action: StackActionEnum.APPEND_PV, pv: undo.pv });
         break;
 
@@ -357,7 +348,7 @@ async function redoHandler(): Promise<void> {
         break;
 
       case StackActionEnum.APPEND_PV:
-        PlotPVs.plotPV(redo.pv, redo.optimized);
+        PlotPVs.plotPV({ name: redo.pv, optimize: redo.optimized });
         break;
 
       case StackActionEnum.CHANGE_WINDOW_TIME:
@@ -370,12 +361,7 @@ async function redoHandler(): Promise<void> {
         await control.updateStartAndEnd(redo.startTime);
         control.updateAllPlots(true);
         control.updateURL();
-
-        const windowTime = control.getWindowTime();
-        const { unit, unitStepSize } = chartUtils.timeAxisPreferences[windowTime];
-
-        chartUtils.updateTimeAxis(control.getChart(), unit, unitStepSize, control.getStart(), control.getEnd());
-
+        control.updateTimeAxis();
         break;
       }
       case StackActionEnum.CHANGE_END_TIME: {
@@ -384,10 +370,7 @@ async function redoHandler(): Promise<void> {
         await control.updateStartAndEnd(redo.endTime, true);
         control.updateAllPlots(true);
         control.updateURL();
-        const windowTime = control.getWindowTime();
-        const { unit, unitStepSize } = chartUtils.timeAxisPreferences[windowTime];
-
-        chartUtils.updateTimeAxis(control.getChart(), unit, unitStepSize, control.getStart(), control.getEnd());
+        control.updateTimeAxis();
 
         break;
       }
@@ -395,11 +378,8 @@ async function redoHandler(): Promise<void> {
         // Updates the chart attributes
         control.setStart(redo.startTime);
         control.setEnd(redo.endTime);
-        const windowTime = control.getWindowTime();
-        const { unit, unitStepSize } = chartUtils.timeAxisPreferences[windowTime];
 
-        chartUtils.updateTimeAxis(control.getChart(), unit, unitStepSize, control.getStart(), control.getEnd());
-
+        control.updateTimeAxis();
         control.optimizeAllGraphs();
         control.updateAllPlots(true);
         control.updateURL();
