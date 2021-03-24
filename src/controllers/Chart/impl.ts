@@ -1,4 +1,4 @@
-import chart from "../../entities/Chart/Chart";
+import chart from "../../entities/Chart";
 import { ChartDispatcher } from "../../utility/Dispatchers";
 import { ChartController } from "./interface";
 
