@@ -1,4 +1,5 @@
 import { PayloadAction } from "@reduxjs/toolkit";
+import { DataAxis, DatasetInfo } from "../../entities/Chart/ChartJS";
 import { ChartState } from "./initialState";
 
 export function doRemoveDataAxis(state: ChartState, action: PayloadAction<string>): void {
@@ -67,20 +68,10 @@ export function setAxisTypeLog(state: ChartState, action: PayloadAction<{ id: st
     }
   });
 }
-export const addToDataset = {
-  reducer(state: ChartState, action: any): void {
-    state.datasets.push(action.payload);
-  },
-  prepare(data: any) {
-    return {
-      payload: {
-        fetching: false,
-        fetchTime: null,
-        ...data,
-      },
-    };
-  },
-};
+
+export function addToDataset(state: ChartState, action: PayloadAction<DatasetInfo>): void {
+  state.datasets.push(action.payload);
+}
 
 export function setDatasetVisible(state: ChartState, action: PayloadAction<{ index: number; visible: boolean }>): void {
   const { index, visible } = action.payload;

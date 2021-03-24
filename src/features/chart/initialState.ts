@@ -1,8 +1,9 @@
+import { DatasetInfo } from "../../entities/Chart/ChartJS";
 import { TIME_IDS } from "../../lib/timeAxisPreferences";
 export interface ChartState {
   autoScroll: boolean;
   dataAxis: any[]; // @todo: Transform into an object
-  datasets: any[]; // @todo: Transform into an object
+  datasets: DatasetInfo[]; // @todo: Transform into an object
   singleTooltip: boolean;
   timeEnd: string;
   timeReferenceEnd: boolean;
