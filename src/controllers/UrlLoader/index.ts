@@ -1,7 +1,6 @@
 import Browser from "../../utility/Browser";
-import control from "../../entities/Chart/Chart";
+import control from "../../entities/Chart";
 import PlotPVs from "../../use-cases/PlotPVs";
-import chartUtils from "../../utility/chartUtils";
 
 interface UrlLoader {
   load(): Promise<void>;
@@ -24,25 +23,22 @@ class UrlLoaderImpl implements UrlLoader {
     } else {
       await control.updateStartAndEnd(new Date());
     }
-    const windowTime: number = control.getWindowTime();
-    chartUtils.updateTimeAxis(
-      control.getChart(),
-      chartUtils.timeAxisPreferences[windowTime].unit,
-      chartUtils.timeAxisPreferences[windowTime].unitStepSize,
-      control.getStart(),
-      control.getEnd()
-    );
+    control.updateTimeAxis();
 
     for (let i = 0; i < pvs.length; i++) {
-      let optimized = false;
+      //     const [_, bins, name] = pvs[i].match(/optimized_([0-9]+)\((.*)\)/);
+      let optimize = false;
+      let bins = -1;
 
       if (pvs[i].indexOf("optimized_") !== -1) {
+        // const [_, bins, name] = pvs[i].match(/optimized_([0-9]+)\((.*)\)/);
+        bins = parseFloat(pvs[i].substr("optimized_".length, pvs[i].indexOf("(") + 1));
         pvs[i] = pvs[i].substr(pvs[i].indexOf("(") + 1);
         pvs[i] = pvs[i].substr(0, pvs[i].indexOf(")"));
-        optimized = true;
+        optimize = true;
       }
 
-      PlotPVs.plotPV(pvs[i], optimized, true);
+      PlotPVs.plotPV({ name: pvs[i], optimize, bins });
     }
   }
 }
