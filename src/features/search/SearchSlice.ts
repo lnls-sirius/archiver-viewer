@@ -5,6 +5,10 @@ export interface SelectSearchResultAction {
   selected: boolean;
   pvName: string;
 }
+export interface OptimizeSearchResultAction {
+  optimize: boolean;
+  pvName: string;
+}
 
 export const searchSlice = createSlice({
   name: "search",
@@ -47,6 +51,11 @@ export const searchSlice = createSlice({
       const { selected, pvName } = action.payload;
       const result = state.results[pvName];
       result.selected = selected;
+    },
+    doSelectOptimizeResult(state, action: PayloadAction<OptimizeSearchResultAction>) {
+      const { optimize, pvName } = action.payload;
+      const result = state.results[pvName];
+      result.optimize = optimize;
     },
   },
 });

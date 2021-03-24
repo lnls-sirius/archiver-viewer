@@ -145,9 +145,3 @@ export const setTimeEnd = {
     };
   },
 };
-/*
-export function setTimeStartEnd(state: ChartState, action: PayloadAction<{ start: Date; end: Date }>): void {
-  const { start, end } = action.payload;
-  state.timeEnd = end;
-  state.timeStart = start;
-}*/
