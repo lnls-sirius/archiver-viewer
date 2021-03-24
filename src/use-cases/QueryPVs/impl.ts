@@ -60,7 +60,7 @@ async function filterMetadata(data: string[]): Promise<void> {
   await getValidPVs(data).then((pvsMeta) =>
     pvsMeta.forEach((metadata) => {
       if (metadata) {
-        const shouldOptimize = control.shouldOptimizeRequest(metadata.samplingPeriod, metadata.DBRType);
+        const shouldOptimize = control.shouldOptimizeRequest(metadata);
         validPVsMetadata.push({ ...metadata, optimize: shouldOptimize > 0 }); // @todo: Fixme! Enforce type safety
       }
     })

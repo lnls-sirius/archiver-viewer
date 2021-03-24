@@ -4,7 +4,7 @@ import archInterface from "../../data-access";
 import chartUtils from "../../utility/chartUtils";
 import { RequestsDispatcher, StatusDispatcher, ChartDispatcher } from "../../utility/Dispatchers";
 import Browser from "../../utility/Browser";
-import { improveData } from "../../utility/data";
+import { fixOutOfRangeData } from "../../utility/data";
 import Chart from "chart.js";
 
 import makeChartActionsStack, { StackActionEnum, StackAction, ChartActionsStack } from "./StackAction";
@@ -125,7 +125,7 @@ class ChartImpl implements ChartController {
     const { unit, unitStepSize } = chartUtils.timeAxisPreferences[this.windowTime];
     this.chartjs.updateTimeAxis(unit, unitStepSize, this.time.getStart(), this.time.getEnd());
     this.updateURL();
-    await this.updateAllPlots(false);
+    await this.updateAllPlots();
   }
 
   toggleAutoUpdate(): void {
@@ -188,21 +188,22 @@ class ChartImpl implements ChartController {
     }
 
     this.optimizeAllGraphs();
-    this.updateAllPlots(true);
-    this.updateURL();
-
     const { unit, unitStepSize } = chartUtils.timeAxisPreferences[this.windowTime];
     this.chartjs.updateTimeAxis(unit, unitStepSize, this.time.getStart(), this.time.getEnd());
+
+    await this.updateAllPlots(true).then(() => {
+      this.updateURL();
+    });
   }
 
   /**
    * Checks if the request must optimized because of the variable's data volume. It returns -1 if no optimization is required or the number of bins otherwise.
    **/
-  shouldOptimizeRequest(_samplingPeriod: number, type: string): number {
-    if (type === "DBR_SCALAR_ENUM") {
+  shouldOptimizeRequest({ DBRType, computedEventRate }: ArchiverMetadata): number {
+    if (DBRType === "DBR_SCALAR_ENUM") {
       return -1;
     }
-    const maxSamplesPerSecond = 1 / _samplingPeriod;
+    const maxSamplesPerSecond = 1 / computedEventRate;
     const timeIntervalSeconds = (this.getEnd().getTime() - this.getStart().getTime()) / 1000;
     const estimateSamples = timeIntervalSeconds * maxSamplesPerSecond;
 
@@ -317,7 +318,6 @@ class ChartImpl implements ChartController {
    * Updates a plot of index pvIndex.
    **/
   async updateEmptyDataset(datasetIndex: number) {
-    console.info(`Update empty dataset ${datasetIndex}`);
     RequestsDispatcher.IncrementActiveRequests();
     const {
       label,
@@ -333,7 +333,7 @@ class ChartImpl implements ChartController {
 
       if (isTheLatestFetchRequest) {
         if (data.length > 0) {
-          const _data = improveData(data, this.getStart(), this.getEnd());
+          const _data = fixOutOfRangeData(data, this.getStart(), this.getEnd());
           const dataset = this.chartjs.getDatasetByIndex(datasetIndex);
           dataset.data = _data;
           this.chartjs.update();
@@ -400,7 +400,7 @@ class ChartImpl implements ChartController {
       trimDatasetEnd();
     }
 
-    const _data = improveData(dataset.data, this.getStart(), this.getEnd());
+    const _data = fixOutOfRangeData(dataset.data, this.getStart(), this.getEnd());
     dataset.data = _data;
 
     if (dataset.data.length === 0) {
@@ -416,10 +416,10 @@ class ChartImpl implements ChartController {
     this.chart.data.datasets.forEach((dataset) => {
       const {
         label,
-        pv: { samplingPeriod },
+        pv: { metadata },
       } = this.chartjs.getDatasetSettings(dataset.label);
 
-      if (this.shouldOptimizeRequest(samplingPeriod, label)) {
+      if (this.shouldOptimizeRequest(metadata)) {
         this.chartjs.setDatasetOptimized(label, true);
       }
     });
@@ -445,6 +445,7 @@ class ChartImpl implements ChartController {
             }
           }
           dataset.data.push(...(data as any));
+          this.update();
         }
       })
       .catch((e) => {
@@ -477,6 +478,7 @@ class ChartImpl implements ChartController {
             }
           }
           dataset.data.unshift(...(data as any));
+          this.update();
         }
       })
       .catch((e) => {
@@ -493,17 +495,14 @@ class ChartImpl implements ChartController {
    * Updates all plots added so far.
    * @param resets: informs if the user wants to reset the data in the dataset.
    **/
-  async updateAllPlots(reset: boolean): Promise<any> {
-    //  enableLoading();
-    if (reset === undefined) {
-      reset = false;
-    }
+  async updateAllPlots(reset = false): Promise<any> {
     this.updateOptimizedWarning();
 
     const promisses = this.chart.data.datasets.map(async (dataset, i) => {
       const label = dataset.label;
       if (this.chartjs.getDatasetSettings(label).pv.optimized || reset) {
         dataset.data = [];
+        this.update();
       }
 
       await this.updatePlot(i).then(() => {

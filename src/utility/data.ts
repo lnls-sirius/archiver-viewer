@@ -1,4 +1,29 @@
-export function improveData(data: any[], startTime: Date, endTime: Date): any[] {
+/**
+ * Method used to extend the last and the first data point
+ * */
+export function fixOutOfRangeData(data: any[], startTime: Date, endTime: Date): any[] {
+  const unshiftData = [];
+  if (data.length > 0) {
+    const first = data[0];
+    const last = data[data.length - 1];
+
+    if (first.x.getTime() > startTime) {
+      unshiftData.push({
+        x: startTime,
+        y: first.y,
+      });
+    }
+
+    if (last.x.getTime() < endTime) {
+      data.push({
+        x: endTime,
+        y: last.y,
+      });
+    }
+  }
+  data.unshift(...unshiftData);
+  return data;
+  /*
   if (data.length === 1) {
     return data;
   }
@@ -19,4 +44,5 @@ export function improveData(data: any[], startTime: Date, endTime: Date): any[] 
   }
   console.info(`Improve data ${idxStart} ${idxEnd}`);
   return data.slice(idxStart, idxEnd);
+  */
 }

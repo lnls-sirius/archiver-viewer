@@ -29,9 +29,23 @@ class ChartJSControllerImpl implements ChartJSController {
     const { datasetIndex, xLabel, yLabel } = tooltipItem;
     const {
       label,
-      pv: { precision },
+      pv: {
+        precision,
+        metadata: { DBRType },
+      },
     } = this.getDatasetSettingsByIndex(datasetIndex);
+
     const value = yLabel as number;
+
+    switch (DBRType) {
+      case "DBR_SCALAR_BYTE":
+      case "DBR_SCALAR_ENUM":
+      case "DBR_SCALAR_INT":
+      case "DBR_SCALAR_SHORT":
+      case "DBR_WAVEFORM_STRING": {
+        return `${label}: ${value.toFixed(0)}`;
+      }
+    }
 
     let displayValue = "";
 
@@ -263,8 +277,10 @@ class ChartJSControllerImpl implements ChartJSController {
       if (ticksPrecision > 4) {
         return value.toExponential(3);
       }
+
       return value.toFixed(ticksPrecision);
     };
+
     this.chart.options.scales.yAxes.push({
       ...dataAxisSettings,
       ticks: {
@@ -296,9 +312,9 @@ class ChartJSControllerImpl implements ChartJSController {
     // @todo: Update the store at control.js
     const pv: DatasetPVInfo = {
       precision: PREC,
-      type: DBRType,
+      //    type: DBRType,
       optimized: optimized,
-      samplingPeriod: samplingPeriod,
+      //     samplingPeriod: samplingPeriod,
       bins: bins > 0 ? bins : 1200, // Default for wierd bin size
       desc: "",
       egu: unit,

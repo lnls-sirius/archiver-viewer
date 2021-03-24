@@ -3,13 +3,13 @@ import { ArchiverMetadata } from "../../../data-access/interface";
 
 export interface DatasetPVInfo {
   precision: number;
-  type: string;
-  samplingPeriod: number;
+  //  type: string;
+  // samplingPeriod: number;
   optimized: boolean;
   bins: number;
   desc: string;
   egu: string;
-  metadata: any;
+  metadata: ArchiverMetadata;
 }
 
 export interface DatasetInfo {

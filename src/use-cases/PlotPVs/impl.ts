@@ -4,7 +4,7 @@ import control from "../../entities/Chart";
 import archInterface from "../../data-access";
 // import chartUtils from "../../entities/chartUtils";
 import { RequestsDispatcher, StatusDispatcher } from "../../utility/Dispatchers";
-import { improveData } from "../../utility/data";
+import { fixOutOfRangeData } from "../../utility/data";
 import { OptimizeDataError } from "../../utility/errors";
 
 import Chart from "chart.js";
@@ -39,7 +39,7 @@ class PlotPVsImpl implements PlotPVs {
       const res = await archInterface.fetchData(pv, start, end, optimized, bins);
       const { data } = res;
 
-      const _data = improveData(data, control.getStart(), control.getEnd());
+      const _data = fixOutOfRangeData(data, control.getStart(), control.getEnd());
       control.appendDataset(_data, optimized, bins, metadata);
     } catch (e) {
       let msg: string;
@@ -72,7 +72,6 @@ class PlotPVsImpl implements PlotPVs {
   plotPV({ name, optimize, bins, updateChart }: PlotPVParams): void {
     const pvIndex = control.getPlotIndex(name);
     const shouldUpdateExistingPV = pvIndex !== null;
-
     if (shouldUpdateExistingPV) {
       control.updatePlot(pvIndex);
     } else {

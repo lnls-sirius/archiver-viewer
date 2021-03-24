@@ -380,7 +380,7 @@ async function redoHandler(): Promise<void> {
         control.setEnd(redo.endTime);
 
         control.updateTimeAxis();
-        control.optimizeAllGraphs();
+        // control.optimizeAllGraphs();
         control.updateAllPlots(true);
         control.updateURL();
 

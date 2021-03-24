@@ -38,7 +38,7 @@ class UrlLoaderImpl implements UrlLoader {
         optimize = true;
       }
 
-      PlotPVs.plotPV({ name: pvs[i], optimize, bins });
+      PlotPVs.plotPV({ name: pvs[i], optimize, bins, updateChart: true });
     }
   }
 }
