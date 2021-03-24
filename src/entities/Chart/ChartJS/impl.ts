@@ -16,6 +16,36 @@ class ChartJSControllerImpl implements ChartJSController {
 
   constructor(chart: Chart) {
     this.chart = chart;
+    const labelCallback = (tooltipItem: Chart.ChartTooltipItem, data: Chart.ChartData): string | string[] => {
+      return this.labelCallback(tooltipItem, data);
+    };
+    this.chart.options.tooltips.callbacks.label = labelCallback;
+  }
+
+  /**
+   * Edits tooltip's label before printing them in the screen.
+   **/
+  private labelCallback(tooltipItem: Chart.ChartTooltipItem, data: Chart.ChartData) {
+    const { datasetIndex, xLabel, yLabel } = tooltipItem;
+    const {
+      label,
+      pv: { precision },
+    } = this.getDatasetSettingsByIndex(datasetIndex);
+    const value = yLabel as number;
+
+    let displayValue = "";
+
+    if (precision > 4) {
+      displayValue = value.toExponential(3);
+    } else if (precision > 0 && precision < 4) {
+      displayValue = value.toFixed(precision);
+    } else if (value !== 0 && Math.abs(value) < Math.pow(10, -precision)) {
+      displayValue = value.toExponential(Math.min(3, precision));
+    } else {
+      displayValue = value.toExponential(precision);
+    }
+
+    return `${label}: ${displayValue}`;
   }
 
   getDataset(name: string): Chart.ChartDataSets {
