@@ -203,11 +203,10 @@ class ChartImpl implements ChartController {
     if (DBRType === "DBR_SCALAR_ENUM") {
       return -1;
     }
-    const maxSamplesPerSecond = 1 / computedEventRate;
     const timeIntervalSeconds = (this.getEnd().getTime() - this.getStart().getTime()) / 1000;
-    const estimateSamples = timeIntervalSeconds * maxSamplesPerSecond;
+    const estimateSamples = timeIntervalSeconds * computedEventRate;
 
-    const windowWidthPixels = window.innerWidth;
+    // const windowWidthPixels = window.innerWidth;
     // const maxPoints = windowWidthPixels;
     const maxPoints = 1200; // Hardcoded...
 
