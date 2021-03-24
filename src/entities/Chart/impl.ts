@@ -1,7 +1,7 @@
 /* eslint-disable radix */
 
 import archInterface from "../../data-access";
-import chartUtils from "../chartUtils";
+import chartUtils from "../../utility/chartUtils";
 import { RequestsDispatcher, StatusDispatcher, ChartDispatcher } from "../../utility/Dispatchers";
 import Browser from "../../utility/Browser";
 import { improveData } from "../../utility/data";
