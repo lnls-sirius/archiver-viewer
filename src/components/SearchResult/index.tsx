@@ -8,11 +8,13 @@ interface SearchResultProps extends SearchResult {
   idx: string;
   key: string;
   selected: boolean;
+  optimize: boolean;
   pvName: string;
 }
 
 const SearchResult: React.FC<SearchResultProps> = (props: SearchResultProps) => {
-  const { DBRType, PREC, applianceIdentity, hostName, idx, pvName, samplingPeriod, units, selected } = props;
+  const { DBRType, PREC, applianceIdentity, hostName, idx, pvName, samplingPeriod, EGU, selected, optimize } = props;
+  const sampleFrequency = 1 / samplingPeriod;
   return (
     <S.TableRow>
       <S.TableData>{idx}</S.TableData>
@@ -22,12 +24,18 @@ const SearchResult: React.FC<SearchResultProps> = (props: SearchResultProps) => 
           onClick={() => SearchDispatcher.doSelectSearchResults({ selected: !selected, pvName: pvName })}
         />
       </S.TableData>
+      <S.TableData>
+        <Checkbox
+          checked={optimize}
+          onClick={() => SearchDispatcher.doSelectOptimizeResult({ optimize: !optimize, pvName: pvName })}
+        />
+      </S.TableData>
       <S.TableData>{pvName}</S.TableData>
-      <S.TableData>{units}</S.TableData>
+      <S.TableData>{EGU}</S.TableData>
       <S.TableData>{PREC}</S.TableData>
       <S.TableData>{hostName}</S.TableData>
       <S.TableData>{DBRType}</S.TableData>
-      <S.TableData>{`${1 / parseFloat(samplingPeriod)} Hz`}</S.TableData>
+      <S.TableData>{`${sampleFrequency} Hz`}</S.TableData>
       <S.TableData>{applianceIdentity}</S.TableData>
     </S.TableRow>
   );
