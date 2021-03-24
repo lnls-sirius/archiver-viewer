@@ -4,6 +4,21 @@ export interface ArchiverDataPoint {
   severity: number;
   status: number;
 }
+export interface ArchiverMetadata {
+  hostName: string;
+  paused: boolean;
+  computedEventRate: number;
+  samplingMethod: "SCAN" | "MONITOR";
+  samplingPeriod: number;
+  applianceIdentity: string;
+  pvName: string;
+  scalar: boolean;
+
+  EGU: string;
+  PREC: number;
+  NELM: number;
+  DBRType: string;
+}
 export interface ArchiverData {
   meta: { name: string; PREC: string };
   data: ArchiverDataPoint[];
@@ -12,7 +27,7 @@ export interface DataAccess {
   query(search: string): Promise<string[]>;
   getUrl(): string;
   setUrl(url: string): void;
-  fetchMetadata(pv: string): Promise<null | []>;
+  fetchMetadata(pv: string): Promise<null | ArchiverMetadata>;
   fetchData(pv: string, from: Date, to: Date, isOptimized?: boolean, bins?: number): Promise<ArchiverData>;
   getRemoteDate(): Promise<Date>;
 }
