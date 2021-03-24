@@ -13,6 +13,7 @@ import makeChartTime, { ChartTime } from "./Time";
 import makeChartJSController, { ChartJSController } from "./ChartJS";
 import { ArchiverMetadata } from "../../data-access/interface";
 import { OptimizeDataError } from "../../utility/errors";
+import { Settings, SettingsPVs } from "../../utility/Browser/interface";
 
 export enum REFERENCE {
   START = 0,
@@ -532,9 +533,17 @@ class ChartImpl implements ChartController {
   }
 
   updateURL(): void {
-    const { bins } = chartUtils.timeAxisPreferences[this.windowTime];
-    const datasets = this.chart.data.datasets;
-    Browser.updateAddress(datasets, bins, this.time.getStart(), this.time.getEnd());
+    const pvs: SettingsPVs[] = [];
+    this.chart.data.datasets.forEach((e) => {
+      const {
+        label,
+        pv: { bins, optimized },
+      } = this.chartjs.getDatasetSettings(e.label);
+      pvs.push({ bins, label, optimized });
+    });
+
+    const settings: Settings = { end: this.time.getEnd(), start: this.time.getStart(), pvs };
+    Browser.updateAddress(settings);
   }
 
   getNewTimeWindow(): number {
@@ -558,12 +567,8 @@ class ChartImpl implements ChartController {
 
   loadTooltipSettings() {
     const singleTipCookie = Browser.getCookie("singleTip");
-
     this.setSingleTipEnabled(singleTipCookie === "true" || singleTipCookie == null);
-
     this.chartjs.toggleTooltipBehavior(this.singleTipEnabled);
-
-    //    chartUtils.toggleTooltipBehavior(this.chart, this.singleTipEnabled);
   }
 
   shouldGetDateFromRemote() {
