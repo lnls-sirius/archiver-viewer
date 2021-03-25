@@ -41,7 +41,7 @@ export const options: Chart.ChartOptions = {
     xAxes: [
       {
         // Common x axis
-        offset: true,
+        offset: false,
         id: TimeAxisID,
         type: "time",
         distribution: "linear",
