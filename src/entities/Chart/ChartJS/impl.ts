@@ -197,8 +197,8 @@ class ChartJSControllerImpl implements ChartJSController {
   updateTimeAxis(unit: Chart.TimeUnit, unitStepSize: number, from: Date, to: Date): void {
     this.chart.options.scales.xAxes[TimeAxisIndex].time.unit = unit;
     this.chart.options.scales.xAxes[TimeAxisIndex].time.stepSize = unitStepSize;
-    this.chart.options.scales.xAxes[TimeAxisIndex].time.min = from.toString();
-    this.chart.options.scales.xAxes[TimeAxisIndex].time.max = to.toString();
+    this.chart.options.scales.xAxes[TimeAxisIndex].ticks.min = from.toString();
+    this.chart.options.scales.xAxes[TimeAxisIndex].ticks.max = to.toString();
   }
 
   getYAxis(axisId: string): Chart.ChartYAxe {
@@ -281,8 +281,16 @@ class ChartJSControllerImpl implements ChartJSController {
       return value.toFixed(ticksPrecision);
     };
 
+    const { id, type, display, position } = dataAxisSettings;
     this.chart.options.scales.yAxes.push({
-      ...dataAxisSettings,
+      id,
+      type,
+      display,
+      position,
+      scaleLabel: {
+        display: dataAxisSettings.scaleLabel.display,
+        labelString: dataAxisSettings.scaleLabel.labelString,
+      },
       ticks: {
         callback: ticksCallback,
         minor: {
@@ -336,8 +344,13 @@ class ChartJSControllerImpl implements ChartJSController {
       }
     });
 
+    const { label, yAxisID, backgroundColor, borderColor } = newDatasetInfo;
     this.chart.data.datasets.push({
-      ...newDatasetInfo,
+      label,
+      yAxisID,
+      backgroundColor,
+      borderColor,
+      //    ...newDatasetInfo,
       xAxisID: TimeAxisID,
       borderWidth: 1.5,
       data: data,
