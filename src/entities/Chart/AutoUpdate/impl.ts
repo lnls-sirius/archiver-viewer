@@ -20,17 +20,31 @@ class AutoUpdateImpl implements AutoUpdate {
     store.dispatch(setAutoScroll(this.state));
   }
 
+  private async update() {
+    this.updateFunction().then(async () => {
+      if (this.state) {
+        console.info(`Auto update: update completed, next update in ${this.UPDATE_INTERVAL / 1000}s`);
+        this.timerRef = setTimeout(() => this.update(), this.UPDATE_INTERVAL);
+      }
+    });
+  }
+
   isEnabled(): boolean {
     return this.state;
   }
 
   setEnabled(): void {
-    this.timerRef = setInterval(this.updateFunction, this.UPDATE_INTERVAL);
+    if (!this.state) {
+      console.info("Auto update: enabled");
+      this.update();
+    }
     this.setState(true);
   }
 
   setDisabled(): void {
-    clearInterval(this.timerRef);
+    console.info("Auto update: disabled");
+
+    clearTimeout(this.timerRef);
     this.setState(false);
   }
 
