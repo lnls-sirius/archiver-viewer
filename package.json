@@ -98,9 +98,10 @@
     "info:circular": "npx madge --circular ./src/  || true",
     "info:orphans": "npx madge --orphans ./src/  || true",
     "info:leaves": "npx madge --leaves ./src/ || true",
+    "update-version": "sed -i -e \"s,const version =.*,const version = \\\"$(date -I)-$(git rev-parse --short HEAD)\\\";,g\" ./src/components/Footer/index.tsx",
     "lint": "npx eslint src/lib/*",
-    "build": "NODE_ENV=production babel-node ./node_modules/webpack/bin/webpack && sed -i 's/c=l\\.r,s=l\\.c/ /g' ./build/index.bundle.js",
-    "start": "NODE_ENV=development babel-node ./node_modules/webpack-dev-server/bin/webpack-dev-server --host 0.0.0.0 --https",
+    "build": "npm run update-version; NODE_ENV=production babel-node ./node_modules/webpack/bin/webpack && sed -i 's/c=l\\.r,s=l\\.c/ /g' ./build/index.bundle.js",
+    "start": "npm run update-version; NODE_ENV=development babel-node ./node_modules/webpack-dev-server/bin/webpack-dev-server --host 127.0.0.1 --https",
     "dev:analyze": "npm run dev -- --env.addons=bundleanalyzer",
     "build:analyze": "npm run build -- --env.addons=bundleanalyzer"
   }
