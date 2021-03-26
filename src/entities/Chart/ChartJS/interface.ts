@@ -53,7 +53,6 @@ export interface ChartJSController {
   removeDataset(datasetIndex: number): void;
   hideDatasetByIndex(index: number): void;
   hideDataset(label: string): void;
-  hidesAxis(metadata: any): void;
 
   toggleTooltipBehavior(isSingleTooltipEnabled: boolean): void;
 

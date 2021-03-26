@@ -26,7 +26,7 @@ class ChartJSControllerImpl implements ChartJSController {
    * Edits tooltip's label before printing them in the screen.
    **/
   private labelCallback(tooltipItem: Chart.ChartTooltipItem, data: Chart.ChartData) {
-    const { datasetIndex, xLabel, yLabel } = tooltipItem;
+    const { datasetIndex, yLabel } = tooltipItem;
     const {
       label,
       pv: {
@@ -88,6 +88,7 @@ class ChartJSControllerImpl implements ChartJSController {
       console.error(`Failed to optimize dataset ${label}, entry does not exists in ${this.datasets}`);
       return;
     }
+
     this.datasets[label].pv.optimized = optimized;
     this.chart.data.datasets.forEach((dataset) => {
       if (dataset.label === label) {
@@ -319,10 +320,8 @@ class ChartJSControllerImpl implements ChartJSController {
     // @todo: Update the store at control.js
     const pv: DatasetPVInfo = {
       precision: PREC,
-      //    type: DBRType,
       optimized: optimized,
-      //     samplingPeriod: samplingPeriod,
-      bins: bins > 0 ? bins : 1200, // Default for wierd bin size
+      bins: bins > 0 ? bins : 800, // Default for wierd bin size
       desc: "",
       egu: unit,
       metadata: metadata,
@@ -350,7 +349,6 @@ class ChartJSControllerImpl implements ChartJSController {
       yAxisID,
       backgroundColor,
       borderColor,
-      //    ...newDatasetInfo,
       xAxisID: TimeAxisID,
       borderWidth: 1.5,
       data: data,
@@ -419,8 +417,6 @@ class ChartJSControllerImpl implements ChartJSController {
     if (meta.hidden) {
       meta.hidden = false;
       axis.counter++;
-
-      // chart.scales[yAxisID].options.display = true;
     } else {
       meta.hidden = true;
       axis.counter--;
@@ -437,17 +433,6 @@ class ChartJSControllerImpl implements ChartJSController {
       return;
     }
     this.hideDatasetByIndex(datasetIndex);
-  }
-
-  hidesAxis(metadata: any): void {
-    const axisID = metadata.yAxisID;
-    if (metadata.hidden) {
-      this.dataAxes[axisID].counter++;
-      metadata.hidden = false;
-    } else {
-      metadata.hidden = true;
-      this.dataAxes[axisID].counter--;
-    }
   }
 
   toggleTooltipBehavior(isSingleTooltipEnabled: boolean): void {
