@@ -9,6 +9,7 @@ import { OptimizeDataError } from "../../utility/errors";
 
 import Chart from "chart.js";
 import { ArchiverMetadata } from "../../data-access/interface";
+import { DefaultBinSize } from "../../utility/chartUtils";
 
 class PlotPVsImpl implements PlotPVs {
   private update(): void {
@@ -60,7 +61,7 @@ class PlotPVsImpl implements PlotPVs {
     }
   }
 
-  private async appendPV(pv: string, optimize?: boolean, bins = 1200): Promise<void> {
+  private async appendPV(pv: string, optimize?: boolean, bins = DefaultBinSize): Promise<void> {
     const metadata = await this.getPVMetadata(pv);
 
     await this.fetchAndInsertPV(pv, optimize, bins, metadata);

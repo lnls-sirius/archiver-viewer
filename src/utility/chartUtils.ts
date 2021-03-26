@@ -3,6 +3,8 @@ import { TIME_AXIS_PREFERENCES, TIME_IDS } from "../lib/timeAxisPreferences";
 import { TimeAxisID } from "./TimeAxis/TimeAxisConstants";
 import Chart from "chart.js";
 
+export const DefaultBinSize = 800;
+
 /** Custom tick settings for pressure readings */
 function tickPressureCallback(label: any) {
   switch (label) {

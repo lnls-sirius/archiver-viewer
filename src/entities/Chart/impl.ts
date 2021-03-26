@@ -1,7 +1,7 @@
 /* eslint-disable radix */
 
 import archInterface from "../../data-access";
-import chartUtils from "../../utility/chartUtils";
+import chartUtils, { DefaultBinSize } from "../../utility/chartUtils";
 import { RequestsDispatcher, StatusDispatcher, ChartDispatcher } from "../../utility/Dispatchers";
 import Browser from "../../utility/Browser";
 import { fixOutOfRangeData } from "../../utility/data";
@@ -227,7 +227,7 @@ class ChartImpl implements ChartInterface {
 
     // const windowWidthPixels = window.innerWidth;
     // const maxPoints = windowWidthPixels;
-    const maxPoints = 1200; // Hardcoded...
+    const maxPoints = DefaultBinSize; // Hardcoded...
 
     if (estimateSamples > maxPoints) {
       return maxPoints;

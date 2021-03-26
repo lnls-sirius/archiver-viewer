@@ -6,6 +6,7 @@ import { eguNormalize } from "../../../utility/egu";
 import { colorStack, randomColorGenerator } from "../../../utility/color";
 import { ChartDispatcher } from "../../../utility/Dispatchers";
 import { ArchiverMetadata } from "../../../data-access/interface";
+import { DefaultBinSize } from "../../../utility/chartUtils";
 
 class ChartJSControllerImpl implements ChartJSController {
   private chart: Chart;
@@ -321,7 +322,7 @@ class ChartJSControllerImpl implements ChartJSController {
     const pv: DatasetPVInfo = {
       precision: PREC,
       optimized: optimized,
-      bins: bins > 0 ? bins : 800, // Default for wierd bin size
+      bins: bins > 0 ? bins : DefaultBinSize, // Default for wierd bin size
       desc: "",
       egu: unit,
       metadata: metadata,
