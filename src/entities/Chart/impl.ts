@@ -7,12 +7,14 @@ import Browser from "../../utility/Browser";
 import { fixOutOfRangeData } from "../../utility/data";
 import Chart from "chart.js";
 
+import ChartInterface from "./interface";
+
 import makeChartActionsStack, { StackActionEnum, StackAction, ChartActionsStack } from "./StackAction";
 import makeAutoUpdate, { AutoUpdate } from "./AutoUpdate";
 import makeChartTime, { ChartTime } from "./Time";
-import makeChartJSController, { ChartJSController } from "./ChartJS";
-import { ArchiverMetadata } from "../../data-access/interface";
-import { OptimizeDataError } from "../../utility/errors";
+import makeChartJSController, { ChartJSController, DatasetInfo } from "./ChartJS";
+import { ArchiverDataPoint, ArchiverMetadata } from "../../data-access/interface";
+import { OptimizeDataError, OutOfSyncDatasetError } from "../../utility/errors";
 import { Settings, SettingsPVs } from "../../utility/Browser/interface";
 
 export enum REFERENCE {
@@ -25,12 +27,7 @@ interface ZoomFlags {
   hasBegan: boolean;
 }
 
-interface ChartController {
-  appendDataset(data: any[], optimized: boolean, bins: number, metadata: ArchiverMetadata): void;
-  updateTimeAxis(start?: Date, end?: Date): void;
-}
-
-class ChartImpl implements ChartController {
+class ChartImpl implements ChartInterface {
   /* chartjs instance reference */
   private chart: Chart = null;
   private reference = REFERENCE.END; // Reference time end
@@ -45,7 +42,7 @@ class ChartImpl implements ChartController {
   private cachedDate: Date = null;
   private lastFetch: Date = null;
 
-  private datasetLatestFetchRequestTime: { [key: number]: any };
+  private datasetLatestFetchRequestTime: { [key: string]: any };
   private stack: ChartActionsStack;
   private time: ChartTime;
   private chartjs: ChartJSController;
@@ -58,7 +55,7 @@ class ChartImpl implements ChartController {
   constructor() {
     this.time = makeChartTime();
     this.stack = makeChartActionsStack();
-    this.autoUpdate = makeAutoUpdate(async () => this.autoUpdateFunction());
+    this.autoUpdate = makeAutoUpdate(async () => await this.autoUpdateFunction());
     this.datasetLatestFetchRequestTime = {};
   }
 
@@ -84,7 +81,7 @@ class ChartImpl implements ChartController {
     this.loadTooltipSettings();
   }
 
-  update(settings?: Chart.ChartUpdateProps) {
+  update(settings: Chart.ChartUpdateProps = { lazy: false, duration: 0, easing: "linear" }) {
     this.chartjs.update(settings);
   }
 
@@ -124,8 +121,32 @@ class ChartImpl implements ChartController {
 
     const { unit, unitStepSize } = chartUtils.timeAxisPreferences[this.windowTime];
     this.chartjs.updateTimeAxis(unit, unitStepSize, this.time.getStart(), this.time.getEnd());
+    this.updateOptimizedWarning();
+
     this.updateURL();
-    await this.updateAllPlots();
+    const promises: Promise<void>[] = [];
+    this.chart.data.datasets.forEach(async (dataset, datasetIndex) => {
+      const {
+        label,
+        pv: { optimized },
+      } = this.chartjs.getDatasetSettingsByIndex(datasetIndex);
+      if (optimized) {
+        dataset.data = [];
+      }
+      const promise = this.updatePlot(datasetIndex, { waitResult: true });
+      console.log(`Auto update ${datasetIndex}: ${label}`);
+      promises.push(promise);
+    });
+
+    await Promise.all(promises)
+      .then(() => {
+        this.update();
+      })
+      .catch((e) => {
+        const msg = `Failed to update all plots ${e}`;
+        console.error(msg, e);
+        StatusDispatcher.Warning("Auto update", msg);
+      });
   }
 
   toggleAutoUpdate(): void {
@@ -191,9 +212,7 @@ class ChartImpl implements ChartController {
     const { unit, unitStepSize } = chartUtils.timeAxisPreferences[this.windowTime];
     this.chartjs.updateTimeAxis(unit, unitStepSize, this.time.getStart(), this.time.getEnd());
 
-    await this.updateAllPlots(true).then(() => {
-      this.updateURL();
-    });
+    await this.updateAllPlots(true);
   }
 
   /**
@@ -217,18 +236,7 @@ class ChartImpl implements ChartController {
     return -1;
   }
 
-  /** ***** Update functions *******/
-  /**
-   * The following functions updates the data plotted by the chart. They are called by
-   * the event handlers mostly.
-   **/
-
-  /**
-   * Sets end to date and updates start according
-   * to the time window size.
-   **/
   async updateEndTime(date: Date, now: Date): Promise<void> {
-    // const end = getEnd();
     let newEnd: Date;
     if (!this.time.getEnd()) {
       newEnd = date;
@@ -277,6 +285,7 @@ class ChartImpl implements ChartController {
       this.time.setEnd(newEnd);
     }
   }
+
   async updateStartAndEnd(date: Date, undo?: boolean): Promise<void> {
     if (date === undefined || date === null) {
       date = new Date();
@@ -313,100 +322,163 @@ class ChartImpl implements ChartController {
     }
   }
 
-  /**
-   * Updates a plot of index pvIndex.
-   **/
-  async updateEmptyDataset(datasetIndex: number) {
+  async fetchDatasetData(
+    start: Date,
+    end: Date,
+    { label, pv: { optimized, bins } }: DatasetInfo | { label: string; pv: { optimized: boolean; bins: number } }
+  ): Promise<ArchiverDataPoint[]> {
     RequestsDispatcher.IncrementActiveRequests();
-    const {
-      label,
-      pv: { bins, optimized },
-    } = this.chartjs.getDatasetSettingsByIndex(datasetIndex);
-
     const thisDatasetRequestTime = new Date().getTime();
-    this.datasetLatestFetchRequestTime[datasetIndex] = thisDatasetRequestTime;
+
+    /* @todo: Cancel previous requests that are deemed invalid  https://github.com/axios/axios#cancellation
+    This should be included at the data-access module, as a method. */
+    this.datasetLatestFetchRequestTime[label] = thisDatasetRequestTime;
 
     try {
-      const { data } = await archInterface.fetchData(label, this.time.getStart(), this.time.getEnd(), optimized, bins);
-      const isTheLatestFetchRequest = this.datasetLatestFetchRequestTime[datasetIndex] === thisDatasetRequestTime;
+      const { data } = await archInterface.fetchData(label, start, end, optimized, bins);
+      const isTheLatestFetchRequest = this.datasetLatestFetchRequestTime[label] === thisDatasetRequestTime;
 
       if (isTheLatestFetchRequest) {
-        if (data.length > 0) {
-          const _data = fixOutOfRangeData(data, this.getStart(), this.getEnd());
-          const dataset = this.chartjs.getDatasetByIndex(datasetIndex);
-          dataset.data = _data;
-          this.chartjs.update();
-        }
-        this.datasetLatestFetchRequestTime[datasetIndex] = null;
+        this.datasetLatestFetchRequestTime[label] = null;
+        return data;
       }
-    } catch (e) {
-      if (e instanceof OptimizeDataError) {
-        this.chartjs.setDatasetOptimized(label, false);
-        this.updateEmptyDataset(datasetIndex);
-      } else {
-        const msg = `Failed to fetch ${label} data, error ${e}`;
-        StatusDispatcher.Error("Archiver data acquisition", msg);
-        console.error(msg);
-      }
+      throw new OutOfSyncDatasetError(`Request ${label} is too late and should be discarded`);
     } finally {
       RequestsDispatcher.DecrementActiveRequests();
     }
   }
 
-  async updatePlot(datasetIndex: number): Promise<any> {
-    // If the dataset is already empty, no verification is needed. All optimized request must be pass this condition.
-    const dataset = this.chart.data.datasets[datasetIndex];
+  async fetchDatasetDataOrOptimize(start: Date, end: Date, datasetInfo: DatasetInfo): Promise<ArchiverDataPoint[]> {
+    const { label } = datasetInfo;
 
-    if (dataset.data.length === 0) {
-      await this.updateEmptyDataset(datasetIndex);
-      return;
+    try {
+      return await this.fetchDatasetData(start, end, datasetInfo);
+    } catch (e) {
+      if (e instanceof OptimizeDataError) {
+        this.chartjs.setDatasetOptimized(label, false);
+        return await this.fetchDatasetData(start, end, datasetInfo);
+      }
+
+      throw e;
     }
+  }
+
+  async updateDatasetData(
+    datasetIndex: number,
+    data: ArchiverDataPoint[],
+    { fixOutOfRange, update } = { fixOutOfRange: true, update: true }
+  ): Promise<void> {
+    const dataset = this.chartjs.getDatasetByIndex(datasetIndex);
+
+    dataset.data = fixOutOfRange ? fixOutOfRangeData(data, this.getStart(), this.getEnd()) : data;
+    if (update) {
+      this.chartjs.update();
+    }
+  }
+
+  async updateEmptyDataset(datasetIndex: number) {
+    const settings = this.chartjs.getDatasetSettingsByIndex(datasetIndex);
+
+    try {
+      await this.fetchDatasetDataOrOptimize(this.time.getStart(), this.time.getEnd(), settings).then((data) => {
+        this.updateDatasetData(datasetIndex, data);
+      });
+    } catch (e) {
+      if (e instanceof OutOfSyncDatasetError) {
+        console.info(`Ignoring Archiver response ${e}`);
+        return;
+      }
+      const msg = `Failed to fetch ${settings.label} data, error ${e}`;
+      StatusDispatcher.Error("Archiver data acquisition", msg);
+      console.error(msg);
+    }
+  }
+
+  async trimmDatasetData(datasetIndex: number) {
+    const dataset = this.chart.data.datasets[datasetIndex];
+    const data = dataset.data as ArchiverDataPoint[];
 
     // Gets the time of the first and last element of the dataset
-    const first = (dataset.data[0] as any).x;
-    const last = (dataset.data[dataset.data.length - 1] as any).x;
+    const first = data[0].x;
+    const last = data[data.length - 1].x;
+
+    const startTime = this.time.getStart().getTime();
+    const endTime = this.time.getEnd().getTime();
 
     const trimDatasetStart = () => {
-      while (dataset.data.length > 1 && (dataset.data[0] as any).x.getTime() < this.time.getStart().getTime()) {
-        dataset.data.shift();
+      while (data.length > 1 && data[0].x.getTime() < startTime) {
+        data.shift();
       }
     };
 
     const trimDatasetEnd = () => {
-      for (
-        let i = dataset.data.length - 1;
-        dataset.data.length > 1 && (dataset.data[i] as any).x.getTime() > this.time.getEnd().getTime();
-        i--
-      ) {
-        dataset.data.pop();
+      for (let i = data.length - 1; data.length > 1 && data[i].x.getTime() > endTime; i--) {
+        data.pop();
       }
     };
 
     // we need to append data to the beginning of the data set
-    const isFistPointAfterTheStart = first.getTime() > this.time.getStart().getTime();
+    const isFistPointAfterTheStart = first.getTime() > startTime;
     if (isFistPointAfterTheStart) {
       // Fetches data from the start to the first measure's time
-      await this.fillDataFromStartFirst(dataset, first);
+      await this.fillDataFromStartFirst(datasetIndex, first);
     } else {
       trimDatasetStart();
     }
 
     // we need to append data to the end of the data set
-    const isLastPointBeforeTheEnd = last.getTime() < this.time.getEnd().getTime();
+    const isLastPointBeforeTheEnd = last.getTime() < endTime;
     if (isLastPointBeforeTheEnd) {
-      await this.fillDataFromLastToEnd(dataset, last);
+      await this.fillDataFromLastToEnd(datasetIndex, last);
     } else {
       trimDatasetEnd();
     }
+  }
 
-    const _data = fixOutOfRangeData(dataset.data, this.getStart(), this.getEnd());
-    dataset.data = _data;
+  async updateDataset(datasetIndex: number) {
+    const dataset = this.chart.data.datasets[datasetIndex];
 
+    await this.trimmDatasetData(datasetIndex)
+      .then(() => {
+        const _data = fixOutOfRangeData(dataset.data as ArchiverDataPoint[], this.getStart(), this.getEnd());
+        dataset.data = _data;
+
+        if (dataset.data.length === 0) {
+          StatusDispatcher.Info(
+            `Empty dataset ${dataset.label}`,
+            `No data available for the time interval [${this.time.getStart()}, ${this.time.getEnd()}]`
+          );
+        }
+      })
+      .catch((e) => {
+        if (e instanceof OutOfSyncDatasetError) {
+          // console.log(`Ignoring `)
+        } else {
+          throw e;
+        }
+      });
+  }
+
+  async updatePlot(datasetIndex: number, settings = { waitResult: false }): Promise<void> {
+    // If the dataset is already empty, no verification is needed. All optimized request must be pass this condition.
+    const dataset = this.chart.data.datasets[datasetIndex];
+    const { waitResult } = settings;
+
+    if (waitResult) {
+      /* @todo: Optimized datasets should always go here... */
+      if (dataset.data.length === 0) {
+        await this.updateEmptyDataset(datasetIndex);
+      } else {
+        await this.updateDataset(datasetIndex);
+      }
+      return;
+    }
+
+    /* @todo: Optimized datasets should always go here... */
     if (dataset.data.length === 0) {
-      StatusDispatcher.Info(
-        `Empty dataset ${dataset.label}`,
-        `No data available for the time interval [${this.time.getStart()}, ${this.time.getEnd()}]`
-      );
+      this.updateEmptyDataset(datasetIndex);
+    } else {
+      this.updateDataset(datasetIndex);
     }
   }
 
@@ -424,94 +496,96 @@ class ChartImpl implements ChartController {
     });
   }
 
-  async fillDataFromLastToEnd(dataset: Chart.ChartDataSets, last: Date) {
-    RequestsDispatcher.IncrementActiveRequests();
+  private async fillDataFromLastToEnd(datasetIndex: number, last: Date) {
+    const {
+      label,
+      pv: { bins },
+    } = this.chartjs.getDatasetSettingsByIndex(datasetIndex);
 
-    const pvName = dataset.label;
-    await archInterface
-      .fetchData(pvName, last, this.time.getEnd(), false)
-      .then((res) => {
-        const { data } = res;
+    await this.fetchDatasetData(last, this.time.getEnd(), {
+      label,
+      pv: { optimized: false, bins },
+    }).then((data) => {
+      const dataset = this.chart.data.datasets[datasetIndex];
 
-        // Appends new data into the dataset
-        if (data.length > 0) {
-          let fistPointDate = data[0].x;
-          // Verifies if we are not appending redundant data into the dataset
-          while (data.length > 0 && fistPointDate.getTime() <= last.getTime()) {
-            data.shift();
-            if (data.length > 0) {
-              fistPointDate = data[0].x;
-            }
+      // Appends new data into the dataset
+      if (data.length > 0) {
+        let fistPointDate = data[0].x;
+        // Verifies if we are not appending redundant data into the dataset
+        while (data.length > 0 && fistPointDate.getTime() <= last.getTime()) {
+          data.shift();
+          if (data.length > 0) {
+            fistPointDate = data[0].x;
           }
-          dataset.data.push(...(data as any));
-          this.update();
         }
-      })
-      .catch((e) => {
-        const msg = `Failed to fill data from ${pvName} [${last} to ${this.time.getEnd()}], error ${e}`;
-        console.error(msg);
-        StatusDispatcher.Error("Fetch data", msg);
-      })
-      .finally(() => {
-        RequestsDispatcher.DecrementActiveRequests();
-      });
+
+        dataset.data = [...dataset.data, ...(data as any)]; // .unshift(...(data as any));
+      }
+    });
   }
 
-  async fillDataFromStartFirst(dataset: Chart.ChartDataSets, first: Date) {
-    const pvName = dataset.label;
-    RequestsDispatcher.IncrementActiveRequests();
-    await archInterface
-      .fetchData(dataset.label, this.time.getStart(), first, false)
-      .then((res) => {
-        const { data } = res;
-        // Appends new data into the dataset
-        if (data.length > 0) {
-          let firstPointDate = data[0].x;
+  private async fillDataFromStartFirst(datasetIndex: number, first: Date) {
+    const {
+      label,
+      pv: { bins },
+    } = this.chartjs.getDatasetSettingsByIndex(datasetIndex);
 
-          // Verifies if we are not appending redundant data into the dataset
-          while (data.length > 0 && firstPointDate.getTime() >= first.getTime()) {
-            data.pop(); // remove last element, which is already in the dataset
+    await this.fetchDatasetData(this.time.getStart(), first, {
+      label,
+      pv: { optimized: false, bins },
+    }).then((data) => {
+      const dataset = this.chart.data.datasets[datasetIndex];
+      // Appends new data into the dataset
+      if (data.length > 0) {
+        let firstPointDate = data[0].x;
 
-            if (data.length > 0) {
-              firstPointDate = data[0].x;
-            }
+        // Verifies if we are not appending redundant data into the dataset
+        while (data.length > 0 && firstPointDate.getTime() >= first.getTime()) {
+          data.pop(); // remove last element, which is already in the dataset
+
+          if (data.length > 0) {
+            firstPointDate = data[0].x;
           }
-          dataset.data.unshift(...(data as any));
-          this.update();
         }
-      })
-      .catch((e) => {
-        const msg = `Failed to fill data from ${pvName} [${this.time.getStart()} to ${first}], error ${e}`;
-        console.error(msg);
-        StatusDispatcher.Error("Fill data", msg);
-      })
-      .finally(() => {
-        RequestsDispatcher.DecrementActiveRequests();
-      });
+        dataset.data = [...(data as any), ...dataset.data]; // .unshift(...(data as any));
+      }
+    });
   }
 
   /**
    * Updates all plots added so far.
    * @param resets: informs if the user wants to reset the data in the dataset.
    **/
-  async updateAllPlots(reset = false): Promise<any> {
+  async updateAllPlots(reset = false, chartUpdate = true): Promise<any> {
     this.updateOptimizedWarning();
 
-    const promisses = this.chart.data.datasets.map(async (dataset, i) => {
+    const promises: Promise<void>[] = [];
+    this.chart.data.datasets.map(async (dataset, i) => {
       const label = dataset.label;
+
       if (this.chartjs.getDatasetSettings(label).pv.optimized || reset) {
         dataset.data = [];
-        this.update();
       }
 
-      await this.updatePlot(i).then(() => {
-        this.update();
-      });
+      promises.push(
+        this.updatePlot(i, { waitResult: true }).then(() => {
+          if (chartUpdate) {
+            this.update();
+          }
+        })
+      );
     });
 
-    await Promise.all(promisses).catch((error) => {
-      console.error(`Failed to update all plots ${error.message}`, error);
-    });
+    await Promise.all(promises)
+      .catch((error) => {
+        console.error(`Failed to update all plots ${error.message}`, error);
+      })
+      .finally(() => {
+        this.updateURL();
+        if (chartUpdate) {
+          this.update();
+        }
+      });
   }
 
   /**
@@ -656,11 +730,6 @@ class ChartImpl implements ChartController {
 
   hideDataset(label: string): void {
     this.chartjs.hideDataset(label);
-    /*   const datasetIndex = this.getDatasetIndex(label);
-    if (datasetIndex === undefined || datasetIndex === null) {
-      return;
-    }
-    return hideDatasetByIndex(this.chart, datasetIndex, label);*/
   }
 
   toggleSingleTip(): void {
@@ -668,10 +737,6 @@ class ChartImpl implements ChartController {
     this.chartjs.toggleTooltipBehavior(this.isSingleTipEnabled());
 
     Browser.setCookie("singleTip", this.isSingleTipEnabled() ? "true" : "false", 1);
-
-    /*   this.setSingleTipEnabled(!this.isSingleTipEnabled());
-    chartUtils.toggleTooltipBehavior(this.chart, this.isSingleTipEnabled());
-    */
   }
 
   /* Getters */
@@ -748,7 +813,6 @@ const parentEventHandler = (Chart as any).Controller.prototype.eventHandler;
     const ctx: CanvasRenderingContext2D = this.chart.ctx;
     // eslint-disable-next-line prefer-rest-params
     const x = arguments[0].x;
-    // const y = arguments[0].y;
     this.clear();
     this.draw();
     const yScale = this.scales["y-axis-0"];
