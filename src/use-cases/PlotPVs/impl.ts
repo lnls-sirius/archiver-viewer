@@ -48,13 +48,13 @@ class PlotPVsImpl implements PlotPVs {
         msg = `Failed to retrieve optimized data for ${pv} using optimize_${bins} [${start}, ${end}]`;
         await this.fetchAndInsertPV(pv, false, -1, metadata);
 
+        console.warn(msg);
         StatusDispatcher.Warning("Append PV: Fetch data", msg);
       } else {
         msg = `Failed to retrieve data for ${pv} [${start}, ${end}]`;
+        console.error(msg);
         StatusDispatcher.Error("Append PV: Fetch data", msg);
       }
-
-      console.error(msg);
     } finally {
       RequestsDispatcher.DecrementActiveRequests();
     }
