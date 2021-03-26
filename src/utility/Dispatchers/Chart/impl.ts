@@ -4,6 +4,18 @@ import { actions } from "../../../features/chart";
 import { DataAxis, DatasetInfo } from "../../../entities/Chart/ChartJS";
 
 class ChartDispatcherImpl implements ChartDispatcher {
+  setTimeEnd(date: Date): void {
+    store.dispatch(actions.setTimeEnd(date));
+  }
+
+  setTimeStart(date: Date): void {
+    store.dispatch(actions.setTimeStart(date));
+  }
+
+  setAutoScroll(autoScroll: boolean): void {
+    store.dispatch(actions.setAutoScroll(autoScroll));
+  }
+
   setDatasetVisible(index: number, visible: boolean): void {
     store.dispatch(actions.setDatasetVisible({ index, visible }));
   }

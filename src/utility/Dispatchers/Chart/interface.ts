@@ -13,8 +13,12 @@ export interface ChartDispatcher {
   doRemoveDataset(index: number, removeAxis: string): void;
 
   /** Window Time ID */
+  setTimeEnd(date: Date): void;
+  setTimeStart(date: Date): void;
+
   setWindowTime(windowTime: number): void;
   setTimeReferenceEnd(timeReferenceEnd: boolean): void;
   setSingleTooltipEnabled(enabled: boolean): void;
   setZooming(zooming: boolean): void;
+  setAutoScroll(autoScroll: boolean): void;
 }
