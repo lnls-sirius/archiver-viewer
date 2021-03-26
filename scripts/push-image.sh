@@ -4,5 +4,5 @@ set -x
 set -u
 . ./config.sh
 
-docker docker push ${docker_image_name}:${docker_image_tag}
+docker push ${docker_image_name}:${docker_image_tag}
 
