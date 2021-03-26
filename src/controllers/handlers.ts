@@ -19,7 +19,6 @@ async function onChangeDateHandler(date: Date): Promise<void> {
   await control.updateStartAndEnd(newDate);
 
   control.updateAllPlots(true);
-  control.updateURL();
   control.updateTimeAxis();
 }
 
@@ -48,7 +47,6 @@ async function updateEndNow(): Promise<void> {
     await control.updateStartAndEnd(now);
     control.updateTimeAxis();
     control.updateAllPlots(true);
-    control.updateURL();
   }
 }
 
@@ -64,13 +62,12 @@ async function backTimeWindow(): Promise<any> {
     }
 
     const windowTime = control.getWindowTime();
-    const { unit, unitStepSize, milliseconds } = chartUtils.timeAxisPreferences[windowTime];
+    const { milliseconds } = chartUtils.timeAxisPreferences[windowTime];
 
     await control.updateStartAndEnd(new Date(date.getTime() - milliseconds));
 
     control.updateTimeAxis();
     control.updateAllPlots(true);
-    control.updateURL();
   }
 }
 
@@ -80,7 +77,7 @@ async function backTimeWindow(): Promise<any> {
 async function forwTimeWindow(): Promise<any> {
   if (!control.isAutoUpdateEnabled()) {
     const windowTime = control.getWindowTime();
-    const { unit, unitStepSize, milliseconds } = chartUtils.timeAxisPreferences[windowTime];
+    const { milliseconds } = chartUtils.timeAxisPreferences[windowTime];
 
     let date: Date;
     if (control.getReference() === REFERENCE.END) {
@@ -93,7 +90,6 @@ async function forwTimeWindow(): Promise<any> {
 
     control.updateTimeAxis();
     control.updateAllPlots(true);
-    control.updateURL();
   }
 }
 
@@ -360,7 +356,6 @@ async function redoHandler(): Promise<void> {
 
         await control.updateStartAndEnd(redo.startTime);
         control.updateAllPlots(true);
-        control.updateURL();
         control.updateTimeAxis();
         break;
       }
@@ -369,7 +364,6 @@ async function redoHandler(): Promise<void> {
 
         await control.updateStartAndEnd(redo.endTime, true);
         control.updateAllPlots(true);
-        control.updateURL();
         control.updateTimeAxis();
 
         break;
@@ -380,14 +374,7 @@ async function redoHandler(): Promise<void> {
         control.setEnd(redo.endTime);
 
         control.updateTimeAxis();
-        // control.optimizeAllGraphs();
-        control.updateAllPlots(true);
-        control.updateURL();
-
-        control.update({ duration: 0, easing: "linear", lazy: false });
-
         control.updateOptimizedWarning();
-
         break;
       }
     }
