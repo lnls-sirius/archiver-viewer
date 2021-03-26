@@ -190,7 +190,7 @@ export class ArchiverDataAccess implements DataAccess {
         this.host = match[1];
       }
     } else {
-      this.host = window.location.host;
+      this.host = window.location.host.indexOf(":") === 1 ? window.location.host.split(":")[0] : window.location.host;
     }
 
     if (window.location.host === "localhost:8080" || window.location.host === "127.0.0.1:8080") {
