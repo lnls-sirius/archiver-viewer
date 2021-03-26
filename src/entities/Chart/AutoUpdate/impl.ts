@@ -1,10 +1,8 @@
 import { AutoUpdate } from "./interface";
 import AutoUpdateFunctionInterface from "./funcInterface";
 
-import store from "../../../store";
-import { actions } from "../../../features/chart";
+import { ChartDispatcher } from "../../../utility/Dispatchers";
 
-const { setAutoScroll } = actions;
 class AutoUpdateImpl implements AutoUpdate {
   private state = false;
   private UPDATE_INTERVAL = 5 * 1000;
@@ -17,7 +15,7 @@ class AutoUpdateImpl implements AutoUpdate {
 
   private setState(newState: boolean): void {
     this.state = newState;
-    store.dispatch(setAutoScroll(this.state));
+    ChartDispatcher.setAutoScroll(this.state);
   }
 
   private async update() {
