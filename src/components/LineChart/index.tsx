@@ -147,7 +147,7 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
     this.updateChartTimeAxis(dragStartTime, dragEndTime > now ? now : dragEndTime);
 
     await control.updateStartAndEnd(newDate);
-    await control.updateAllPlots(false).then(() => {
+    await control.updateAllPlots(false, true).then(() => {
       control.updateURL();
 
       control.undoStackPush({
