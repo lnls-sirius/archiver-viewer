@@ -16,6 +16,12 @@ export class InvalidParameterError extends SaneError {
   }
 }
 
+export class OutOfSyncDatasetError extends SaneError {
+  constructor(message: string) {
+    super(message);
+  }
+}
+
 export class DataAccessError extends SaneError {
   constructor(message: string) {
     super(message);
