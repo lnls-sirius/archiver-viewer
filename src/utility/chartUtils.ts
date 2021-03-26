@@ -37,27 +37,6 @@ export function findAxisIndexById(chart: Chart, axisId: string): number {
   return null;
 }
 
-function hidesAxis(metadata: any, chart: Chart): void {
-  if (metadata.hidden) {
-    // yAxisUseCounter[metadata.yAxisID]++;
-    metadata.hidden = false;
-  } else {
-    metadata.hidden = true;
-    // yAxisUseCounter[metadata.yAxisID]--;
-  }
-}
-
-/**
- * Decides if a y axis should be displayed or not.
- **/
-function legendCallback(e: any, legendItem: any) {
-  const meta = this.chart.getDatasetMeta(legendItem.datasetIndex);
-
-  hidesAxis(meta, this.chart);
-
-  this.chart.update(0, false);
-}
-
 function reboundTooltip(x: any, y: any, tooltip: any, factor: any): any {
   const tooltipWidth = tooltip.width;
   const tooltipHeight = tooltip.height;
@@ -85,6 +64,5 @@ export default {
   timeAxisPreferences: TIME_AXIS_PREFERENCES,
   timeIDs: TIME_IDS,
 
-  legendCallback,
   reboundTooltip,
 };
