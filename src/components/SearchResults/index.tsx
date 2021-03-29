@@ -29,7 +29,7 @@ const SearchResults: React.FC = () => {
   const [isModalVisible, setModalVisible] = useState(visible);
 
   const selectAll = () => {
-    SearchDispatcher.doDeselectAllResults();
+    SearchDispatcher.doSelectAllResults();
   };
 
   const deselectAll = () => {
@@ -48,10 +48,10 @@ const SearchResults: React.FC = () => {
   };
 
   const plotPVs = () => {
-    const selectedPVs = [];
+    const selectedPVs: { name: string; optimize: boolean }[] = [];
     for (const e in results) {
       if (results[e].selected) {
-        selectedPVs.push(e);
+        selectedPVs.push({ name: e, optimize: results[e].optimize });
       }
     }
     handlers.plotSelectedPVs(selectedPVs);
@@ -86,6 +86,7 @@ const SearchResults: React.FC = () => {
                 <S.TableRow>
                   <S.TableHeader>n</S.TableHeader>
                   <S.TableHeader>Select</S.TableHeader>
+                  <S.TableHeader>Optimize</S.TableHeader>
                   <S.TableHeader>Name</S.TableHeader>
                   <S.TableHeader>EGU</S.TableHeader>
                   <S.TableHeader>PREC</S.TableHeader>

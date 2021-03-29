@@ -1,5 +1,5 @@
-import ChartController from "../entities/Chart/Chart";
-export * from "../entities/Chart/Chart";
+import ChartController from "../entities/Chart";
+export * from "../entities/Chart";
 
 const chartController = ChartController;
 

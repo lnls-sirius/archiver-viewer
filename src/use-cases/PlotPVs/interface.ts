@@ -1,5 +1,12 @@
-interface PlotPVs {
-  plot(pvs: string[], optimize?: boolean): void;
-  plotPV(pv: string, optimize?: boolean, updateChart?: boolean): void;
+export interface PlotPVParams {
+  name: string;
+  optimize: boolean;
+  bins?: number;
+  updateChart?: boolean;
+}
+
+export interface PlotPVs {
+  plot(pvs: PlotPVParams[]): void;
+  plotPV(pv: PlotPVParams): void;
 }
 export default PlotPVs;

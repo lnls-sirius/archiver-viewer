@@ -1,6 +1,8 @@
 import React from "react";
 import * as S from "./styled";
 
+const version = "2021-03-26-987da91";
+
 const Footer: React.FC = () => {
   return (
     <S.FooterWrapper>
@@ -9,7 +11,7 @@ const Footer: React.FC = () => {
         <S.FooterLink href="https://github.com/lnls-sirius/archiver-viewer" target="_blank">
           project&apos;s official website
         </S.FooterLink>
-        &nbsp;or contact GAS.
+        &nbsp;or contact GAS. <span style={{ fontWeight: 500, padding: "5px" }}>{version}</span>
       </S.FooterText>
     </S.FooterWrapper>
   );

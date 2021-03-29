@@ -1,4 +1,3 @@
-import chartUtils from "../../utility/chartUtils";
 import { TimeAxisID } from "../../utility/TimeAxis/TimeAxisConstants";
 import handlers from "../../controllers/handlers";
 import Chart from "chart.js";
@@ -15,6 +14,8 @@ export const options: Chart.ChartOptions = {
       hoverRadius: 0,
     },
     line: {
+      cubicInterpolationMode: "monotone",
+      stepped: true,
       tension: 0, // disable belzier curves
     },
   },
@@ -26,7 +27,6 @@ export const options: Chart.ChartOptions = {
     caretSize: 0,
     position: "cursor",
     callbacks: {
-      label: chartUtils.labelCallback,
       beforeBody: handlers.bodyCallback,
     },
   },
@@ -40,7 +40,7 @@ export const options: Chart.ChartOptions = {
     xAxes: [
       {
         // Common x axis
-        offset: true,
+        offset: false,
         id: TimeAxisID,
         type: "time",
         distribution: "linear",
@@ -78,6 +78,5 @@ export const options: Chart.ChartOptions = {
   },
   legend: {
     display: false,
-    onClick: chartUtils.legendCallback,
   },
 };

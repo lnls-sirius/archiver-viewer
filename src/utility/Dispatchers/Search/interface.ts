@@ -1,9 +1,10 @@
-import { SelectSearchResultAction } from "../../../features/search";
+import { SelectSearchResultAction, OptimizeSearchResultAction } from "../../../features/search";
 
 export interface SearchDispatcher {
+  doDeselectAllResults(): void;
+  doSelectAllResults(): void;
+  doSelectOptimizeResult(action: OptimizeSearchResultAction): void;
+  doSelectSearchResults(action: SelectSearchResultAction): void;
   setSearchResults(results: any[]): void;
   setSearchResultsVisible(visible: boolean): void;
-  doSelectAllResults(): void;
-  doDeselectAllResults(): void;
-  doSelectSearchResults(action: SelectSearchResultAction): void;
 }

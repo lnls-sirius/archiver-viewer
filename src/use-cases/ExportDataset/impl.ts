@@ -1,6 +1,6 @@
 import ExportDataset from "./interface";
 import DataExportInterface from "../../controllers/DataExport/DataExportInterface";
-import control from "../../entities/Chart/Chart";
+import control from "../../entities/Chart";
 import { StatusDispatcher } from "../../utility/Dispatchers";
 
 class ExportDatasetImpl implements ExportDataset {

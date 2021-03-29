@@ -1,4 +1,4 @@
-import { BrowserInterface } from "./interface";
+import { BrowserInterface, Settings } from "./interface";
 
 export class Browser implements BrowserInterface {
   isValidDate(d: Date): boolean {
@@ -59,12 +59,9 @@ export class Browser implements BrowserInterface {
     }
   }
 
-  updateAddress(datasets: any[], bins: number, start: Date, end: Date): void {
+  updateAddress({ end, start, pvs }: Settings): void {
     let searchString = "?";
-    datasets.forEach((dataset) => {
-      const label = dataset.label;
-      const optimized = dataset.pv.optimized;
-
+    pvs.forEach(({ bins, label, optimized }) => {
       if (optimized) {
         searchString += `pv=optimized_${bins}(${encodeURIComponent(label)})&`;
       } else {

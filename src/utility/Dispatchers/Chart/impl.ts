@@ -1,8 +1,41 @@
 import { ChartDispatcher } from "./interface";
 import store from "../../../store";
 import { actions } from "../../../features/chart";
+import { DataAxis, DatasetInfo } from "../../../entities/Chart/ChartJS";
 
 class ChartDispatcherImpl implements ChartDispatcher {
+  setTimeEnd(date: Date): void {
+    store.dispatch(actions.setTimeEnd(date));
+  }
+
+  setTimeStart(date: Date): void {
+    store.dispatch(actions.setTimeStart(date));
+  }
+
+  setAutoScroll(autoScroll: boolean): void {
+    store.dispatch(actions.setAutoScroll(autoScroll));
+  }
+
+  setDatasetVisible(index: number, visible: boolean): void {
+    store.dispatch(actions.setDatasetVisible({ index, visible }));
+  }
+
+  addDataset(dataset: DatasetInfo): void {
+    store.dispatch(
+      actions.addToDataset({
+        ...dataset,
+        pv: {
+          ...dataset.pv,
+        },
+      })
+    );
+  }
+  addAxisY(dataAxisSettings: DataAxis): void {
+    store.dispatch(actions.addToDataAxis(dataAxisSettings));
+  }
+  setAxisYType(axisId: string, type: "linear" | "logarithmic"): void {
+    store.dispatch(actions.setAxisTypeLog({ id: axisId, isLog: type === "logarithmic" }));
+  }
   setWindowTime(windowTime: number): void {
     store.dispatch(actions.setWindowTime(windowTime));
   }

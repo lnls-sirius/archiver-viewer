@@ -1,14 +1,8 @@
-export interface SearchResult {
-  DBRType: string;
-  PREC: string;
-  applianceIdentity: string;
-  creationTime: string;
-  hostName: string;
-  isSelected: string;
-  pvName: string;
-  samplingPeriod: string;
+import { ArchiverMetadata } from "../../data-access/interface";
+
+export interface SearchResult extends ArchiverMetadata {
   selected: boolean;
-  units: string;
+  optimize: boolean;
 }
 export interface SearchStateInterface {
   visible: boolean;

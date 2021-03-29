@@ -1,5 +1,6 @@
 import axios from "axios";
-import { DataAccess, ArchiverData, ArchiverDataPoint } from "./interface";
+import { DataAccess, ArchiverData, ArchiverDataPoint, ArchiverMetadata } from "./interface";
+import { DataAccessError, OptimizeDataError, InvalidParameterError } from "../utility/errors";
 
 export const ipRegExp = /https?\/((?:(?:2(?:[0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9])\.){3}(?:(?:2([0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9])))\//;
 export const defaultHost = "10.0.38.46";
@@ -28,33 +29,57 @@ export class ArchiverDataAccess implements DataAccess {
       if (res.status === 200) {
         return res.data;
       }
-      throw `Invalid response from date backend ${res.status}, ${res.data}`;
+      throw new DataAccessError(`Invalid response from date backend ${res.status}, ${res.data}`);
     });
     if (dateString) {
       return new Date(dateString);
     }
 
-    return null;
+    throw new DataAccessError("Unable to transform date response into Date object");
   }
 
-  async fetchMetadata(pv: string): Promise<null | []> {
-    if (pv === undefined) {
+  private async fetchMetadataFromAppliance(jsonurl: string): Promise<null | ArchiverMetadata> {
+    const data = await axios
+      .get(jsonurl, { timeout: 0, responseType: "json" })
+      .then((res) => {
+        if (res.status !== 200) {
+          return null;
+        }
+        return res.data;
+      })
+      .catch((e) => {
+        return null;
+      });
+
+    if (data === null) {
       return null;
+    }
+    const metadata: ArchiverMetadata = {
+      pvName: data.pvName,
+      DBRType: data.DBRType,
+      NELM: parseFloat(data.NELM),
+      PREC: parseFloat(data.PREC),
+      EGU: data.EGU,
+      scalar: data.scalar === "true",
+      applianceIdentity: data.applianceIdentity,
+      computedEventRate: parseFloat(data.computedEventRate),
+      hostName: data.hostname,
+      paused: data.paused === "true",
+      samplingMethod: data.samplingMethod,
+      samplingPeriod: parseFloat(data.samplingPeriod),
+    };
+    return metadata;
+  }
+
+  async fetchMetadata(pv: string): Promise<null | ArchiverMetadata> {
+    if (pv === undefined) {
+      throw new InvalidParameterError("PV name is undefined");
     }
 
     for (const appliance of this.APPLIANCES) {
       const jsonurl = `${appliance}/retrieval/bpl/getMetadata?pv=${pv}`;
-      const data = await axios
-        .get(jsonurl, { timeout: 0, responseType: "json" })
-        .then((res) => {
-          if (res.status !== 200) {
-            return null;
-          }
-          return res.data;
-        })
-        .catch((e) => {
-          return null;
-        });
+      const data = await this.fetchMetadataFromAppliance(jsonurl);
+      /* const data = */
       if (data !== null) {
         return data;
       }
@@ -134,11 +159,19 @@ export class ArchiverDataAccess implements DataAccess {
       })
       .then((res) => {
         if (res.status !== 200) {
-          throw `Request ${jsonurl} return invalid status code ${res}`;
+          throw new DataAccessError(`Request ${jsonurl} return invalid status code ${res}`);
         }
+
+        if (isOptimized && (res.data.length === 0 || res.data[0].data.length === 0)) {
+          throw new OptimizeDataError(pv, bins, jsonurl);
+        }
+
         if (res.data.length === 0) {
-          throw `Request returned an empty array, probably due to an invalid range for the url ${jsonurl}`;
+          throw new DataAccessError(
+            `Request returned an empty array, probably due to an invalid range for the url ${jsonurl}`
+          );
         }
+
         return res.data[0];
       });
 
@@ -157,7 +190,7 @@ export class ArchiverDataAccess implements DataAccess {
         this.host = match[1];
       }
     } else {
-      this.host = window.location.host;
+      this.host = window.location.host.indexOf(":") !== -1 ? window.location.host.split(":")[0] : window.location.host;
     }
 
     if (window.location.host === "localhost:8080" || window.location.host === "127.0.0.1:8080") {
