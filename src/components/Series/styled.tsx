@@ -12,23 +12,14 @@ export const Input = styled.input<InputProps>`
   margin: 2px;
 `;
 export const SeriesWrapper = styled.div`
-  margin: 0 25px;
-  margin-top: 15px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  margin: 15px 25px;
 
-  display: flex;
-  flex-wrap: wrap;
-  margin: 0 25px;
-
-  @media (max-width: 1920px) {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-  }
   @media (max-width: 1600px) {
-    display: grid;
     grid-template-columns: repeat(4, 1fr);
   }
   @media (max-width: 1440px) {
-    display: grid;
     grid-template-columns: repeat(3, 1fr);
   }
   @media (max-width: 800px) {
