@@ -13,19 +13,16 @@ export const Input = styled.input<InputProps>`
 `;
 export const SeriesWrapper = styled.div`
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   margin: 15px 25px;
 
-  @media (max-width: 1600px) {
-    grid-template-columns: repeat(4, 1fr);
-  }
-  @media (max-width: 1440px) {
+  @media (max-width: 1920px) {
     grid-template-columns: repeat(3, 1fr);
   }
-  @media (max-width: 800px) {
+  @media (max-width: 1440px) {
     grid-template-columns: repeat(2, 1fr);
   }
-  @media (max-width: 600px) {
+  @media (max-width: 980px) {
     grid-template-columns: repeat(1, 1fr);
   }
 `;
