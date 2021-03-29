@@ -1,4 +1,3 @@
-// import chartUtils from "../../utility/chartUtils";
 import { TimeAxisID } from "../../utility/TimeAxis/TimeAxisConstants";
 import handlers from "../../controllers/handlers";
 import Chart from "chart.js";
