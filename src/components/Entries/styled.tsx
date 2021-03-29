@@ -16,23 +16,17 @@ export const HiddenIndicator = styled(EyeSlashFill)`
 `;
 
 export const EntriesWrapper = styled.div`
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
   margin: 0 25px;
+  grid-template-columns: repeat(4, 1fr);
 
   @media (max-width: 1920px) {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-  }
-  @media (max-width: 1600px) {
-    display: grid;
     grid-template-columns: repeat(3, 1fr);
   }
   @media (max-width: 1440px) {
-    display: grid;
     grid-template-columns: repeat(2, 1fr);
   }
-  @media (max-width: 800px) {
+  @media (max-width: 980px) {
     grid-template-columns: repeat(1, 1fr);
   }
 `;

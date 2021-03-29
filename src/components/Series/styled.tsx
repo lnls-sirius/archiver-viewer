@@ -12,29 +12,17 @@ export const Input = styled.input<InputProps>`
   margin: 2px;
 `;
 export const SeriesWrapper = styled.div`
-  margin: 0 25px;
-  margin-top: 15px;
-
-  display: flex;
-  flex-wrap: wrap;
-  margin: 0 25px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin: 15px 25px;
 
   @media (max-width: 1920px) {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-  }
-  @media (max-width: 1600px) {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-  }
-  @media (max-width: 1440px) {
-    display: grid;
     grid-template-columns: repeat(3, 1fr);
   }
-  @media (max-width: 800px) {
+  @media (max-width: 1440px) {
     grid-template-columns: repeat(2, 1fr);
   }
-  @media (max-width: 600px) {
+  @media (max-width: 980px) {
     grid-template-columns: repeat(1, 1fr);
   }
 `;
