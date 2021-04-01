@@ -17,7 +17,7 @@ class ExportDatasetImpl implements ExportDataset {
       StatusDispatcher.Warning("Data export", msg);
       return;
     }
-    const datasets = control.getChart().data.datasets;
+    const datasets = control.getDatasets();
     await this.dataExportStrategy.asXlsx(datasets);
   }
 }

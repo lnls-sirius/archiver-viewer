@@ -1,5 +1,5 @@
 import Chart from "chart.js";
-import { ArchiverMetadata } from "../../../data-access/interface";
+import { ArchiverDataPoint, ArchiverMetadata } from "../../../data-access/interface";
 
 export interface DatasetPVInfo {
   precision: number;
@@ -49,6 +49,7 @@ export interface ChartJSController {
   getDatasetSettingsByIndex(datasetIndex: number): DatasetInfo;
   // getDataset(name: string): Chart.ChartDataSets;
   getDatasetByIndex(datasetIndex: number): Chart.ChartDataSets;
+  getDatasets(): { metadata: DatasetInfo; data: ArchiverDataPoint[] }[];
 
   removeDataset(datasetIndex: number): void;
   hideDatasetByIndex(index: number): void;

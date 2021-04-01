@@ -5,7 +5,7 @@ import { TimeAxisID, TimeAxisIndex } from "../../../utility/TimeAxis/TimeAxisCon
 import { eguNormalize } from "../../../utility/egu";
 import { colorStack, randomColorGenerator } from "../../../utility/color";
 import { ChartDispatcher } from "../../../utility/Dispatchers";
-import { ArchiverMetadata } from "../../../data-access/interface";
+import { ArchiverDataPoint, ArchiverMetadata } from "../../../data-access/interface";
 import { DefaultBinSize } from "../../../utility/chartUtils";
 
 class ChartJSControllerImpl implements ChartJSController {
@@ -21,6 +21,17 @@ class ChartJSControllerImpl implements ChartJSController {
       return this.labelCallback(tooltipItem, data);
     };
     this.chart.options.tooltips.callbacks.label = labelCallback;
+  }
+  getDatasets(): { metadata: DatasetInfo; data: ArchiverDataPoint[] }[] {
+    const content: { metadata: DatasetInfo; data: ArchiverDataPoint[] }[] = [];
+
+    for (let i = 0; i < this.chart.data.datasets.length; i++) {
+      const { label, data } = this.chart.data.datasets[i];
+      const metadata = this.getDatasetSettings(label);
+      content.push({ metadata, data: data as ArchiverDataPoint[] });
+    }
+
+    return content;
   }
 
   /**

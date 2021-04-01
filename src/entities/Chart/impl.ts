@@ -738,7 +738,9 @@ class ChartImpl implements ChartInterface {
 
     Browser.setCookie("singleTip", this.isSingleTipEnabled() ? "true" : "false", 1);
   }
-
+  getDatasets() {
+    return this.chartjs.getDatasets();
+  }
   /* Getters */
   getChart(): Chart {
     return this.chart;

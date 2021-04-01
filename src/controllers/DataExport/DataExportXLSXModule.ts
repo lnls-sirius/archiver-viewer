@@ -2,6 +2,8 @@ import { DataExportModule } from "./DataExportInterface";
 
 import { utils as XLSXutils, write as XLSXwrite, BookType } from "xlsx";
 import { saveAs as FileSaverSaveAs } from "file-saver";
+import { DatasetInfo } from "../../entities/Chart/ChartJS";
+import { ArchiverDataPoint } from "../../data-access/interface";
 const s2ab = (s: any): ArrayBuffer => {
   const buf = new ArrayBuffer(s.length);
   const view = new Uint8Array(buf);
@@ -11,31 +13,35 @@ const s2ab = (s: any): ArrayBuffer => {
   return buf;
 };
 
-const asXlsx: DataExportModule = async (datasets) => {
+const asXlsx: DataExportModule = async (datasets: { metadata: DatasetInfo; data: ArchiverDataPoint[] }[]) => {
   const bookType: BookType = "xlsx";
   const book = XLSXutils.book_new();
 
   const sheetInfo: any[] = [];
 
-  datasets.forEach((dataset: any, i: number) => {
-    const pvName = dataset.label;
-    const metadata = dataset.pv.metadata;
+  datasets.forEach(({ data, metadata }, i: number) => {
+    const {
+      label,
+      pv: { egu, optimized, bins },
+    } = metadata;
 
-    const dataArray = dataset.data.map((data: any) => {
+    const dataArray = data.map((data) => {
       return {
         x: data.x.toLocaleString("br-BR") + "." + data.x.getMilliseconds(),
         y: data.y,
+        status: data.status,
+        severity: data.severity,
       };
     });
 
-    let sheetName = pvName.replace(new RegExp(":", "g"), "_");
+    let sheetName = label.replace(new RegExp(":", "g"), "_");
     if (sheetName.length > 31) {
       sheetName = (i + 1).toString();
     }
     sheetInfo.push({
       "Sheet Name": sheetName,
-      "PV Name": pvName,
-      ...metadata,
+      "PV Name": label,
+      ...metadata.pv.metadata,
     });
     XLSXutils.book_append_sheet(book, XLSXutils.json_to_sheet(dataArray), sheetName);
   });
