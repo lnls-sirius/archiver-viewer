@@ -37,7 +37,7 @@ class ChartImpl implements ChartInterface {
 
   private singleTipEnabled = true;
   private scrollingEnabled = true;
-  private serverDateEnabled = true;
+  private serverDateEnabled = false;
 
   private cachedDate: Date = null;
   private lastFetch: Date = null;
@@ -140,7 +140,7 @@ class ChartImpl implements ChartInterface {
 
     await Promise.all(promises)
       .then(() => {
-        this.update();
+        this.update({ lazy: false, easing: "linear" });
       })
       .catch((e) => {
         const msg = `Failed to update all plots ${e}`;
