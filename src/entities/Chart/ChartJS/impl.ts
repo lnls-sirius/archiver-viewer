@@ -263,7 +263,7 @@ class ChartJSControllerImpl implements ChartJSController {
     const dataAxisSettings: DataAxis = {
       id: nId,
       counter: 1,
-      ticksPrecision: ticksPrecision !== undefined ? ticksPrecision : 3,
+      ticksPrecision,
       type: "linear",
       display: true,
       position: this.lastPosition,
@@ -319,19 +319,21 @@ class ChartJSControllerImpl implements ChartJSController {
   }
 
   appendDataset(data: any[], optimized: boolean, bins: number, metadata: ArchiverMetadata): void {
-    const { pvName, samplingPeriod, DBRType, EGU, PREC } = metadata;
+    const { pvName, EGU, PREC } = metadata;
     const unit = eguNormalize(EGU, pvName);
+
+    const precision = PREC === 0 || PREC === undefined || PREC === null ? 4 : PREC;
 
     // Parses the data fetched from the archiver the way that the chart's internal classes can plot
     const color = colorStack.length > 0 ? colorStack.pop() : randomColorGenerator();
 
     // Adds a new vertical axis if no other with the same unit exists
-    this.appendDataAxis(unit, PREC);
+    this.appendDataAxis(unit, precision);
 
     // Pushes it into the chart
     // @todo: Update the store at control.js
     const pv: DatasetPVInfo = {
-      precision: PREC,
+      precision,
       optimized: optimized,
       bins: bins > 0 ? bins : DefaultBinSize, // Default for wierd bin size
       desc: "",
