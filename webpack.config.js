@@ -2,39 +2,41 @@
 import path from "path";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import CompressionPlugin from "compression-webpack-plugin";
-// import { BundleAnalyzerPlugin } from "webpack-bundle-analyzer";
 
 const isEnvProduction = process.env.NODE_ENV === "production";
 
 module.exports = {
   entry: {
-    index: path.join(__dirname, "src/index.tsx"),
-    "data-access": path.join(__dirname, "src/data-access/index.ts"),
-    controllers: path.join(__dirname, "src/controllers/index.ts"),
+    "index": path.join(__dirname, "src/index.tsx"),
   },
   optimization: {
-    minimize: isEnvProduction,
+    minimize: false,
     splitChunks: {
+      chunks: "all",
+      maxInitialRequests: Infinity,
+      minSize: 0,
       cacheGroups: {
-        defaultVendors: {
+        vendor: {
           test: /[\\/]node_modules[\\/]/,
-          priority: -10,
-        },
-        default: {
-          minChunks: 2,
-          priority: -20,
-          reuseExistingChunk: true,
+          name(module) {
+            /* get the name. E.g. node_modules/packageName/not/this/part.js or node_modules/packageName */
+            const packageName = module.context.match(/[\\/]node_modules[\\/](.*?)([\\/]|$)/)[1];
+
+            /* npm package names are URL-safe, but some servers don't like @ symbols */
+            return `npm.${packageName.replace("@", "")}`;
+          },
         },
       },
-      chunks: "all",
     },
   },
   output: {
     path: path.join(__dirname, "build"),
-    filename: "[name].bundle.js",
+    filename: "[name].[chunkhash].js",
+    sourceMapFilename: "[name].[chunkhash].js.map",
   },
   mode: isEnvProduction ? "production" : "development",
   devtool: isEnvProduction ? "" : "inline-source-map",
+  // devtool: isEnvProduction ? "source-map" : "inline-source-map",
   resolve: {
     modules: [path.resolve(__dirname, "src"), "node_modules"],
     extensions: [".js", ".jsx", ".json", ".tsx", ".ts"],
@@ -65,7 +67,7 @@ module.exports = {
       {
         test: /\.(jpg|jpeg|png|gif|mp3|svg)$/,
         loaders: ["file-loader"],
-      },
+      }
     ],
   },
   plugins: [
@@ -74,6 +76,5 @@ module.exports = {
       favicon: "./src/img/cropped-icon.png",
     }),
     new CompressionPlugin(),
-    // new BundleAnalyzerPlugin(),
   ],
 };
