@@ -95,6 +95,7 @@
     ]
   },
   "scripts": {
+    "update-browserslist": "npx browserslist@latest --update-db",
     "info": "npm run info:circular; npm run info:orphans; npm run info:leaves",
     "info:deps": "npx madge --image graph.svg ./src/",
     "info:circular": "npx madge --circular ./src/  || true",
@@ -102,8 +103,8 @@
     "info:leaves": "npx madge --leaves ./src/ || true",
     "update-version": "sed -i -e \"s,const version =.*,const version = \\\"$(date -I)-$(git rev-parse --short HEAD)\\\";,g\" ./src/components/Footer/index.tsx",
     "lint": "npx eslint src/lib/*",
-    "build": "rm -rfv build/* && npm run update-version; NODE_ENV=production babel-node ./node_modules/webpack/bin/webpack && npm run obfuscate",
-    "start": "npm run update-version; NODE_ENV=development babel-node ./node_modules/webpack-dev-server/bin/webpack-dev-server --host 127.0.0.1 --https",
+    "build": "rm -rfv build/*; npm run update-version; NODE_ENV=production npx webpack",
+    "start": "npm run update-version; NODE_ENV=development npx webpack-dev-server --host 127.0.0.1 --https",
     "dev:analyze": "npm run dev -- --env.addons=bundleanalyzer",
     "build:analyze": "npm run build -- --env.addons=bundleanalyzer",
     "obfuscate": "node obfuscate.mjs"

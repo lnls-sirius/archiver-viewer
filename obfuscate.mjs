@@ -1,7 +1,7 @@
 import { readdir, renameSync, readFile, writeFile, unlinkSync } from "fs";
 import { resolve } from "path";
 
-import pkg from 'javascript-obfuscator';
+import pkg from "javascript-obfuscator";
 const { obfuscate } = pkg;
 
 const dir = "./build/";
