@@ -22,9 +22,9 @@ services:
     environment:
       FORCE_INSTALL: "false"
     volumes:
-      - ".:/viewer"
+      - "../:/viewer"
 
   release:
-    image: docker.io/lnlscon/archiver-viewer:2021-03-26-6fa683d
+    image: docker.io/lnlscon/archiver-viewer:2021-04-29-fb05e01
     ports:
       - 80:80
