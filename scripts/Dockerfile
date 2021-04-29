@@ -25,8 +25,7 @@ USER node
 RUN set -ex;\
     mkdir -p -v build; \
     pwd; ls -la; \
-    npm run build; \
-    npm run obfuscate
+    npm run build;
 RUN rm --recursive --verbose .git
 
 FROM nginx:1.18-alpine
