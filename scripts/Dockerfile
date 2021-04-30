@@ -18,7 +18,7 @@ COPY --chown=node:node .prettierrc                 .prettierrc
 COPY --chown=node:node imgs                        imgs
 COPY --chown=node:node src                         src
 COPY --chown=node:node webpack.config.babel.js     webpack.config.babel.js
-COPY --chown=node:node obfuscate.mjs               obfuscate.mjs          
+# COPY --chown=node:node obfuscate.mjs               obfuscate.mjs
 
 ENV NODE_ENV release
 USER node
