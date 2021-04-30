@@ -1,7 +1,7 @@
 version: "3.7"
 services:
   devel:
-    image: node:12.19.0-stretch
+    image: node:15.14.0-buster
     working_dir: /viewer
     user: "1000:1000"
     command: bash -c 'set -x; [[ ! -d node_modules || "$FORCE_INSTALL"=true ]] && npm install --loglevel verbose; npm run start;'
@@ -14,17 +14,7 @@ services:
     volumes:
       - ".:/viewer"
 
-  build:
-    image: node:12.19.0-stretch
-    working_dir: /viewer
-    user: "1000:1000"
-    command: bash -c 'set -x; apt update -y; apt install -y git; set -x; [[ ! -d node_modules || "$FORCE_INSTALL"=true ]] && npm install --loglevel verbose; npm run build;'
-    environment:
-      FORCE_INSTALL: "false"
-    volumes:
-      - ".:/viewer"
-
   release:
-    image: docker.io/lnlscon/archiver-viewer:2021-03-26-6fa683d
+    image: lnlscon/archiver-viewer:2021-04-29-be6b745
     ports:
       - 80:80

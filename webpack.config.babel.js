@@ -2,39 +2,43 @@
 import path from "path";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import CompressionPlugin from "compression-webpack-plugin";
-// import { BundleAnalyzerPlugin } from "webpack-bundle-analyzer";
 
 const isEnvProduction = process.env.NODE_ENV === "production";
 
-module.exports = {
-  entry: {
-    index: path.join(__dirname, "src/index.tsx"),
-    "data-access": path.join(__dirname, "src/data-access/index.ts"),
-    controllers: path.join(__dirname, "src/controllers/index.ts"),
-  },
-  optimization: {
-    minimize: isEnvProduction,
-    splitChunks: {
-      cacheGroups: {
-        defaultVendors: {
-          test: /[\\/]node_modules[\\/]/,
-          priority: -10,
-        },
-        default: {
-          minChunks: 2,
-          priority: -20,
-          reuseExistingChunk: true,
+const optimization = {
+  minimize: isEnvProduction && false,
+  splitChunks: {
+    chunks: "all",
+    maxInitialRequests: Infinity,
+    minSize: 0,
+    cacheGroups: {
+      vendor: {
+        test: /[\\/]node_modules[\\/]/,
+        name(module) {
+          /* get the name. E.g. node_modules/packageName/not/this/part.js or node_modules/packageName */
+          const packageName = module.context.match(/[\\/]node_modules[\\/](.*?)([\\/]|$)/)[1];
+
+          /* npm package names are URL-safe, but some servers don't like @ symbols */
+          return `npm.${packageName.replace("@", "")}`;
         },
       },
-      chunks: "all",
     },
   },
+};
+
+export default {
+  entry: {
+    index: path.join(__dirname, "src/index.tsx"),
+  },
+  optimization,
   output: {
     path: path.join(__dirname, "build"),
-    filename: "[name].bundle.js",
+    filename: isEnvProduction ? "[name].min.js" : "[name].min.js",
+    sourceMapFilename: isEnvProduction ? "[name].min.js.map" : "[name].js.map",
   },
   mode: isEnvProduction ? "production" : "development",
-  devtool: isEnvProduction ? "" : "inline-source-map",
+  devtool: isEnvProduction ? "source-map" : "inline-source-map",
+  // devtool: isEnvProduction ? "source-map" : "inline-source-map",
   resolve: {
     modules: [path.resolve(__dirname, "src"), "node_modules"],
     extensions: [".js", ".jsx", ".json", ".tsx", ".ts"],
@@ -74,6 +78,5 @@ module.exports = {
       favicon: "./src/img/cropped-icon.png",
     }),
     new CompressionPlugin(),
-    // new BundleAnalyzerPlugin(),
   ],
 };
