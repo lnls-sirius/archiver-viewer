@@ -1,0 +1,11 @@
+{
+  "tasks": [
+    {
+      "type": "npm",
+      "script": "start",
+      "problemMatcher": [],
+      "label": "npm: start",
+      "detail": "npx webpack serve --host 127.0.0.1 --https"
+    }
+  ]
+}
