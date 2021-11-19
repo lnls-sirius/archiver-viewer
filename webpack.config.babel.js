@@ -38,7 +38,6 @@ export default {
   },
   mode: isEnvProduction ? "production" : "development",
   devtool: isEnvProduction ? "source-map" : "inline-source-map",
-  // devtool: isEnvProduction ? "source-map" : "inline-source-map",
   resolve: {
     modules: [path.resolve(__dirname, "src"), "node_modules"],
     extensions: [".js", ".jsx", ".json", ".tsx", ".ts"],
@@ -68,7 +67,7 @@ export default {
       },
       {
         test: /\.(jpg|jpeg|png|gif|mp3|svg)$/,
-        loaders: ["file-loader"],
+        use: ["file-loader"],
       },
     ],
   },

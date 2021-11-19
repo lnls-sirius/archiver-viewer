@@ -1,4 +1,4 @@
-FROM node:15.14.0-buster as builder
+FROM node:16.13.0-buster as builder
 
 RUN set -x; apt update -y; apt install -y git;
 RUN mkdir -p /home/node/app/node_modules && chown -R node:node /home/node/app
@@ -18,7 +18,6 @@ COPY --chown=node:node .prettierrc                 .prettierrc
 COPY --chown=node:node imgs                        imgs
 COPY --chown=node:node src                         src
 COPY --chown=node:node webpack.config.babel.js     webpack.config.babel.js
-# COPY --chown=node:node obfuscate.mjs               obfuscate.mjs
 
 ENV NODE_ENV release
 USER node
