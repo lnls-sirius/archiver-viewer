@@ -5,40 +5,45 @@ import PlotPVs from "../../use-cases/PlotPVs";
 interface UrlLoader {
   load(): Promise<void>;
 }
+
+const GetDelta = (hour = 12, min = 0, s = 0) => {
+  const d1 = new Date();
+  const d2 = new Date();
+  d1.setHours(0, 0, 0);
+  d2.setHours(hour, min, s);
+  return new Date(d2.valueOf() - d1.valueOf());
+};
+
+const DATE_DELTA_1H = GetDelta(1);
+
 class UrlLoaderImpl implements UrlLoader {
   async load(): Promise<void> {
     const { pvs, from, to } = Browser.getConfigFromUrl();
+    const timespan = { from, to };
 
-    if (from) {
-      control.setStart(new Date(from));
-    }
-
-    if (to) {
-      control.setEnd(new Date(to));
-    }
-
-    if (to && from) {
-      const newWindowTime = control.getNewTimeWindow();
-      control.updateTimeWindowOnly(newWindowTime);
-    } else {
-      await control.updateStartAndEnd(new Date());
-    }
-    control.updateTimeAxis();
-
-    for (let i = 0; i < pvs.length; i++) {
-      //     const [_, bins, name] = pvs[i].match(/optimized_([0-9]+)\((.*)\)/);
-      let optimize = false;
-      let bins = -1;
-
-      if (pvs[i].indexOf("optimized_") !== -1) {
-        // const [_, bins, name] = pvs[i].match(/optimized_([0-9]+)\((.*)\)/);
-        bins = parseFloat(pvs[i].substr("optimized_".length, pvs[i].indexOf("(") + 1));
-        pvs[i] = pvs[i].substr(pvs[i].indexOf("(") + 1);
-        pvs[i] = pvs[i].substr(0, pvs[i].indexOf(")"));
-        optimize = true;
+    const UpdateStartEndTimeFromUrl = () => {
+      if (from && !to) {
+        timespan.to = new Date(from.valueOf() + DATE_DELTA_1H.valueOf());
+      } else if (!from && to) {
+        timespan.from = new Date(to.valueOf() - DATE_DELTA_1H.valueOf());
       }
 
-      PlotPVs.plotPV({ name: pvs[i], optimize, bins, updateChart: true });
+      control.setEnd(timespan.to);
+      control.setStart(timespan.from);
+
+      control.updateTimeWindowOnly(control.getNewTimeWindow());
+    };
+
+    if (!from && !to) {
+      await control.updateStartAndEnd(new Date());
+    } else {
+      UpdateStartEndTimeFromUrl();
+    }
+
+    control.updateTimeAxis();
+    for (const data of pvs) {
+      console.info(`Plotting `, data);
+      PlotPVs.plotPV({ name: data.pvname, optimize: data.optimize, bins: data.bins, updateChart: true });
     }
   }
 }

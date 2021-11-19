@@ -1,55 +1,60 @@
-import { BrowserInterface, Settings } from "./interface";
+import { BrowserInterface, ConfigParameters, ConfigPV, Settings } from "./interface";
 
 export class Browser implements BrowserInterface {
-  isValidDate(d: Date): boolean {
-    if (!(d instanceof Date)) {
-      return false;
-    }
-    if (isNaN(d.valueOf())) {
-      return false;
-    }
-    return true;
-  }
-
-  getConfigFromUrl(): { pvs: string[]; from: Date; to: Date } {
+  getConfigFromUrl(): ConfigParameters {
     const searchPath = window.location.search;
-    const pvs: string[] = [];
-    let fromString = null;
-    let toString = null;
 
-    const searchPaths = searchPath.split("&");
+    const input: ConfigParameters = { pvs: [], from: null, to: null };
 
-    for (let i = 0; i < searchPaths.length; i++) {
-      if (searchPaths[i].indexOf("pv=") !== -1) {
-        pvs.push(decodeURIComponent(searchPaths[i].substr(searchPaths[i].indexOf("=") + 1)));
-      } else if (searchPaths[i].indexOf("from=") !== -1) {
-        fromString = decodeURIComponent(searchPaths[i].substr(searchPaths[i].indexOf("=") + 1));
-      } else if (searchPaths[i].indexOf("to=") !== -1) {
-        toString = decodeURIComponent(searchPaths[i].substr(searchPaths[i].indexOf("=") + 1));
-      }
-    }
-    let from: Date = null;
-    let to: Date = null;
-
-    if (fromString) {
-      from = new Date(fromString);
-    }
-
-    if (toString) {
-      to = new Date(toString);
-    }
-
-    if (!this.isValidDate(from)) {
-      from = null;
-    }
-    if (!this.isValidDate(to)) {
-      to = null;
-    }
-    return {
-      to,
-      from,
-      pvs,
+    const decodeParameter = (str: string) => {
+      const [k, v] = str.split("=", 2);
+      return [k.replace("?", ""), v];
     };
+
+    const parsePV = (str: string): ConfigPV => {
+      let optimize = false;
+      let bins = -1;
+      let pvname = str;
+
+      if (str.indexOf("optimized_") !== -1) {
+        bins = parseFloat(str.substr("optimized_".length, str.indexOf("(") + 1));
+        pvname = str.slice(str.indexOf("(") + 1, str.indexOf(")"));
+        optimize = true;
+      }
+
+      return { optimize, bins, pvname };
+    };
+
+    const createDateFromString = (str: string): Date => {
+      console.debug(`Parsing string '${str}' into date`);
+      const date = new Date(str);
+      if (isNaN(date.valueOf())) {
+        return null;
+      }
+      return date;
+    };
+
+    for (const str of decodeURIComponent(searchPath).split("&")) {
+      const [k, v] = decodeParameter(str);
+      switch (k) {
+        case "pv":
+          input.pvs.push(parsePV(v));
+          break;
+        case "from":
+          input.from = createDateFromString(v);
+          break;
+        case "to":
+          input.to = createDateFromString(v);
+          break;
+        default:
+          console.warn(`Received invalid argument '${k}' value '${v}'`);
+          continue;
+      }
+      console.debug(`Parsing url parameter '${k}' value ${v}`);
+    }
+    console.info(`Parsed url parameters`, input);
+
+    return input;
   }
 
   private pushAddress(searchString: string): void {

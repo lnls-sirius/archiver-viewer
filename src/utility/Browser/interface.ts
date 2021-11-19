@@ -8,9 +8,23 @@ export interface Settings {
   end: Date;
   pvs: SettingsPVs[];
 }
+
+export interface ConfigPV {
+  pvname: string;
+  optimize: boolean;
+  bins: number;
+}
+
+export interface ConfigParameters {
+  pvs: ConfigPV[];
+  to?: Date;
+  from?: Date;
+}
+
+
 export interface BrowserInterface {
   updateAddress(settings: Settings): void;
   setCookie(cname: string, cvalue: string, exdays: number): void;
   getCookie(cname: string): string;
-  getConfigFromUrl(): { pvs: string[]; from: Date; to: Date };
+  getConfigFromUrl(): ConfigParameters;
 }
