@@ -19,17 +19,6 @@ export const options: Chart.ChartOptions = {
       tension: 0, // disable belzier curves
     },
   },
-  tooltips: {
-    mode: "nearest",
-    intersect: false,
-    custom: handlers.tooltipColorHandler,
-    cornerRadius: 5,
-    caretSize: 0,
-    position: "cursor",
-    callbacks: {
-      beforeBody: handlers.bodyCallback,
-    },
-  },
   hover: {
     mode: "nearest",
     intersect: false,

@@ -2,17 +2,17 @@ import React, { Component } from "react";
 import { connect } from "react-redux";
 import { Chart } from "chart.js";
 
-import * as S from "./styled";
-
+import UrlLoader from "../../controllers/UrlLoader";
 import chartUtils from "../../utility/chartUtils";
 import handlers from "../../controllers/handlers";
-import control, { REFERENCE } from "../../controllers";
+import { RootState } from "../../reducers";
 import { StackActionEnum } from "../../entities/Chart/StackAction/constants";
+import { REFERENCE } from "../../entities/Chart";
+import control from "../../entities/Chart";
 
+import * as S from "./styled";
 import { options } from "./config";
 import { initialState, getAverageDateFromEvent, LineChartProps, LineChartStates } from "./contents";
-import { RootState } from "../../reducers";
-import UrlLoader from "../../controllers/UrlLoader";
 
 const mapStateToProps = (state: RootState) => {
   const { autoScroll, zooming, singleTooltip } = state.chart;

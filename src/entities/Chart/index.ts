@@ -1,4 +1,4 @@
-import ChartImpl from "./impl";
-export * from "./impl";
+import { CreateChartEntity } from "./impl";
+export { REFERENCE } from "./impl";
 
-export default ChartImpl;
+export default CreateChartEntity();

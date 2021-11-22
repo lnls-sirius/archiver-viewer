@@ -22,6 +22,7 @@ class ChartJSControllerImpl implements ChartJSController {
     };
     this.chart.options.tooltips.callbacks.label = labelCallback;
   }
+
   getDatasets(): { metadata: DatasetInfo; data: ArchiverDataPoint[] }[] {
     const content: { metadata: DatasetInfo; data: ArchiverDataPoint[] }[] = [];
 

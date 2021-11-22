@@ -1,9 +1,5 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
-
-import handlers from "../../controllers/handlers";
-import Seach from "../Search";
-
 import {
   faBackward,
   faForward,
@@ -19,6 +15,8 @@ import { IconProp, SizeProp } from "@fortawesome/fontawesome-svg-core";
 
 import * as S from "./styled";
 import { RootState } from "../../reducers";
+import handlers from "../../controllers/handlers";
+import Seach from "../Search";
 
 interface ControlsReduxProps {
   autoScroll: boolean;

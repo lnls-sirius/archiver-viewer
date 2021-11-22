@@ -48,7 +48,14 @@ export const Table = styled.table`
   text-align: center;
 `;
 
-export const TableRow = styled.tr``;
+export const TableRow = styled.tr<{ $bg?: string; $bg_hover?: string }>`
+
+  ${({ $bg }) => ($bg ? `background-color: ${$bg};` : "")};
+  &:hover {
+    ${({ $bg_hover }) => ($bg_hover ? `background-color: ${$bg_hover};` : "")};
+  }
+`;
+
 export const TableData = styled.td``;
 
 export const TableHeader = styled.th`

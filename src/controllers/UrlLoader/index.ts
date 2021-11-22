@@ -22,16 +22,45 @@ class UrlLoaderImpl implements UrlLoader {
     const timespan = { from, to };
 
     const UpdateStartEndTimeFromUrl = () => {
-      if (from && !to) {
-        timespan.to = new Date(from.valueOf() + DATE_DELTA_1H.valueOf());
-      } else if (!from && to) {
-        timespan.from = new Date(to.valueOf() - DATE_DELTA_1H.valueOf());
+      CheckIncompleteTimespan();
+      CheckEqualDate();
+      CheckInvertedDate();
+
+      UpdateChartTimespan();
+
+      function UpdateChartTimespan() {
+        control.setEnd(timespan.to);
+        control.setStart(timespan.from);
+
+        control.updateTimeWindowOnly(control.getNewTimeWindow());
       }
 
-      control.setEnd(timespan.to);
-      control.setStart(timespan.from);
+      function CheckIncompleteTimespan() {
+        if (from && !to) {
+          timespan.to = new Date(from.valueOf() + DATE_DELTA_1H.valueOf());
+        } else if (!from && to) {
+          timespan.from = new Date(to.valueOf() - DATE_DELTA_1H.valueOf());
+        }
+      }
 
-      control.updateTimeWindowOnly(control.getNewTimeWindow());
+      function CheckEqualDate() {
+        if (!from || !to) return;
+        if (from.valueOf() === to.valueOf()) {
+          timespan.from = new Date(to.valueOf() - GetDelta(0, 30).valueOf());
+          timespan.to = new Date(to.valueOf() + GetDelta(0, 30).valueOf());
+          console.warn(`Detected equal value 'to=' and 'from=', an interval will be added`);
+        }
+      }
+
+      function CheckInvertedDate() {
+        if (!from || !to) return;
+        if (from.valueOf() > to.valueOf()) {
+          timespan.from = to;
+          timespan.to = from;
+
+          console.warn(`Detected inverted 'to=' and 'from=' values '${to}', '${from}'`);
+        }
+      }
     };
 
     if (!from && !to) {

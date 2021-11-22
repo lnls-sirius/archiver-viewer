@@ -68,8 +68,15 @@ export const Button = styled.button`
   padding: 0.2rem 0.4rem;
   height: 90%;
   transition: color 0.5s;
-  color: red;
   transition: background-color 0.5s;
+  font-weight: 700;
+
+  &:hover {
+    color: white;
+  }
+`;
+export const ButtonRed = styled(Button)`
+  color: red;
 
   &:hover {
     color: white;

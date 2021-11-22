@@ -12,7 +12,7 @@ import ChartInterface from "./interface";
 import makeChartActionsStack, { StackActionEnum, StackAction, ChartActionsStack } from "./StackAction";
 import makeAutoUpdate, { AutoUpdate } from "./AutoUpdate";
 import makeChartTime, { ChartTime } from "./Time";
-import makeChartJSController, { ChartJSController, DatasetInfo } from "./ChartJS";
+import { CreateChartJSController, ChartJSController, DatasetInfo } from "./ChartJS";
 import { ArchiverDataPoint, ArchiverMetadata } from "../../data-access/interface";
 import { OptimizeDataError, OutOfSyncDatasetError } from "../../utility/errors";
 import { Settings, SettingsPVs } from "../../utility/Browser/interface";
@@ -77,7 +77,7 @@ class ChartImpl implements ChartInterface {
 
   init(c: Chart): void {
     this.chart = c;
-    this.chartjs = makeChartJSController(c);
+    this.chartjs = CreateChartJSController(c);
     this.loadTooltipSettings();
   }
 
@@ -804,37 +804,40 @@ class ChartImpl implements ChartInterface {
   }
 }
 
-const chartEntity = new ChartImpl();
-const parentEventHandler = (Chart as any).Controller.prototype.eventHandler;
-(Chart as any).Controller.prototype.eventHandler = function () {
-  // This is not a duplicate of the cursor positioner, this handler is called when a tooltip's datapoint index does not change.
-  // eslint-disable-next-line prefer-rest-params
-  const ret = parentEventHandler.apply(this, arguments);
-
-  if (!chartEntity.isSingleTipEnabled()) {
-    const ctx: CanvasRenderingContext2D = this.chart.ctx;
+export function CreateChartEntity(): ChartImpl {
+  const chartEntity = new ChartImpl();
+  const parentEventHandler = (Chart as any).Controller.prototype.eventHandler;
+  (Chart as any).Controller.prototype.eventHandler = function () {
+    // This is not a duplicate of the cursor positioner, this handler is called when a tooltip's datapoint index does not change.
     // eslint-disable-next-line prefer-rest-params
-    const x = arguments[0].x;
-    this.clear();
-    this.draw();
-    const yScale = this.scales["y-axis-0"];
-    ctx.beginPath();
-    ctx.moveTo(x, yScale.getPixelForValue(yScale.max));
-    ctx.strokeStyle = "#ff0000";
-    ctx.lineTo(x, yScale.getPixelForValue(yScale.min));
-    ctx.stroke();
-  }
+    const ret = parentEventHandler.apply(this, arguments);
 
-  this.tooltip.width = this.tooltip._model.width;
-  this.tooltip.height = this.tooltip._model.height;
+    if (!chartEntity.isSingleTipEnabled()) {
+      const ctx: CanvasRenderingContext2D = this.chart.ctx;
+      // eslint-disable-next-line prefer-rest-params
+      const x = arguments[0].x;
+      this.clear();
+      this.draw();
+      const yScale = this.scales["y-axis-0"];
+      ctx.beginPath();
+      ctx.moveTo(x, yScale.getPixelForValue(yScale.max));
+      ctx.strokeStyle = "#ff0000";
+      ctx.lineTo(x, yScale.getPixelForValue(yScale.min));
+      ctx.stroke();
+    }
 
-  // eslint-disable-next-line prefer-rest-params
-  const coordinates = chartUtils.reboundTooltip(arguments[0].x, arguments[0].y, this.tooltip, 0.5);
+    this.tooltip.width = this.tooltip._model.width;
+    this.tooltip.height = this.tooltip._model.height;
 
-  this.tooltip._model.x = coordinates.x;
-  this.tooltip._model.y = coordinates.y;
+    // eslint-disable-next-line prefer-rest-params
+    const coordinates = chartUtils.reboundTooltip(arguments[0].x, arguments[0].y, this.tooltip, 0.5);
 
-  return ret;
-};
+    this.tooltip._model.x = coordinates.x;
+    this.tooltip._model.y = coordinates.y;
 
-export default chartEntity;
+    return ret;
+  };
+  return chartEntity;
+}
+
+// export default chartEntity;
