@@ -105,7 +105,7 @@ export function setWindowTime(state: ChartState, action: PayloadAction<number>):
   state.windowTime = action.payload;
 }
 export function setAutoScroll(state: ChartState, action: PayloadAction<boolean>): void {
-  state.autoScroll = action.payload;
+  // state.autoScroll = action.payload;
 }
 export function setZooming(state: ChartState, action: PayloadAction<boolean>): void {
   state.zooming = action.payload;

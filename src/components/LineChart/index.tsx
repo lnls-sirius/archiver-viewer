@@ -43,10 +43,6 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
     UrlLoader.load();
   }
 
-  handleScrollChart = (e: React.WheelEvent<HTMLCanvasElement>) => {
-    handlers.scrollChart(e.deltaY);
-  };
-
   setZoomBoxInitialState = (evt: MouseEvent) => {
     const { isZooming } = this.props;
     if (isZooming) {
@@ -233,7 +229,6 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
       <S.LineChartWrapper>
         <canvas
           ref={this.chartDOMRef}
-          onWheel={this.handleScrollChart}
           onMouseDown={this.startDragging}
           onMouseMove={this.doDragging}
           onMouseUp={this.stopDragging}
