@@ -9,12 +9,14 @@ export interface ChartDispatcher {
 
   addDataset(dataset: DatasetInfo): void;
   setDatasetOptimized(index: number, optimized: boolean): void;
+  setDatasetDrift(index: number, drifted: boolean): void;
   setDatasetVisible(index: number, visible: boolean): void;
   doRemoveDataset(index: number, removeAxis: string): void;
 
   /** Window Time ID */
   setTimeEnd(date: Date): void;
   setTimeStart(date: Date): void;
+  setSelectedTime(date: Date): void
 
   setWindowTime(windowTime: number): void;
   setTimeReferenceEnd(timeReferenceEnd: boolean): void;

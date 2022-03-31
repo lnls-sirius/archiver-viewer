@@ -22,5 +22,10 @@ class ChartTimeImpl implements ChartTime {
     this.start = time;
     ChartDispatcher.setTimeStart(time);
   }
+
+  setSelected(time: Date): void {
+    this.start = time;
+    ChartDispatcher.setSelectedTime(time);
+  }
 }
 export default ChartTimeImpl;

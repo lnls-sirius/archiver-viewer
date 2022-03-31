@@ -14,7 +14,7 @@ const RenderSearchResultsElements = (results: { [key: string]: SearchResultData 
   const elements: JSX.Element[] = [];
   for (const key in results) {
     const result = results[key];
-    elements.push(<SearchResult {...result} idx={result.pvName} key={key} />);
+    elements.push(<SearchResult drift={false} {...result} idx={result.pvName} key={key} />);
   }
   return elements;
 };
@@ -48,10 +48,10 @@ const SearchResults: React.FC = () => {
   };
 
   const plotPVs = () => {
-    const selectedPVs: { name: string; optimize: boolean }[] = [];
+    const selectedPVs: { name: string; optimize: boolean; drift: boolean }[] = [];
     for (const e in results) {
       if (results[e].selected) {
-        selectedPVs.push({ name: e, optimize: results[e].optimize });
+        selectedPVs.push({ name: e, optimize: results[e].optimize, drift: results[e].drift});
       }
     }
     handlers.plotSelectedPVs(selectedPVs);
@@ -87,6 +87,7 @@ const SearchResults: React.FC = () => {
                   <S.TableHeader>n</S.TableHeader>
                   <S.TableHeader>Select</S.TableHeader>
                   <S.TableHeader>Optimize</S.TableHeader>
+                  <S.TableHeader>Drift</S.TableHeader>
                   <S.TableHeader>Name</S.TableHeader>
                   <S.TableHeader>EGU</S.TableHeader>
                   <S.TableHeader>PREC</S.TableHeader>

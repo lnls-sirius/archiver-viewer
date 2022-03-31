@@ -22,6 +22,9 @@ const Entries: React.FC = () => {
   const optimizeHandler = async (label: string, optimize: boolean) => {
     await ChartController.setDatasetOptimized(label, optimize);
   };
+  const driftHandler = async (label: string, drift: boolean) => {
+    await ChartController.setDatasetDrift(label, drift);
+  };
   const removeDataset = async (name: string) => {
     await ChartController.removeDataset(name);
   };
@@ -35,7 +38,7 @@ const Entries: React.FC = () => {
       yAxisID,
       backgroundColor,
       visible,
-      pv: { optimized, bins },
+      pv: { optimized, drift, bins },
     } = datasetInfo;
 
     return (
@@ -45,6 +48,12 @@ const Entries: React.FC = () => {
         </S.Color>
         <S.Text title="PV name">{label}</S.Text>
         <S.EguText title="y axis label">{yAxisID}</S.EguText>
+        <Checkbox
+          onClick={() => driftHandler(label, !drift)}
+          checked={drift}
+          text="Drift?"
+          tooltip="Check if you want the data drift based on the selected time"
+        />
         <Checkbox
           onClick={() => optimizeHandler(label, !optimized)}
           checked={optimized}
@@ -99,6 +108,7 @@ function RenderDataset({
     pv: {
       egu,
       optimized,
+      drift,
       metadata: { DBRType },
     },
   } = dataset.metadata;
@@ -114,6 +124,7 @@ function RenderDataset({
       >
         <span style={{ fontSize: "1.5rem", fontWeight: 700 }}>{label}</span>
         <span style={{ fontSize: "1.1rem", fontWeight: 500 }}>{egu}</span>
+        <span style={{ fontSize: "1.1rem", fontWeight: 500 }}>{drift ? "Drift" : ""}</span>
         <span style={{ fontSize: "1.1rem", fontWeight: 500 }}>{optimized ? "Optimized" : ""}</span>
         <span style={{ fontSize: "1.1rem", fontWeight: 500 }}>{DBRType}</span>
         <S.ButtonRed style={{ padding: "1.2rem" }} onClick={() => setVisible(false)}>

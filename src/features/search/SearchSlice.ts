@@ -9,6 +9,10 @@ export interface OptimizeSearchResultAction {
   optimize: boolean;
   pvName: string;
 }
+export interface DriftSearchResultAction {
+  drift: boolean;
+  pvName: string;
+}
 
 export const searchSlice = createSlice({
   name: "search",
@@ -57,6 +61,11 @@ export const searchSlice = createSlice({
       const result = state.results[pvName];
       result.optimize = optimize;
     },
+    doSelectDriftResult(state, action: PayloadAction<DriftSearchResultAction>) {
+      const { drift, pvName } = action.payload;
+      const result = state.results[pvName];
+      result.drift = drift;
+    }
   },
 });
 

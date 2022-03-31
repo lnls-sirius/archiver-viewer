@@ -22,7 +22,7 @@ const asXlsx: DataExportModule = async (datasets: { metadata: DatasetInfo; data:
   datasets.forEach(({ data, metadata }, i: number) => {
     const {
       label,
-      pv: { egu, optimized, bins },
+      pv: { egu, optimized, drift, bins },
     } = metadata;
 
     const dataArray = data.map((data) => {

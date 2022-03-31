@@ -84,6 +84,15 @@ export function setDatasetOptimized(
   const { index, optimized } = action.payload;
   state.datasets[index].pv.optimized = optimized;
 }
+
+export function setDatasetDrift(
+  state: ChartState,
+  action: PayloadAction<{ index: number; drifted: boolean }>
+): void {
+  const { index, drifted } = action.payload;
+  state.datasets[index].pv.drift = drifted;
+}
+
 export function removeDataset(state: ChartState, action: PayloadAction<{ idx: number; removeAxis: any }>): void {
   const { idx, removeAxis } = action.payload;
   state.datasets.splice(idx, 1);
@@ -129,6 +138,16 @@ export const setTimeStart = {
 export const setTimeEnd = {
   reducer(state: ChartState, action: PayloadAction<string>): void {
     state.timeEnd = action.payload;
+  },
+  prepare(data: Date) {
+    return {
+      payload: data.toLocaleString(),
+    };
+  },
+};
+export const setSelectedTime = {
+  reducer(state: ChartState, action: PayloadAction<string>): void {
+    state.selectedTime = action.payload;
   },
   prepare(data: Date) {
     return {

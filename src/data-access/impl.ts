@@ -1,11 +1,13 @@
 import axios from "axios";
 import { DataAccess, ArchiverData, ArchiverDataPoint, ArchiverMetadata } from "./interface";
 import { DataAccessError, OptimizeDataError, InvalidParameterError } from "../utility/errors";
+import { ChartState } from "../features/chart/initialState";
 
 export const ipRegExp = /https?\/((?:(?:2(?:[0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9])\.){3}(?:(?:2([0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9])))\//;
 export const defaultHost = "10.0.38.46";
 
-export class ArchiverDataAccess implements DataAccess {
+export class ArchiverDataAccess implements DataAccess{
+
   host: string;
   private url: string;
   private BYPASS_URL: string;
@@ -130,17 +132,29 @@ export class ArchiverDataAccess implements DataAccess {
     return outData;
   }
 
-  async fetchData(pv: string, from: Date, to: Date, isOptimized?: boolean, bins?: number): Promise<ArchiverData> {
+  async fetchData(pv: string, from: Date, to: Date, isOptimized?: boolean, drift?: boolean, bins?: number): Promise<ArchiverData> {
+
+    let finalData = null;
+
     if (from === undefined || to === undefined) {
       return null;
     }
     if (isOptimized === undefined) {
       isOptimized = false;
     }
+    if (drift === undefined) {
+      drift = false;
+    }
 
-    const jsonurl = !isOptimized
-      ? `${this.GET_DATA_URL}?pv=${pv}&from=${from.toJSON()}&to=${to.toJSON()}`
-      : `${this.GET_DATA_URL}?pv=optimized_${bins}(${pv})&from=${from.toJSON()}&to=${to.toJSON()}`;
+
+    let stringPV = !isOptimized
+      ? `${pv}`
+      : `optimized_${bins}(${pv})`;
+
+    //Colocar drift_() ao redor da stringPV
+    const jsonurl = drift
+      ? `${this.GET_DATA_URL}?pv=${stringPV}&from=${from.toJSON()}&to=${to.toJSON()}`
+      : `${this.GET_DATA_URL}?pv=${stringPV}&from=${from.toJSON()}&to=${to.toJSON()}`;
 
     const res = await axios
       .get(jsonurl, {
@@ -171,13 +185,36 @@ export class ArchiverDataAccess implements DataAccess {
             `Request returned an empty array, probably due to an invalid range for the url ${jsonurl}`
           );
         }
-
         return res.data[0];
       });
 
+    finalData = this.parseData(res.data);
+
+    //Encontrar valor do tempo, conseguir seu index e retirar o valor para fazer o drift
+
+    if(drift == true){
+      const selectedDate = new Date(sessionStorage.getItem('selectedDate'));
+
+      let closestDate = 100000000000000000000000000000000000000000;
+      let valueComp = 0;
+      finalData.map((point) =>{
+        let dateDiff = (selectedDate.getTime() - point.x.getTime());
+        if(dateDiff < 0){
+          dateDiff *= -1;
+        }
+        if(closestDate > dateDiff){
+          closestDate = dateDiff;
+          valueComp = point.y;
+        }
+      });
+      finalData.map((point) =>{
+        point.y = point.y - valueComp;
+      });
+    }
+
     return {
       meta: res.meta,
-      data: this.parseData(res.data),
+      data: finalData
     };
   }
 

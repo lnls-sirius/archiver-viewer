@@ -10,6 +10,7 @@ export interface ChartState {
   timeStart: string;
   windowTime: number;
   zooming: boolean;
+  selectedTime: string;
 }
 
 const initialState: ChartState = {
@@ -22,5 +23,6 @@ const initialState: ChartState = {
   timeStart: null,
   windowTime: TIME_IDS.MIN_30,
   zooming: false,
+  selectedTime: null
 };
 export default initialState;

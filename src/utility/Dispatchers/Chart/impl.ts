@@ -42,6 +42,10 @@ class ChartDispatcherImpl implements ChartDispatcher {
   setTimeReferenceEnd(timeReferenceEnd: boolean): void {
     store.dispatch(actions.setTimeReferenceEnd(timeReferenceEnd));
   }
+  setSelectedTime(date: Date): void {
+    store.dispatch(actions.setSelectedTime(date));
+  }
+
   setSingleTooltipEnabled(enabled: boolean): void {
     store.dispatch(actions.setSingleTooltip(enabled));
   }
@@ -50,6 +54,9 @@ class ChartDispatcherImpl implements ChartDispatcher {
   }
   setDatasetOptimized(index: number, optimized: boolean): void {
     store.dispatch(actions.setDatasetOptimized({ index, optimized }));
+  }
+  setDatasetDrift(index: number, drifted: boolean): void {
+    store.dispatch(actions.setDatasetDrift({ index, drifted }));
   }
   doRemoveDataset(index: number, removeAxis: string): void {
     store.dispatch(actions.removeDataset({ idx: index, removeAxis }));

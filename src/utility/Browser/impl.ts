@@ -13,6 +13,7 @@ export class Browser implements BrowserInterface {
 
     const parsePV = (str: string): ConfigPV => {
       let optimize = false;
+      let drift = false;
       let bins = -1;
       let pvname = str;
 
@@ -22,7 +23,13 @@ export class Browser implements BrowserInterface {
         optimize = true;
       }
 
-      return { optimize, bins, pvname };
+      /*if (str.indexOf("drift_") !== -1) {
+        bins = parseFloat(str.substr("optimized_".length, str.indexOf("(") + 1));
+        pvname = str.slice(str.indexOf("(") + 1, str.indexOf(")"));
+        optimize = true;
+      }*/
+
+      return { optimize, drift, bins, pvname };
     };
 
     const createDateFromString = (str: string): Date => {
@@ -66,12 +73,24 @@ export class Browser implements BrowserInterface {
 
   updateAddress({ end, start, pvs }: Settings): void {
     let searchString = "?";
-    pvs.forEach(({ bins, label, optimized }) => {
+    pvs.forEach(({ bins, label, optimized, drift }) => {
+
+      let stringPV = ""
+
       if (optimized) {
-        searchString += `pv=optimized_${bins}(${encodeURIComponent(label)})&`;
+        stringPV += `optimized_${bins}(${encodeURIComponent(label)})`;
       } else {
-        searchString += `pv=${encodeURIComponent(label)}&`;
+        stringPV += `pv=${encodeURIComponent(label)}&`;
       }
+
+      
+      //Colocar drift_()
+      if (drift) {
+        searchString += `pv=${stringPV}&`;
+      } else {
+        searchString += `pv=${stringPV}&`;
+      }
+
     });
 
     searchString += `from=${encodeURIComponent(start.toJSON())}&`;

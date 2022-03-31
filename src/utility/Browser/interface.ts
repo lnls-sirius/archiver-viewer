@@ -2,6 +2,7 @@ export interface SettingsPVs {
   label: string;
   bins: number;
   optimized: boolean;
+  drift: boolean;
 }
 export interface Settings {
   start: Date;
@@ -12,6 +13,7 @@ export interface Settings {
 export interface ConfigPV {
   pvname: string;
   optimize: boolean;
+  drift: boolean;
   bins: number;
 }
 

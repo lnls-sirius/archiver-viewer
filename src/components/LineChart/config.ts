@@ -1,5 +1,4 @@
 import { TimeAxisID } from "../../utility/TimeAxis/TimeAxisConstants";
-import handlers from "../../controllers/handlers";
 import Chart from "chart.js";
 
 export const options: Chart.ChartOptions = {
@@ -52,8 +51,8 @@ export const options: Chart.ChartOptions = {
           maxRotation: 0,
           minRotation: 0,
           stepSize: 1,
-        },
-      },
+        }
+      }
     ],
     yAxes: [
       {
@@ -63,9 +62,9 @@ export const options: Chart.ChartOptions = {
         position: "left",
         id: "y-axis-0",
       },
-    ],
+    ]
   },
   legend: {
     display: false,
-  },
+  }
 };

@@ -5,7 +5,7 @@ import archInterface from "../../data-access";
 // import chartUtils from "../../entities/chartUtils";
 import { RequestsDispatcher, StatusDispatcher } from "../../utility/Dispatchers";
 import { fixOutOfRangeData } from "../../utility/data";
-import { OptimizeDataError } from "../../utility/errors";
+import { DriftDataError, OptimizeDataError } from "../../utility/errors";
 
 import Chart from "chart.js";
 import { ArchiverMetadata } from "../../data-access/interface";
@@ -15,6 +15,7 @@ class PlotPVsImpl implements PlotPVs {
   private update(): void {
     (control.getChart() as Chart).update({ duration: 0, easing: "linear", lazy: false });
     control.updateOptimizedWarning();
+    control.updateDriftWarning();
   }
 
   private async getPVMetadata(pv: string): Promise<ArchiverMetadata | null> {
@@ -28,6 +29,7 @@ class PlotPVsImpl implements PlotPVs {
   private async fetchAndInsertPV(
     pv: string,
     optimized: boolean,
+    drift: boolean,
     bins: number,
     metadata: ArchiverMetadata
   ): Promise<void> {
@@ -37,21 +39,27 @@ class PlotPVsImpl implements PlotPVs {
     RequestsDispatcher.IncrementActiveRequests();
 
     try {
-      const res = await archInterface.fetchData(pv, start, end, optimized, bins);
+      const res = await archInterface.fetchData(pv, start, end, optimized, drift, bins);
       const { data } = res;
 
       const _data = fixOutOfRangeData(data, control.getStart(), control.getEnd());
-      control.appendDataset(_data, optimized, bins, metadata);
+      control.appendDataset(_data, optimized, drift, bins, metadata);
     } catch (e) {
       let msg: string;
 
       if (e instanceof OptimizeDataError) {
         msg = `Failed to retrieve optimized data for ${pv} using optimize_${bins} [${start}, ${end}]`;
-        await this.fetchAndInsertPV(pv, false, -1, metadata);
+        await this.fetchAndInsertPV(pv, false, false, -1, metadata);
 
         console.warn(msg);
         StatusDispatcher.Warning("Append PV: Fetch data", msg);
-      } else {
+      }else if (e instanceof DriftDataError) {
+        msg = `Failed to retrieve drift data for ${pv} using drift [${start}, ${end}]`;
+        await this.fetchAndInsertPV(pv, false, false, -1, metadata);
+
+        console.warn(msg);
+        StatusDispatcher.Warning("Append PV: Fetch data", msg);
+      }else {
         msg = `Failed to retrieve data for ${pv} [${start}, ${end}]`;
         console.error(msg);
         StatusDispatcher.Error("Append PV: Fetch data", msg);
@@ -61,22 +69,23 @@ class PlotPVsImpl implements PlotPVs {
     }
   }
 
-  private async appendPV(pv: string, optimize?: boolean, bins = DefaultBinSize): Promise<void> {
+  private async appendPV(pv: string, optimize?: boolean, drift?: boolean, bins = DefaultBinSize): Promise<void> {
     const metadata = await this.getPVMetadata(pv);
 
-    await this.fetchAndInsertPV(pv, optimize, bins, metadata);
+    await this.fetchAndInsertPV(pv, optimize, drift, bins, metadata);
 
     control.updateOptimizedWarning();
+    control.updateDriftWarning();
     control.updateURL();
   }
 
-  plotPV({ name, optimize, bins, updateChart }: PlotPVParams): void {
+  plotPV({ name, optimize, drift, bins, updateChart }: PlotPVParams): void {
     const pvIndex = control.getPlotIndex(name);
     const shouldUpdateExistingPV = pvIndex !== null;
     if (shouldUpdateExistingPV) {
       control.updatePlot(pvIndex);
     } else {
-      this.appendPV(name, optimize, bins);
+      this.appendPV(name, optimize, drift, bins);
     }
     if (updateChart === true) {
       this.update();

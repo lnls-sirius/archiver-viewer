@@ -9,7 +9,7 @@ import {
   faFileExcel,
   faSearchPlus,
   faCarSide,
-  faList,
+  faList
 } from "@fortawesome/free-solid-svg-icons";
 import { IconProp, SizeProp } from "@fortawesome/fontawesome-svg-core";
 
@@ -26,11 +26,12 @@ interface ControlsReduxProps {
   pending: number;
   timeEnd: string;
   timeStart: string;
+  selectedTime: string;
 }
 const mapStateToProps = (state: RootState): ControlsReduxProps => {
   const {
-    chart: { autoScroll, zooming, singleTooltip, timeReferenceEnd, timeEnd, timeStart },
-    requests: { pending },
+    chart: { autoScroll, zooming, singleTooltip, timeReferenceEnd, timeEnd, timeStart, selectedTime},
+    requests: { pending }
   } = state;
 
   return {
@@ -41,6 +42,7 @@ const mapStateToProps = (state: RootState): ControlsReduxProps => {
     pending,
     timeEnd,
     timeStart,
+    selectedTime
   };
 };
 
@@ -59,7 +61,7 @@ class Controls extends Component<ControlsReduxProps, ControlsState> {
   constructor(props: ControlsReduxProps) {
     super(props);
     this.state = {
-      startDate: new Date(),
+      startDate: new Date()
     };
     this.items = [
       {
@@ -158,6 +160,25 @@ class Controls extends Component<ControlsReduxProps, ControlsState> {
     );
   };
 
+  handleTimeChange = async (date: Date) => {
+    (await handlers.onChangeSelectedTime(date));
+  };
+
+  renderTimeSelect = () => {
+    return (
+      <S.DatePickerWrapper
+        title="Start/end timestamp"
+        showTimeSelect
+        selected={new Date(this.props.selectedTime)}
+        onChange={this.handleTimeChange}
+        timeFormat="HH:mm"
+        timeCaption="time"
+        dateFormat="dd/MM/yy hh:mm aa"
+        maxDate={new Date()}
+      />
+    );
+  };
+
   renderControlIcons() {
     return this.items.map(({ icon, onClick, size, title, isActive }, index) => {
       let active: boolean;
@@ -185,6 +206,7 @@ class Controls extends Component<ControlsReduxProps, ControlsState> {
             <S.TimeDisplayDate>{`${timeEnd}`}</S.TimeDisplayDate>
           </S.TimeDisplay>
         </S.ControlsGroupWrapper>
+        Selected Time:{this.renderTimeSelect()}
       </S.ControlsWrapper>
     );
   }

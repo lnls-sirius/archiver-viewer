@@ -3,6 +3,7 @@ import { ArchiverMetadata } from "../../data-access/interface";
 export interface SearchResult extends ArchiverMetadata {
   selected: boolean;
   optimize: boolean;
+  drift: boolean;
 }
 export interface SearchStateInterface {
   visible: boolean;

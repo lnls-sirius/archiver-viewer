@@ -39,3 +39,9 @@ export class OptimizeDataError extends DataAccessError {
     super(`Optimize request returned and empty array, ${pvname} bins ${bins}, ${extra}`);
   }
 }
+
+export class DriftDataError extends DataAccessError {
+  constructor(pvname: string, extra?: string) {
+    super(`Drift request returned and empty array, ${pvname}, ${extra}`);
+  }
+}

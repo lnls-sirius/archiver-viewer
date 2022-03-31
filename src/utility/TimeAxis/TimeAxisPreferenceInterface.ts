@@ -4,6 +4,8 @@ interface TimeAxisPreferenceInterface {
   getUnitStepSize(): number;
   isOptimized(): boolean;
   setOptimized(optimized: boolean): void;
+  isDrifted(): boolean;
+  setDrifted(drifted: boolean): void;
   getBins(): number;
   getTimeInMilliseconds(): number;
 }
