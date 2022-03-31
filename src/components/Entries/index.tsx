@@ -22,8 +22,8 @@ const Entries: React.FC = () => {
   const optimizeHandler = async (label: string, optimize: boolean) => {
     await ChartController.setDatasetOptimized(label, optimize);
   };
-  const driftHandler = async (label: string, drift: boolean) => {
-    await ChartController.setDatasetDrift(label, drift);
+  const diffHandler = async (label: string, diff: boolean) => {
+    await ChartController.setDatasetDiff(label, diff);
   };
   const removeDataset = async (name: string) => {
     await ChartController.removeDataset(name);
@@ -38,7 +38,7 @@ const Entries: React.FC = () => {
       yAxisID,
       backgroundColor,
       visible,
-      pv: { optimized, drift, bins },
+      pv: { optimized, diff, bins },
     } = datasetInfo;
 
     return (
@@ -49,10 +49,10 @@ const Entries: React.FC = () => {
         <S.Text title="PV name">{label}</S.Text>
         <S.EguText title="y axis label">{yAxisID}</S.EguText>
         <Checkbox
-          onClick={() => driftHandler(label, !drift)}
-          checked={drift}
-          text="Drift?"
-          tooltip="Check if you want the data drift based on the selected time"
+          onClick={() => diffHandler(label, !diff)}
+          checked={diff}
+          text="Diff?"
+          tooltip="Check if you want the data diff based on the selected time"
         />
         <Checkbox
           onClick={() => optimizeHandler(label, !optimized)}
@@ -108,7 +108,7 @@ function RenderDataset({
     pv: {
       egu,
       optimized,
-      drift,
+      diff,
       metadata: { DBRType },
     },
   } = dataset.metadata;
@@ -124,7 +124,7 @@ function RenderDataset({
       >
         <span style={{ fontSize: "1.5rem", fontWeight: 700 }}>{label}</span>
         <span style={{ fontSize: "1.1rem", fontWeight: 500 }}>{egu}</span>
-        <span style={{ fontSize: "1.1rem", fontWeight: 500 }}>{drift ? "Drift" : ""}</span>
+        <span style={{ fontSize: "1.1rem", fontWeight: 500 }}>{diff ? "Diff" : ""}</span>
         <span style={{ fontSize: "1.1rem", fontWeight: 500 }}>{optimized ? "Optimized" : ""}</span>
         <span style={{ fontSize: "1.1rem", fontWeight: 500 }}>{DBRType}</span>
         <S.ButtonRed style={{ padding: "1.2rem" }} onClick={() => setVisible(false)}>

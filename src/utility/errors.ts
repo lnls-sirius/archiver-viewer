@@ -40,8 +40,8 @@ export class OptimizeDataError extends DataAccessError {
   }
 }
 
-export class DriftDataError extends DataAccessError {
+export class DiffDataError extends DataAccessError {
   constructor(pvname: string, extra?: string) {
-    super(`Drift request returned and empty array, ${pvname}, ${extra}`);
+    super(`Diff request returned and empty array, ${pvname}, ${extra}`);
   }
 }

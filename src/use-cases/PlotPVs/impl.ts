@@ -5,7 +5,7 @@ import archInterface from "../../data-access";
 // import chartUtils from "../../entities/chartUtils";
 import { RequestsDispatcher, StatusDispatcher } from "../../utility/Dispatchers";
 import { fixOutOfRangeData } from "../../utility/data";
-import { DriftDataError, OptimizeDataError } from "../../utility/errors";
+import { DiffDataError, OptimizeDataError } from "../../utility/errors";
 
 import Chart from "chart.js";
 import { ArchiverMetadata } from "../../data-access/interface";
@@ -15,7 +15,7 @@ class PlotPVsImpl implements PlotPVs {
   private update(): void {
     (control.getChart() as Chart).update({ duration: 0, easing: "linear", lazy: false });
     control.updateOptimizedWarning();
-    control.updateDriftWarning();
+    control.updateDiffWarning();
   }
 
   private async getPVMetadata(pv: string): Promise<ArchiverMetadata | null> {
@@ -29,7 +29,7 @@ class PlotPVsImpl implements PlotPVs {
   private async fetchAndInsertPV(
     pv: string,
     optimized: boolean,
-    drift: boolean,
+    diff: boolean,
     bins: number,
     metadata: ArchiverMetadata
   ): Promise<void> {
@@ -39,11 +39,11 @@ class PlotPVsImpl implements PlotPVs {
     RequestsDispatcher.IncrementActiveRequests();
 
     try {
-      const res = await archInterface.fetchData(pv, start, end, optimized, drift, bins);
+      const res = await archInterface.fetchData(pv, start, end, optimized, diff, bins);
       const { data } = res;
 
       const _data = fixOutOfRangeData(data, control.getStart(), control.getEnd());
-      control.appendDataset(_data, optimized, drift, bins, metadata);
+      control.appendDataset(_data, optimized, diff, bins, metadata);
     } catch (e) {
       let msg: string;
 
@@ -53,8 +53,8 @@ class PlotPVsImpl implements PlotPVs {
 
         console.warn(msg);
         StatusDispatcher.Warning("Append PV: Fetch data", msg);
-      }else if (e instanceof DriftDataError) {
-        msg = `Failed to retrieve drift data for ${pv} using drift [${start}, ${end}]`;
+      }else if (e instanceof DiffDataError) {
+        msg = `Failed to retrieve diff data for ${pv} using diff [${start}, ${end}]`;
         await this.fetchAndInsertPV(pv, false, false, -1, metadata);
 
         console.warn(msg);
@@ -69,23 +69,23 @@ class PlotPVsImpl implements PlotPVs {
     }
   }
 
-  private async appendPV(pv: string, optimize?: boolean, drift?: boolean, bins = DefaultBinSize): Promise<void> {
+  private async appendPV(pv: string, optimize?: boolean, diff?: boolean, bins = DefaultBinSize): Promise<void> {
     const metadata = await this.getPVMetadata(pv);
 
-    await this.fetchAndInsertPV(pv, optimize, drift, bins, metadata);
+    await this.fetchAndInsertPV(pv, optimize, diff, bins, metadata);
 
     control.updateOptimizedWarning();
-    control.updateDriftWarning();
+    control.updateDiffWarning();
     control.updateURL();
   }
 
-  plotPV({ name, optimize, drift, bins, updateChart }: PlotPVParams): void {
+  plotPV({ name, optimize, diff, bins, updateChart }: PlotPVParams): void {
     const pvIndex = control.getPlotIndex(name);
     const shouldUpdateExistingPV = pvIndex !== null;
     if (shouldUpdateExistingPV) {
       control.updatePlot(pvIndex);
     } else {
-      this.appendPV(name, optimize, drift, bins);
+      this.appendPV(name, optimize, diff, bins);
     }
     if (updateChart === true) {
       this.update();

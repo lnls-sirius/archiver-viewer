@@ -19,7 +19,7 @@ export const {
   setAxisYLimitMax,
   setAxisYLimitMin,
   setDatasetOptimized,
-  setDatasetDrift,
+  setDatasetDiff,
   setDatasetVisible,
   setSingleTooltip,
   setTimeEnd,

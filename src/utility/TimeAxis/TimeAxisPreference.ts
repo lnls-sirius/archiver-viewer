@@ -6,17 +6,17 @@ class TimeAxisPreference implements TimeAxisPreferenceInterface {
   private unitStepSize: number;
   private ms: number;
   private optimized: boolean;
-  private drift: boolean;
+  private diff: boolean;
   private bins: number;
   private timeInterval: number;
 
-  constructor(unit: TimeUnits, timeInterval: number, unitStepSize: number, defaultOptimized: boolean, defaultDrift: boolean, bins: number) {
+  constructor(unit: TimeUnits, timeInterval: number, unitStepSize: number, defaultOptimized: boolean, defaultDiff: boolean, bins: number) {
     this.unit = unit;
     this.unitStepSize = unitStepSize;
     this.bins = bins;
     this.timeInterval = timeInterval;
     this.optimized = defaultOptimized;
-    this.drift = defaultDrift;
+    this.diff = defaultDiff;
 
     this.text = this.generateText();
     this.ms = this.parseTimeIntervalToMs();
@@ -94,12 +94,12 @@ class TimeAxisPreference implements TimeAxisPreferenceInterface {
     this.optimized = optimized;
   }
 
-  isDrifted(): boolean {
-    return this.drift;
+  isdiffted(): boolean {
+    return this.diff;
   }
 
-  setDrifted(drifted: boolean): void {
-    this.drift = drifted;
+  setdiffted(diffted: boolean): void {
+    this.diff = diffted;
   }
 
   getBins(): number {

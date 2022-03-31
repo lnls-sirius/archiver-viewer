@@ -102,7 +102,7 @@ async function queryPVsRetrieval(val: string): Promise<void> {
   QueryPVs(val);
 }
 
-function plotSelectedPVs(pvs: { name: string; optimize: boolean, drift: boolean }[]): void {
+function plotSelectedPVs(pvs: { name: string; optimize: boolean, diff: boolean }[]): void {
   PlotPVs.plot(pvs);
 }
 
@@ -269,7 +269,7 @@ async function undoHandler(): Promise<void> {
       case StackActionEnum.REMOVE_PV:
         // 1- Add the PV back
         control.redoStackPush({ action: StackActionEnum.REMOVE_PV, pv: undo.pv });
-        PlotPVs.plotPV({ name: undo.pv, optimize: undo.optimized, drift: undo.drift });
+        PlotPVs.plotPV({ name: undo.pv, optimize: undo.optimized, diff: undo.diff });
         control.undoStackPush({ action: StackActionEnum.APPEND_PV, pv: undo.pv });
         break;
 
@@ -277,13 +277,13 @@ async function undoHandler(): Promise<void> {
         // Remove the PV
         const index = control.getPlotIndex(undo.pv);
         const optimized = (control.getChart().data.datasets[index] as any).pv.optimized;
-        const drift = (control.getChart().data.datasets[index] as any).pv.drift;
+        const diff = (control.getChart().data.datasets[index] as any).pv.diff;
 
         control.redoStackPush({
           action: StackActionEnum.APPEND_PV,
           pv: undo.pv,
           optimized,
-          drift
+          diff
         });
         control.removeDataset(index, true);
         break;
@@ -352,7 +352,7 @@ async function redoHandler(): Promise<void> {
         break;
 
       case StackActionEnum.APPEND_PV:
-        PlotPVs.plotPV({ name: redo.pv, optimize: redo.optimized, drift: redo.drift});
+        PlotPVs.plotPV({ name: redo.pv, optimize: redo.optimized, diff: redo.diff});
         break;
 
       case StackActionEnum.CHANGE_WINDOW_TIME:

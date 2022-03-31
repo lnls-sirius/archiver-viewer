@@ -206,7 +206,7 @@ class Controls extends Component<ControlsReduxProps, ControlsState> {
             <S.TimeDisplayDate>{`${timeEnd}`}</S.TimeDisplayDate>
           </S.TimeDisplay>
         </S.ControlsGroupWrapper>
-        Selected Time:{this.renderTimeSelect()}
+        Diff Time: {this.renderTimeSelect()}
       </S.ControlsWrapper>
     );
   }

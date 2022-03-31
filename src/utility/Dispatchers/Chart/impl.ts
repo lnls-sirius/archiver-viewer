@@ -55,8 +55,8 @@ class ChartDispatcherImpl implements ChartDispatcher {
   setDatasetOptimized(index: number, optimized: boolean): void {
     store.dispatch(actions.setDatasetOptimized({ index, optimized }));
   }
-  setDatasetDrift(index: number, drifted: boolean): void {
-    store.dispatch(actions.setDatasetDrift({ index, drifted }));
+  setDatasetDiff(index: number, diffted: boolean): void {
+    store.dispatch(actions.setDatasetDiff({ index, diffted }));
   }
   doRemoveDataset(index: number, removeAxis: string): void {
     store.dispatch(actions.removeDataset({ idx: index, removeAxis }));

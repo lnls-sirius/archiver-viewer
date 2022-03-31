@@ -5,7 +5,7 @@ export interface StackAction {
   endTime?: Date;
   startTime?: Date;
   optimized?: boolean;
-  drift?: boolean;
+  diff?: boolean;
   windowTime?: number;
 }
 export interface ChartActionsStack {

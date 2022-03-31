@@ -7,8 +7,8 @@ export class ChartControllerImpl implements ChartController {
     await chart.optimizePlot(label, optimize);
   }
 
-  private async driftDataset(label: string, drift: boolean): Promise<void> {
-    await chart.driftPlot(label, drift);
+  private async diffDataset(label: string, diff: boolean): Promise<void> {
+    await chart.diffPlot(label, diff);
   }
 
   toggleAxisType(name: string): void {
@@ -27,8 +27,8 @@ export class ChartControllerImpl implements ChartController {
     this.optimizeDataset(name, optimized);
   }
 
-  async setDatasetDrift(name: string, drift: boolean): Promise<void> {
-    this.driftDataset(name, drift);
+  async setDatasetDiff(name: string, diff: boolean): Promise<void> {
+    this.diffDataset(name, diff);
   }
 
   setAxisYMin(axisId: string, value?: number): void {

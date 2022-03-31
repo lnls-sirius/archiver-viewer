@@ -13,7 +13,7 @@ export class Browser implements BrowserInterface {
 
     const parsePV = (str: string): ConfigPV => {
       let optimize = false;
-      let drift = false;
+      let diff = false;
       let bins = -1;
       let pvname = str;
 
@@ -23,13 +23,13 @@ export class Browser implements BrowserInterface {
         optimize = true;
       }
 
-      /*if (str.indexOf("drift_") !== -1) {
+      /*if (str.indexOf("diff_") !== -1) {
         bins = parseFloat(str.substr("optimized_".length, str.indexOf("(") + 1));
         pvname = str.slice(str.indexOf("(") + 1, str.indexOf(")"));
         optimize = true;
       }*/
 
-      return { optimize, drift, bins, pvname };
+      return { optimize, diff, bins, pvname };
     };
 
     const createDateFromString = (str: string): Date => {
@@ -73,7 +73,7 @@ export class Browser implements BrowserInterface {
 
   updateAddress({ end, start, pvs }: Settings): void {
     let searchString = "?";
-    pvs.forEach(({ bins, label, optimized, drift }) => {
+    pvs.forEach(({ bins, label, optimized, diff }) => {
 
       let stringPV = ""
 
@@ -83,9 +83,9 @@ export class Browser implements BrowserInterface {
         stringPV += `pv=${encodeURIComponent(label)}&`;
       }
 
-      
-      //Colocar drift_()
-      if (drift) {
+
+      //Colocar diff_()
+      if (diff) {
         searchString += `pv=${stringPV}&`;
       } else {
         searchString += `pv=${stringPV}&`;

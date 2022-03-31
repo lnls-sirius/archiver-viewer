@@ -85,12 +85,12 @@ export function setDatasetOptimized(
   state.datasets[index].pv.optimized = optimized;
 }
 
-export function setDatasetDrift(
+export function setDatasetDiff(
   state: ChartState,
-  action: PayloadAction<{ index: number; drifted: boolean }>
+  action: PayloadAction<{ index: number; diffted: boolean }>
 ): void {
-  const { index, drifted } = action.payload;
-  state.datasets[index].pv.drift = drifted;
+  const { index, diffted } = action.payload;
+  state.datasets[index].pv.diff = diffted;
 }
 
 export function removeDataset(state: ChartState, action: PayloadAction<{ idx: number; removeAxis: any }>): void {

@@ -1,6 +1,6 @@
 export interface ChartController {
   setDatasetOptimized(name: string, optimized: boolean): Promise<void>;
-  setDatasetDrift(name: string, drift: boolean): Promise<void>;
+  setDatasetDiff(name: string, diff: boolean): Promise<void>;
   removeDataset(name: string): Promise<void>;
   hideDataset(name: string): void;
   toggleAxisType(name: string): void;

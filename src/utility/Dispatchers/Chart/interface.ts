@@ -9,7 +9,7 @@ export interface ChartDispatcher {
 
   addDataset(dataset: DatasetInfo): void;
   setDatasetOptimized(index: number, optimized: boolean): void;
-  setDatasetDrift(index: number, drifted: boolean): void;
+  setDatasetDiff(index: number, diffted: boolean): void;
   setDatasetVisible(index: number, visible: boolean): void;
   doRemoveDataset(index: number, removeAxis: string): void;
 

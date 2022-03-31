@@ -14,7 +14,7 @@ import makeAutoUpdate, { AutoUpdate } from "./AutoUpdate";
 import makeChartTime, { ChartTime } from "./Time";
 import { CreateChartJSController, ChartJSController, DatasetInfo } from "./ChartJS";
 import { ArchiverDataPoint, ArchiverMetadata } from "../../data-access/interface";
-import { DriftDataError, OptimizeDataError, OutOfSyncDatasetError } from "../../utility/errors";
+import { DiffDataError, OptimizeDataError, OutOfSyncDatasetError } from "../../utility/errors";
 import { Settings, SettingsPVs } from "../../utility/Browser/interface";
 
 export enum REFERENCE {
@@ -71,8 +71,8 @@ class ChartImpl implements ChartInterface {
     this.chartjs.updateTimeAxis(unit, unitStepSize, start, end);
   }
 
-  appendDataset(data: any[], optimized: boolean, drift: boolean, bins: number, metadata: ArchiverMetadata): void {
-    this.chartjs.appendDataset(data, optimized, drift, bins, metadata);
+  appendDataset(data: any[], optimized: boolean, diff: boolean, bins: number, metadata: ArchiverMetadata): void {
+    this.chartjs.appendDataset(data, optimized, diff, bins, metadata);
   }
 
   init(c: Chart): void {
@@ -132,12 +132,12 @@ class ChartImpl implements ChartInterface {
     this.chart.data.datasets.forEach(async (dataset, datasetIndex) => {
       const {
         label,
-        pv: { optimized, drift },
+        pv: { optimized, diff },
       } = this.chartjs.getDatasetSettingsByIndex(datasetIndex);
       if (optimized) {
         dataset.data = [];
       }
-      if (drift){
+      if (diff){
         dataset.data = [];
       }
       const promise = this.updatePlot(datasetIndex, { waitResult: true });
@@ -216,7 +216,7 @@ class ChartImpl implements ChartInterface {
     }
 
     this.optimizeAllGraphs();
-    this.driftAllGraphs();
+    this.diffAllGraphs();
     const { unit, unitStepSize } = chartUtils.timeAxisPreferences[this.windowTime];
     this.chartjs.updateTimeAxis(unit, unitStepSize, this.time.getStart(), this.time.getEnd());
 
@@ -331,25 +331,25 @@ class ChartImpl implements ChartInterface {
     }
   }
 
-  updateDriftWarning(): void {
-    let canDrift = false;
+  updateDiffWarning(): void {
+    let canDiff = false;
 
     for (let i = 0; i < this.chart.data.datasets.length; i++) {
       const label = this.chart.data.datasets[i].label;
-      canDrift = this.chartjs.getDatasetSettings(label).pv.drift || canDrift;
+      canDiff = this.chartjs.getDatasetSettings(label).pv.diff || canDiff;
     }
 
-    if (canDrift) {
+    if (canDiff) {
       const msg =
-        "In order to reduce show the difference of the data from a value in a certain time point, a drift is used. Each point corresponds to the real value subtracted the comparison value.";
-      StatusDispatcher.Warning("Data is being drifted", msg);
+        "In order to reduce show the difference of the data from a value in a certain time point, a diff is used. Each point corresponds to the real value subtracted the comparison value.";
+      StatusDispatcher.Warning("Data is being differenciated", msg);
     }
   }
 
   async fetchDatasetData(
     start: Date,
     end: Date,
-    { label, pv: { optimized, drift, bins } }: DatasetInfo | { label: string; pv: { optimized: boolean; drift:boolean; bins: number } }
+    { label, pv: { optimized, diff, bins } }: DatasetInfo | { label: string; pv: { optimized: boolean; diff:boolean; bins: number } }
   ): Promise<ArchiverDataPoint[]> {
     RequestsDispatcher.IncrementActiveRequests();
     const thisDatasetRequestTime = new Date().getTime();
@@ -359,7 +359,7 @@ class ChartImpl implements ChartInterface {
     this.datasetLatestFetchRequestTime[label] = thisDatasetRequestTime;
 
     try {
-      const { data } = await archInterface.fetchData(label, start, end, optimized, drift, bins);
+      const { data } = await archInterface.fetchData(label, start, end, optimized, diff, bins);
       const isTheLatestFetchRequest = this.datasetLatestFetchRequestTime[label] === thisDatasetRequestTime;
 
       if (isTheLatestFetchRequest) {
@@ -387,14 +387,14 @@ class ChartImpl implements ChartInterface {
     }
   }
 
-  async fetchDatasetDataOrDrift(start: Date, end: Date, datasetInfo: DatasetInfo): Promise<ArchiverDataPoint[]> {
+  async fetchDatasetDataOrDiff(start: Date, end: Date, datasetInfo: DatasetInfo): Promise<ArchiverDataPoint[]> {
     const { label } = datasetInfo;
 
     try {
       return await this.fetchDatasetData(start, end, datasetInfo);
     } catch (e) {
-      if (e instanceof DriftDataError) {
-        this.chartjs.setDatasetDrift(label, false);
+      if (e instanceof DiffDataError) {
+        this.chartjs.setDatasetDiff(label, false);
         return await this.fetchDatasetData(start, end, datasetInfo);
       }
 
@@ -535,14 +535,14 @@ class ChartImpl implements ChartInterface {
     });
   }
 
-  driftAllGraphs(): void {
+  diffAllGraphs(): void {
     this.chart.data.datasets.forEach((dataset) => {
       const {
         label,
         pv: { metadata },
       } = this.chartjs.getDatasetSettings(dataset.label);
 
-      this.chartjs.setDatasetDrift(label, true);
+      this.chartjs.setDatasetDiff(label, true);
     });
   }
 
@@ -554,7 +554,7 @@ class ChartImpl implements ChartInterface {
 
     await this.fetchDatasetData(last, this.time.getEnd(), {
       label,
-      pv: { optimized: false, drift: false, bins },
+      pv: { optimized: false, diff: false, bins },
     }).then((data) => {
       const dataset = this.chart.data.datasets[datasetIndex];
 
@@ -582,7 +582,7 @@ class ChartImpl implements ChartInterface {
 
     await this.fetchDatasetData(this.time.getStart(), first, {
       label,
-      pv: { optimized: false, drift: false, bins },
+      pv: { optimized: false, diff: false, bins },
     }).then((data) => {
       const dataset = this.chart.data.datasets[datasetIndex];
       // Appends new data into the dataset
@@ -608,13 +608,13 @@ class ChartImpl implements ChartInterface {
    **/
   async updateAllPlots(reset = false, chartUpdate = true): Promise<any> {
     this.updateOptimizedWarning();
-    this.updateDriftWarning();
+    this.updateDiffWarning();
 
     const promises: Promise<void>[] = [];
     this.chart.data.datasets.map(async (dataset, i) => {
       const label = dataset.label;
 
-      if (this.chartjs.getDatasetSettings(label).pv.optimized || this.chartjs.getDatasetSettings(label).pv.drift || reset) {
+      if (this.chartjs.getDatasetSettings(label).pv.optimized || this.chartjs.getDatasetSettings(label).pv.diff || reset) {
         dataset.data = [];
       }
 
@@ -661,9 +661,9 @@ class ChartImpl implements ChartInterface {
     this.chart.data.datasets.forEach((e) => {
       const {
         label,
-        pv: { bins, optimized, drift },
+        pv: { bins, optimized, diff },
       } = this.chartjs.getDatasetSettings(e.label);
-      pvs.push({ bins, label, optimized, drift });
+      pvs.push({ bins, label, optimized, diff });
     });
 
     const settings: Settings = { end: this.time.getEnd(), start: this.time.getStart(), pvs };
@@ -749,8 +749,8 @@ class ChartImpl implements ChartInterface {
       });
   }
 
-  async driftPlot(datasetLabel: string, drift: boolean) {
-    this.chartjs.setDatasetDrift(datasetLabel, drift);
+  async diffPlot(datasetLabel: string, diff: boolean) {
+    this.chartjs.setDatasetDiff(datasetLabel, diff);
 
     const datasetIndex = this.chartjs.getDatasetIndex(datasetLabel);
 
@@ -772,7 +772,7 @@ class ChartImpl implements ChartInterface {
   removeDataset(datasetIndex: number, undo?: boolean): void {
     const {
       label,
-      pv: { optimized, drift },
+      pv: { optimized, diff },
     } = this.chartjs.getDatasetSettingsByIndex(datasetIndex);
 
     if (!undo || undo === undefined) {
@@ -780,14 +780,14 @@ class ChartImpl implements ChartInterface {
         action: StackActionEnum.REMOVE_PV,
         pv: label,
         optimized: optimized,
-        drift: drift
+        diff: diff
       });
     }
 
     this.chartjs.removeDataset(datasetIndex);
     this.updateURL();
     this.updateOptimizedWarning();
-    this.updateDriftWarning();
+    this.updateDiffWarning();
   }
 
   toggleAxisType(axisId: string): void {

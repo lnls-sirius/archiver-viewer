@@ -1,7 +1,7 @@
 export interface PlotPVParams {
   name: string;
   optimize: boolean;
-  drift: boolean;
+  diff: boolean;
   bins?: number;
   updateChart?: boolean;
 }

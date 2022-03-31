@@ -132,7 +132,7 @@ export class ArchiverDataAccess implements DataAccess{
     return outData;
   }
 
-  async fetchData(pv: string, from: Date, to: Date, isOptimized?: boolean, drift?: boolean, bins?: number): Promise<ArchiverData> {
+  async fetchData(pv: string, from: Date, to: Date, isOptimized?: boolean, diff?: boolean, bins?: number): Promise<ArchiverData> {
 
     let finalData = null;
 
@@ -142,8 +142,8 @@ export class ArchiverDataAccess implements DataAccess{
     if (isOptimized === undefined) {
       isOptimized = false;
     }
-    if (drift === undefined) {
-      drift = false;
+    if (diff === undefined) {
+      diff = false;
     }
 
 
@@ -151,8 +151,8 @@ export class ArchiverDataAccess implements DataAccess{
       ? `${pv}`
       : `optimized_${bins}(${pv})`;
 
-    //Colocar drift_() ao redor da stringPV
-    const jsonurl = drift
+    //Colocar diff_() ao redor da stringPV
+    const jsonurl = diff
       ? `${this.GET_DATA_URL}?pv=${stringPV}&from=${from.toJSON()}&to=${to.toJSON()}`
       : `${this.GET_DATA_URL}?pv=${stringPV}&from=${from.toJSON()}&to=${to.toJSON()}`;
 
@@ -190,9 +190,9 @@ export class ArchiverDataAccess implements DataAccess{
 
     finalData = this.parseData(res.data);
 
-    //Encontrar valor do tempo, conseguir seu index e retirar o valor para fazer o drift
+    //Encontrar valor do tempo, conseguir seu index e retirar o valor para fazer o diff
 
-    if(drift == true){
+    if(diff == true){
       const selectedDate = new Date(sessionStorage.getItem('selectedDate'));
 
       let closestDate = 100000000000000000000000000000000000000000;

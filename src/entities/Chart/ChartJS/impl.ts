@@ -113,13 +113,13 @@ class ChartJSControllerImpl implements ChartJSController {
     ChartDispatcher.setDatasetOptimized(datasetIndex, optimized);
   }
 
-  setDatasetDrift(label: string, drift: boolean): void {
+  setDatasetDiff(label: string, diff: boolean): void {
     if (!(label in this.datasets)) {
-      console.error(`Failed to drift dataset ${label}, entry does not exists in ${this.datasets}`);
+      console.error(`Failed to diff dataset ${label}, entry does not exists in ${this.datasets}`);
       return;
     }
 
-    this.datasets[label].pv.drift = drift;
+    this.datasets[label].pv.diff = diff;
     this.chart.data.datasets.forEach((dataset) => {
       if (dataset.label === label) {
         dataset.data = [];
@@ -127,9 +127,9 @@ class ChartJSControllerImpl implements ChartJSController {
     });
 
     const datasetIndex = this.getDatasetIndex(label);
-    ChartDispatcher.setDatasetDrift(datasetIndex, drift);
+    ChartDispatcher.setDatasetDiff(datasetIndex, diff);
   }
-  
+
   getDatasetSettings(name: string): DatasetInfo {
     return this.datasets[name];
   }
@@ -336,7 +336,7 @@ class ChartJSControllerImpl implements ChartJSController {
     ChartDispatcher.addAxisY(dataAxisSettings);
   }
 
-  appendDataset(data: any[], optimized: boolean, drifted: boolean, bins: number, metadata: ArchiverMetadata): void {
+  appendDataset(data: any[], optimized: boolean, diffted: boolean, bins: number, metadata: ArchiverMetadata): void {
     const { pvName, EGU, PREC } = metadata;
     const unit = eguNormalize(EGU, pvName);
 
@@ -352,7 +352,7 @@ class ChartJSControllerImpl implements ChartJSController {
     // @todo: Update the store at control.js
     const pv: DatasetPVInfo = {
       precision,
-      drift: drifted,
+      diff: diffted,
       optimized: optimized,
       bins: bins > 0 ? bins : DefaultBinSize, // Default for wierd bin size
       desc: "",
