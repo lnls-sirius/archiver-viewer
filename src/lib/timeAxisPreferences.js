@@ -20,6 +20,7 @@ export const TIME_IDS = {
   MIN1: 18,
   SEG_30: 19,
 };
+
 export const TIME_AXIS_PREFERENCES = [
   {
     // 1 year
@@ -29,7 +30,6 @@ export const TIME_AXIS_PREFERENCES = [
     milliseconds: 365 * 24 * 3600 * 1000,
     optimized: true,
     diff: true,
-
     bins: 2000,
     id: TIME_IDS.YEAR,
   },
@@ -241,5 +241,5 @@ export const TIME_AXIS_PREFERENCES = [
     diff: true,
     bins: 50,
     id: TIME_IDS.SEG_30,
-  },
+  }
 ];

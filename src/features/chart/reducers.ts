@@ -133,7 +133,7 @@ export const setTimeStart = {
     return {
       payload: data.toLocaleString(),
     };
-  },
+  }
 };
 export const setTimeEnd = {
   reducer(state: ChartState, action: PayloadAction<string>): void {
@@ -143,7 +143,7 @@ export const setTimeEnd = {
     return {
       payload: data.toLocaleString(),
     };
-  },
+  }
 };
 export const setSelectedTime = {
   reducer(state: ChartState, action: PayloadAction<string>): void {
@@ -153,5 +153,5 @@ export const setSelectedTime = {
     return {
       payload: data.toLocaleString(),
     };
-  },
+  }
 };

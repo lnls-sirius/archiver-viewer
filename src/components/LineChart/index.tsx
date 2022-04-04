@@ -228,7 +228,7 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
     this.lastKeyCtrl = e.ctrlKey;
   }
 
-  dropLastKey = async (e: React.KeyboardEvent) => {
+  dropLastKey = async () => {
     this.lastKeyCtrl = false;
   }
 
@@ -239,8 +239,8 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
       let windowTime = control.getWindowTime();
       let ms = chartUtils.timeAxisPreferences[windowTime].milliseconds;
 
-      let newArea = this.chart.width/(this.chart.chartArea.right - this.chart.chartArea.left - 12);
-      let offsetX = (dragOffsetX - this.chart.chartArea.left-6)*newArea;
+      let newArea = this.chart.width/(this.chart.chartArea.right - this.chart.chartArea.left);
+      let offsetX = (dragOffsetX - this.chart.chartArea.left)*newArea;
 
       let timePoint = new Date(control.getStart().getTime() + (offsetX*ms/ this.chart.width));
 

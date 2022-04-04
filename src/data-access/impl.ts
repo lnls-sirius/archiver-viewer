@@ -1,7 +1,7 @@
 import axios from "axios";
 import { DataAccess, ArchiverData, ArchiverDataPoint, ArchiverMetadata } from "./interface";
 import { DataAccessError, OptimizeDataError, InvalidParameterError } from "../utility/errors";
-import { ChartState } from "../features/chart/initialState";
+import control from "../entities/Chart";
 
 export const ipRegExp = /https?\/((?:(?:2(?:[0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9])\.){3}(?:(?:2([0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9])))\//;
 export const defaultHost = "10.0.38.46";
@@ -132,6 +132,35 @@ export class ArchiverDataAccess implements DataAccess{
     return outData;
   }
 
+  private getClosestDate(dataArray: any[]): number{
+    const selectedDate = new Date(control.getRefDiff());
+    let valueComp = 0;
+    let closestDate = selectedDate.getTime();
+
+    dataArray.map((point) =>{
+      let dateDiff = (selectedDate.getTime() - point.x.getTime());
+      if(dateDiff < 0){
+        dateDiff *= -1;
+      }
+      if(closestDate > dateDiff){
+        closestDate = dateDiff;
+        valueComp = point.y;
+      }
+    });
+    return valueComp;
+  }
+
+  private differentiateData(diffData: any[]): ArchiverDataPoint[]{
+
+    let valueComp = this.getClosestDate(diffData);
+
+    diffData.map((point) =>{
+      point.y = point.y - valueComp;
+    });
+
+    return diffData;
+  }
+
   async fetchData(pv: string, from: Date, to: Date, isOptimized?: boolean, diff?: boolean, bins?: number): Promise<ArchiverData> {
 
     let finalData = null;
@@ -190,26 +219,8 @@ export class ArchiverDataAccess implements DataAccess{
 
     finalData = this.parseData(res.data);
 
-    //Encontrar valor do tempo, conseguir seu index e retirar o valor para fazer o diff
-
     if(diff == true){
-      const selectedDate = new Date(sessionStorage.getItem('selectedDate'));
-
-      let closestDate = 100000000000000000000000000000000000000000;
-      let valueComp = 0;
-      finalData.map((point) =>{
-        let dateDiff = (selectedDate.getTime() - point.x.getTime());
-        if(dateDiff < 0){
-          dateDiff *= -1;
-        }
-        if(closestDate > dateDiff){
-          closestDate = dateDiff;
-          valueComp = point.y;
-        }
-      });
-      finalData.map((point) =>{
-        point.y = point.y - valueComp;
-      });
+      finalData = this.differentiateData(finalData);
     }
 
     return {

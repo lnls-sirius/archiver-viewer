@@ -4,7 +4,7 @@ import { StackActionEnum } from "../entities/Chart/StackAction/constants";
 import QueryPVs from "../use-cases/QueryPVs";
 import PlotPVs from "../use-cases/PlotPVs";
 import ExportDataset from "../use-cases/ExportDataset";
-import { StatusDispatcher, ChartDispatcher } from "../utility/Dispatchers";
+import { StatusDispatcher} from "../utility/Dispatchers";
 
 async function exportAsXlsx(): Promise<void> {
   await ExportDataset.asXlsx();
@@ -23,8 +23,19 @@ async function onChangeDateHandler(date: Date): Promise<void> {
 }
 
 async function onChangeSelectedTime(date: Date): Promise<void> {
-  ChartDispatcher.setSelectedTime(date);
-  sessionStorage.setItem('selectedDate', date.toString());
+
+  if(date > control.getEnd()){
+    date = control.getEnd();
+  }
+
+  if(date < control.getStart()){
+    date = control.getStart();
+  }
+
+  await control.setRefDiff(date);
+
+  control.updateAllPlots(true);
+  control.updateTimeAxis();
 }
 
 /**

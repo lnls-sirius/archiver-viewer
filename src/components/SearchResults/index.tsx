@@ -14,7 +14,7 @@ const RenderSearchResultsElements = (results: { [key: string]: SearchResultData 
   const elements: JSX.Element[] = [];
   for (const key in results) {
     const result = results[key];
-    elements.push(<SearchResult diff={false} {...result} idx={result.pvName} key={key} />);
+    elements.push(<SearchResult {...result} idx={result.pvName} key={key} />);
   }
   return elements;
 };

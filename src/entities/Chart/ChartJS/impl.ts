@@ -115,7 +115,7 @@ class ChartJSControllerImpl implements ChartJSController {
 
   setDatasetDiff(label: string, diff: boolean): void {
     if (!(label in this.datasets)) {
-      console.error(`Failed to diff dataset ${label}, entry does not exists in ${this.datasets}`);
+      console.error(`Failed to differentiate dataset ${label}, entry does not exists in ${this.datasets}`);
       return;
     }
 

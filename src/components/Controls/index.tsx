@@ -161,15 +161,20 @@ class Controls extends Component<ControlsReduxProps, ControlsState> {
   };
 
   handleTimeChange = async (date: Date) => {
-    (await handlers.onChangeSelectedTime(date));
+    handlers.onChangeSelectedTime(date);
   };
 
   renderTimeSelect = () => {
+    const { selectedTime } = this.props;
+
+    let timeDisplay = (selectedTime != null)? new Date(selectedTime):new Date();
+    //this.handleTimeChange(timeDisplay);
+
     return (
       <S.DatePickerWrapper
         title="Start/end timestamp"
         showTimeSelect
-        selected={new Date(this.props.selectedTime)}
+        selected={timeDisplay}
         onChange={this.handleTimeChange}
         timeFormat="HH:mm"
         timeCaption="time"

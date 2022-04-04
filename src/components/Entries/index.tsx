@@ -52,7 +52,7 @@ const Entries: React.FC = () => {
           onClick={() => diffHandler(label, !diff)}
           checked={diff}
           text="Diff?"
-          tooltip="Check if you want the data diff based on the selected time"
+          tooltip="Check if you want the data differentiated based on the reference time"
         />
         <Checkbox
           onClick={() => optimizeHandler(label, !optimized)}

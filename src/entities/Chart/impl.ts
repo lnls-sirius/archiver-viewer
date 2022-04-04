@@ -99,8 +99,8 @@ class ChartImpl implements ChartInterface {
     this.time.setEnd(time);
   }
 
-  setSelectedTime(time: Date): void {
-    this.time.setEnd(time);
+  setRefDiff(time: Date): void {
+    this.time.setRefDiff(time);
   }
 
   updateTimeWindowOnly(time: number): void {
@@ -341,7 +341,7 @@ class ChartImpl implements ChartInterface {
 
     if (canDiff) {
       const msg =
-        "In order to reduce show the difference of the data from a value in a certain time point, a diff is used. Each point corresponds to the real value subtracted the comparison value.";
+        "In order to reduce show the difference of the data from a value in a certain time point, a differentiation is used. Each point corresponds to the real value subtracted the comparison value.";
       StatusDispatcher.Warning("Data is being differenciated", msg);
     }
   }
@@ -817,6 +817,9 @@ class ChartImpl implements ChartInterface {
   }
   getEnd(): Date {
     return this.time.getEnd();
+  }
+  getRefDiff(): Date {
+    return this.time.getRefDiff();
   }
   getReference(): REFERENCE {
     return this.reference;
