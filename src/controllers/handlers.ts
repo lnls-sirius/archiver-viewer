@@ -117,25 +117,6 @@ function plotSelectedPVs(pvs: { name: string; optimize: boolean, diff: boolean }
   PlotPVs.plot(pvs);
 }
 
-/** ***** Scrolling function *******/
-/**
- * The following function manages mouse wheel events in the canvas area
- **/
-function scrollChart(deltaY: number): void {
-  if (control.isScrollingEnabled()) {
-    const windowTime = control.getWindowTime();
-    //     control.enableLoading();
-    control.disableScrolling();
-    const windowTimeNew =
-      deltaY > 0 ? Math.max(windowTime - 1, 0) : Math.min(windowTime + 1, chartUtils.timeIDs.SEG_30);
-    if (windowTimeNew !== windowTime) {
-      control.updateTimeWindow(windowTimeNew);
-    }
-    //   control.disableLoading();
-    control.enableScrolling();
-  }
-}
-
 async function singleTipHandler(): Promise<void> {
   control.toggleSingleTip();
 }
@@ -421,7 +402,6 @@ export default {
   forwTimeWindow,
   queryPVsRetrieval,
   plotSelectedPVs,
-  scrollChart,
   autoUpdateHandler,
   singleTipHandler,
 

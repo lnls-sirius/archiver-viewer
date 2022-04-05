@@ -22,5 +22,4 @@ export interface ChartDispatcher {
   setTimeReferenceEnd(timeReferenceEnd: boolean): void;
   setSingleTooltipEnabled(enabled: boolean): void;
   setZooming(zooming: boolean): void;
-  setAutoScroll(autoScroll: boolean): void;
 }

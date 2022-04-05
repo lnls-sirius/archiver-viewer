@@ -36,7 +36,6 @@ class ChartImpl implements ChartInterface {
   private autoUpdate: AutoUpdate; // Auto update module
 
   private singleTipEnabled = true;
-  private scrollingEnabled = true;
   private serverDateEnabled = false;
 
   private cachedDate: Date = null;
@@ -824,9 +823,6 @@ class ChartImpl implements ChartInterface {
   getReference(): REFERENCE {
     return this.reference;
   }
-  isScrollingEnabled(): boolean {
-    return this.scrollingEnabled;
-  }
   isServerDateEnabled(): boolean {
     return this.serverDateEnabled;
   }
@@ -854,13 +850,6 @@ class ChartImpl implements ChartInterface {
 
   disableServerDate() {
     this.serverDateEnabled = false;
-  }
-
-  disableScrolling() {
-    this.scrollingEnabled = false;
-  }
-  enableScrolling() {
-    this.scrollingEnabled = true;
   }
 
   enableZoom() {

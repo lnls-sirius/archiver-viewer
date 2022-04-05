@@ -14,10 +14,9 @@ import { initialState, getAverageDateFromEvent, LineChartProps, LineChartStates 
 import handlers from "../../controllers/handlers";
 
 const mapStateToProps = (state: RootState) => {
-  const { autoScroll, zooming, singleTooltip } = state.chart;
+  const { zooming, singleTooltip } = state.chart;
 
   return {
-    autoScroll: autoScroll,
     isZooming: zooming,
     singleTooltip: singleTooltip,
   };
@@ -114,19 +113,19 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
    * Handles a dragging event in the chart and updates the chart drawing area.
    **/
   doDragging = async (e: React.MouseEvent) => {
-    const { isZooming, autoScroll } = this.props;
+    const { isZooming } = this.props;
     const { isDragging } = this.state;
 
     if (!isDragging) {
       return;
     }
 
-    if (isZooming && !autoScroll) {
+    if (isZooming) {
       this.handleDoDragZoom(e);
       return;
     }
 
-    if (!isZooming && !autoScroll) {
+    if (!isZooming) {
       this.handleDoDataDrag(e);
     }
   };
