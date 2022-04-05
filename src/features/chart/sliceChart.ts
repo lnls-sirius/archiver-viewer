@@ -13,7 +13,6 @@ export const {
   addToDataset,
   doRemoveDataAxis,
   removeDataset,
-  setAutoScroll,
   setAxisTypeLog,
   setAxisYLimitManual,
   setAxisYLimitMax,

@@ -12,10 +12,6 @@ class ChartDispatcherImpl implements ChartDispatcher {
     store.dispatch(actions.setTimeStart(date));
   }
 
-  setAutoScroll(autoScroll: boolean): void {
-    store.dispatch(actions.setAutoScroll(autoScroll));
-  }
-
   setDatasetVisible(index: number, visible: boolean): void {
     store.dispatch(actions.setDatasetVisible({ index, visible }));
   }

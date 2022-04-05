@@ -15,10 +15,9 @@ import { options } from "./config";
 import { initialState, getAverageDateFromEvent, LineChartProps, LineChartStates } from "./contents";
 
 const mapStateToProps = (state: RootState) => {
-  const { autoScroll, zooming, singleTooltip } = state.chart;
+  const { zooming, singleTooltip } = state.chart;
 
   return {
-    autoScroll: autoScroll,
     isZooming: zooming,
     singleTooltip: singleTooltip,
   };
@@ -42,10 +41,6 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
     control.init(this.chart);
     UrlLoader.load();
   }
-
-  handleScrollChart = (e: React.WheelEvent<HTMLCanvasElement>) => {
-    handlers.scrollChart(e.deltaY);
-  };
 
   setZoomBoxInitialState = (evt: MouseEvent) => {
     const { isZooming } = this.props;
@@ -117,19 +112,19 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
    * Handles a dragging event in the chart and updates the chart drawing area.
    **/
   doDragging = async (e: React.MouseEvent) => {
-    const { isZooming, autoScroll } = this.props;
+    const { isZooming} = this.props;
     const { isDragging } = this.state;
 
     if (!isDragging) {
       return;
     }
 
-    if (isZooming && !autoScroll) {
+    if (isZooming) {
       this.handleDoDragZoom(e);
       return;
     }
 
-    if (!isZooming && !autoScroll) {
+    if (!isZooming) {
       this.handleDoDataDrag(e);
     }
   };
@@ -233,7 +228,6 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
       <S.LineChartWrapper>
         <canvas
           ref={this.chartDOMRef}
-          onWheel={this.handleScrollChart}
           onMouseDown={this.startDragging}
           onMouseMove={this.doDragging}
           onMouseUp={this.stopDragging}

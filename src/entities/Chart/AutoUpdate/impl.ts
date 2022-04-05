@@ -15,7 +15,6 @@ class AutoUpdateImpl implements AutoUpdate {
 
   private setState(newState: boolean): void {
     this.state = newState;
-    ChartDispatcher.setAutoScroll(this.state);
   }
 
   private async update() {

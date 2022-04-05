@@ -11,12 +11,9 @@ const Intervals: React.FC = () => {
   const windowTime = useSelector(({ chart: { windowTime } }: RootState) => windowTime);
 
   const handleUpdateWindowTime = (windowTimeId: number) => handlers.updateTimeWindow(windowTimeId);
-  const handleScrollChart = (e: React.WheelEvent) => {
-    handlers.scrollChart(e.deltaY);
-  };
-
+  
   return (
-    <S.IntervalsWarpper onWheel={handleScrollChart}>
+    <S.IntervalsWarpper>
       {chartUtils.timeAxisPreferences.map((val, idx) => (
         <S.IntervalsItem onClick={() => handleUpdateWindowTime(val.id)} key={idx} pushed={val.id === windowTime}>
           {val.text}
