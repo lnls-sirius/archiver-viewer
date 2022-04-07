@@ -19,6 +19,7 @@ import handlers from "../../controllers/handlers";
 import Seach from "../Search";
 
 interface ControlsReduxProps {
+  autoScroll: boolean;
   zooming: boolean;
   singleTooltip: boolean;
   timeReferenceEnd: boolean;
@@ -28,11 +29,12 @@ interface ControlsReduxProps {
 }
 const mapStateToProps = (state: RootState): ControlsReduxProps => {
   const {
-    chart: { zooming, singleTooltip, timeReferenceEnd, timeEnd, timeStart },
+    chart: { autoScroll, zooming, singleTooltip, timeReferenceEnd, timeEnd, timeStart },
     requests: { pending },
   } = state;
 
   return {
+    autoScroll,
     zooming,
     singleTooltip,
     timeReferenceEnd,
@@ -88,6 +90,13 @@ class Controls extends Component<ControlsReduxProps, ControlsState> {
         icon: faRedo,
         title: "Redo action",
         onClick: () => handlers.redoHandler(),
+        size: "lg",
+      },
+      {
+        icon: faCarSide,
+        title: "Auto scroll",
+        onClick: handlers.autoUpdateHandler,
+        isActive: () => this.props.autoScroll,
         size: "lg",
       },
       {
