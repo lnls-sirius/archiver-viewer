@@ -14,6 +14,7 @@ export interface LineChartStates {
   isDragging: boolean;
 }
 export interface LineChartProps {
+  autoScroll: boolean;
   isZooming: boolean;
   singleTooltip: boolean;
 }

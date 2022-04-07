@@ -16,6 +16,10 @@ class ChartDispatcherImpl implements ChartDispatcher {
     store.dispatch(actions.setDatasetVisible({ index, visible }));
   }
 
+  setAutoScroll(autoScroll: boolean): void {
+    store.dispatch(actions.setAutoScroll(autoScroll));
+  }
+
   addDataset(dataset: DatasetInfo): void {
     store.dispatch(
       actions.addToDataset({
