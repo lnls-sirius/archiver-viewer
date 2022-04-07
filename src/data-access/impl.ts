@@ -133,7 +133,13 @@ export class ArchiverDataAccess implements DataAccess{
   }
 
   private getClosestDate(dataArray: any[]): number{
-    const selectedDate = new Date(control.getRefDiff());
+
+    let selectedDate = new Date();
+
+    if (control.getRefDiff() !== undefined){
+      selectedDate = new Date(control.getRefDiff());
+    }
+
     let valueComp = 0;
     let closestDate = selectedDate.getTime();
 
@@ -175,15 +181,9 @@ export class ArchiverDataAccess implements DataAccess{
       diff = false;
     }
 
-
-    let stringPV = !isOptimized
-      ? `${pv}`
-      : `optimized_${bins}(${pv})`;
-
-    //Colocar diff_() ao redor da stringPV
-    const jsonurl = diff
-      ? `${this.GET_DATA_URL}?pv=${stringPV}&from=${from.toJSON()}&to=${to.toJSON()}`
-      : `${this.GET_DATA_URL}?pv=${stringPV}&from=${from.toJSON()}&to=${to.toJSON()}`;
+    const jsonurl = !isOptimized
+      ? `${this.GET_DATA_URL}?pv=${pv}&from=${from.toJSON()}&to=${to.toJSON()}`
+      : `${this.GET_DATA_URL}?pv=optimized_${bins}(${pv})&from=${from.toJSON()}&to=${to.toJSON()}`;
 
     const res = await axios
       .get(jsonurl, {

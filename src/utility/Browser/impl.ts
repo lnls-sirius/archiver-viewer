@@ -21,13 +21,12 @@ export class Browser implements BrowserInterface {
         bins = parseFloat(str.substr("optimized_".length, str.indexOf("(") + 1));
         pvname = str.slice(str.indexOf("(") + 1, str.indexOf(")"));
         optimize = true;
+        console.log(pvname);
       }
 
-      /*if (str.indexOf("diff_") !== -1) {
-        bins = parseFloat(str.substr("optimized_".length, str.indexOf("(") + 1));
-        pvname = str.slice(str.indexOf("(") + 1, str.indexOf(")"));
-        optimize = true;
-      }*/
+      if (str.indexOf("diff") !== -1) {
+        diff = true;
+      }
 
       return { optimize, diff, bins, pvname };
     };
@@ -80,13 +79,12 @@ export class Browser implements BrowserInterface {
       if (optimized) {
         stringPV += `optimized_${bins}(${encodeURIComponent(label)})`;
       } else {
-        stringPV += `pv=${encodeURIComponent(label)}&`;
+        stringPV += `${encodeURIComponent(label)}`;
       }
 
-
-      //Colocar diff_()
+      //edit
       if (diff) {
-        searchString += `pv=${stringPV}&`;
+        searchString += `pv=${stringPV}_diff&`;
       } else {
         searchString += `pv=${stringPV}&`;
       }

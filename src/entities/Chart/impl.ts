@@ -538,10 +538,12 @@ class ChartImpl implements ChartInterface {
     this.chart.data.datasets.forEach((dataset) => {
       const {
         label,
-        pv: { metadata },
+        pv: { diff },
       } = this.chartjs.getDatasetSettings(dataset.label);
 
-      this.chartjs.setDatasetDiff(label, true);
+      if (diff) {
+        this.chartjs.setDatasetDiff(label, true);
+      }
     });
   }
 
