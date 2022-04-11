@@ -21,10 +21,12 @@ export class Browser implements BrowserInterface {
         bins = parseFloat(str.substr("optimized_".length, str.indexOf("(") + 1));
         pvname = str.slice(str.indexOf("(") + 1, str.indexOf(")"));
         optimize = true;
-        console.log(pvname);
+      }else if(str.indexOf("_diff") !== -1){
+        pvname = pvname.slice(0, pvname.indexOf("_diff"));
+        diff = true;
       }
 
-      if (str.indexOf("diff") !== -1) {
+      if (str.indexOf("_diff") !== -1 && diff !== true) {
         diff = true;
       }
 

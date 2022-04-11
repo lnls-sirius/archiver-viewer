@@ -232,6 +232,11 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
     this.lastKeyCtrl = false;
   }
 
+  focusChart = async () => {
+    this.chartDOMRef.current.focus();
+  }
+
+
   getTimePoint = async () => {
     if(this.lastKeyCtrl == true){
       const {dragOffsetX} = this.state;
@@ -251,15 +256,17 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
   render() {
     const { zoomBoxVisible, zoomBoxHeight, zoomBoxWidth, zoomBoxLeft, zoomBoxTop } = this.state;
     return (
-      <S.LineChartWrapper>
+      <S.LineChartWrapper
+          onKeyDown={this.saveLastKey}
+          onKeyUp={this.dropLastKey}
+      >
           <canvas
             ref={this.chartDOMRef}
             onMouseDown={this.startDragging}
             onMouseMove={this.doDragging}
             onMouseUp={this.stopDragging}
+            onMouseOver={this.focusChart}
             onClick={this.getTimePoint}
-            onKeyDown={this.saveLastKey}
-            onKeyUp={this.dropLastKey}
             tabIndex={0}
           />
           <S.ZoomBox
