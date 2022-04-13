@@ -315,6 +315,16 @@ class ChartImpl implements ChartInterface {
     }
   }
 
+  async updateRef(date: Date): Promise<void> {
+    if (date === undefined || date === null) {
+      date = new Date();
+    }
+
+    const now = await this.getDateNow();
+    await this.time.setRefDiff(date);
+
+  }
+
   updateOptimizedWarning(): void {
     let canOptimize = false;
 
@@ -348,6 +358,7 @@ class ChartImpl implements ChartInterface {
   async fetchDatasetData(
     start: Date,
     end: Date,
+    ref: Date,
     { label, pv: { optimized, diff, bins } }: DatasetInfo | { label: string; pv: { optimized: boolean; diff:boolean; bins: number } }
   ): Promise<ArchiverDataPoint[]> {
     RequestsDispatcher.IncrementActiveRequests();
@@ -358,7 +369,7 @@ class ChartImpl implements ChartInterface {
     this.datasetLatestFetchRequestTime[label] = thisDatasetRequestTime;
 
     try {
-      const { data } = await archInterface.fetchData(label, start, end, optimized, diff, bins);
+      const { data } = await archInterface.fetchData(label, start, end, ref, optimized, diff, bins);
       const isTheLatestFetchRequest = this.datasetLatestFetchRequestTime[label] === thisDatasetRequestTime;
 
       if (isTheLatestFetchRequest) {
@@ -371,30 +382,30 @@ class ChartImpl implements ChartInterface {
     }
   }
 
-  async fetchDatasetDataOrOptimize(start: Date, end: Date, datasetInfo: DatasetInfo): Promise<ArchiverDataPoint[]> {
+  async fetchDatasetDataOrOptimize(start: Date, end: Date, ref: Date, datasetInfo: DatasetInfo): Promise<ArchiverDataPoint[]> {
     const { label } = datasetInfo;
 
     try {
-      return await this.fetchDatasetData(start, end, datasetInfo);
+      return await this.fetchDatasetData(start, end, ref, datasetInfo);
     } catch (e) {
       if (e instanceof OptimizeDataError) {
         this.chartjs.setDatasetOptimized(label, false);
-        return await this.fetchDatasetData(start, end, datasetInfo);
+        return await this.fetchDatasetData(start, end, ref, datasetInfo);
       }
 
       throw e;
     }
   }
 
-  async fetchDatasetDataOrDiff(start: Date, end: Date, datasetInfo: DatasetInfo): Promise<ArchiverDataPoint[]> {
+  async fetchDatasetDataOrDiff(start: Date, end: Date, ref: Date, datasetInfo: DatasetInfo): Promise<ArchiverDataPoint[]> {
     const { label } = datasetInfo;
 
     try {
-      return await this.fetchDatasetData(start, end, datasetInfo);
+      return await this.fetchDatasetData(start, end, ref, datasetInfo);
     } catch (e) {
       if (e instanceof DiffDataError) {
         this.chartjs.setDatasetDiff(label, false);
-        return await this.fetchDatasetData(start, end, datasetInfo);
+        return await this.fetchDatasetData(start, end, ref, datasetInfo);
       }
 
       throw e;
@@ -418,7 +429,7 @@ class ChartImpl implements ChartInterface {
     const settings = this.chartjs.getDatasetSettingsByIndex(datasetIndex);
 
     try {
-      await this.fetchDatasetDataOrOptimize(this.time.getStart(), this.time.getEnd(), settings).then((data) => {
+      await this.fetchDatasetDataOrOptimize(this.time.getStart(), this.time.getEnd(), this.time.getRefDiff(), settings).then((data) => {
         this.updateDatasetData(datasetIndex, data);
       });
     } catch (e) {
@@ -553,7 +564,7 @@ class ChartImpl implements ChartInterface {
       pv: { bins },
     } = this.chartjs.getDatasetSettingsByIndex(datasetIndex);
 
-    await this.fetchDatasetData(last, this.time.getEnd(), {
+    await this.fetchDatasetData(last, this.time.getEnd(), this.time.getRefDiff(), {
       label,
       pv: { optimized: false, diff: false, bins },
     }).then((data) => {
@@ -581,7 +592,7 @@ class ChartImpl implements ChartInterface {
       pv: { bins },
     } = this.chartjs.getDatasetSettingsByIndex(datasetIndex);
 
-    await this.fetchDatasetData(this.time.getStart(), first, {
+    await this.fetchDatasetData(this.time.getStart(), first, this.time.getRefDiff(), {
       label,
       pv: { optimized: false, diff: false, bins },
     }).then((data) => {
@@ -667,7 +678,7 @@ class ChartImpl implements ChartInterface {
       pvs.push({ bins, label, optimized, diff });
     });
 
-    const settings: Settings = { end: this.time.getEnd(), start: this.time.getStart(), pvs };
+    const settings: Settings = { end: this.time.getEnd(), start: this.time.getStart(), ref: this.time.getRefDiff(), pvs };
     Browser.updateAddress(settings);
   }
 

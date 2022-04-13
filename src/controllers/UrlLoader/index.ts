@@ -18,8 +18,8 @@ const DATE_DELTA_1H = GetDelta(1);
 
 class UrlLoaderImpl implements UrlLoader {
   async load(): Promise<void> {
-    const { pvs, from, to } = Browser.getConfigFromUrl();
-    const timespan = { from, to };
+    const { pvs, from, to, ref } = Browser.getConfigFromUrl();
+    const timespan = { from, to, ref };
 
     const UpdateStartEndTimeFromUrl = () => {
       CheckIncompleteTimespan();
@@ -31,6 +31,7 @@ class UrlLoaderImpl implements UrlLoader {
       function UpdateChartTimespan() {
         control.setEnd(timespan.to);
         control.setStart(timespan.from);
+        control.setRefDiff(timespan.ref);
 
         control.updateTimeWindowOnly(control.getNewTimeWindow());
       }
@@ -63,10 +64,20 @@ class UrlLoaderImpl implements UrlLoader {
       }
     };
 
+    const UpdateRefFromUrl = () => {
+      control.setRefDiff(timespan.ref);
+    };
+
     if (!from && !to) {
       await control.updateStartAndEnd(new Date());
     } else {
       UpdateStartEndTimeFromUrl();
+    }
+
+    if (!ref) {
+      await control.updateRef(new Date());
+    } else {
+      UpdateRefFromUrl();
     }
 
     control.updateTimeAxis();

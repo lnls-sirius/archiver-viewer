@@ -167,7 +167,7 @@ export class ArchiverDataAccess implements DataAccess{
     return diffData;
   }
 
-  async fetchData(pv: string, from: Date, to: Date, isOptimized?: boolean, diff?: boolean, bins?: number): Promise<ArchiverData> {
+  async fetchData(pv: string, from: Date, to: Date, ref: Date, isOptimized?: boolean, diff?: boolean, bins?: number): Promise<ArchiverData> {
 
     let finalData = null;
 

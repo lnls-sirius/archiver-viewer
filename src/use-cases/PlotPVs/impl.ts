@@ -35,11 +35,12 @@ class PlotPVsImpl implements PlotPVs {
   ): Promise<void> {
     const start: Date = control.getStart();
     const end: Date = control.getEnd();
+    const ref: Date = control.getRefDiff();
 
     RequestsDispatcher.IncrementActiveRequests();
 
     try {
-      const res = await archInterface.fetchData(pv, start, end, optimized, diff, bins);
+      const res = await archInterface.fetchData(pv, start, end, ref, optimized, diff, bins);
       const { data } = res;
 
       const _data = fixOutOfRangeData(data, control.getStart(), control.getEnd());

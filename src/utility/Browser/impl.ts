@@ -4,7 +4,7 @@ export class Browser implements BrowserInterface {
   getConfigFromUrl(): ConfigParameters {
     const searchPath = window.location.search;
 
-    const input: ConfigParameters = { pvs: [], from: null, to: null };
+    const input: ConfigParameters = { pvs: [], from: null, to: null, ref: null };
 
     const decodeParameter = (str: string) => {
       const [k, v] = str.split("=", 2);
@@ -54,6 +54,9 @@ export class Browser implements BrowserInterface {
         case "to":
           input.to = createDateFromString(v);
           break;
+        case "ref":
+            input.ref = createDateFromString(v);
+            break;
         default:
           console.warn(`Received invalid argument '${k}' value '${v}'`);
           continue;
@@ -72,7 +75,7 @@ export class Browser implements BrowserInterface {
     }
   }
 
-  updateAddress({ end, start, pvs }: Settings): void {
+  updateAddress({ end, start, ref, pvs }: Settings): void {
     let searchString = "?";
     pvs.forEach(({ bins, label, optimized, diff }) => {
 
@@ -84,7 +87,6 @@ export class Browser implements BrowserInterface {
         stringPV += `${encodeURIComponent(label)}`;
       }
 
-      //edit
       if (diff) {
         searchString += `pv=${stringPV}_diff&`;
       } else {
@@ -94,7 +96,8 @@ export class Browser implements BrowserInterface {
     });
 
     searchString += `from=${encodeURIComponent(start.toJSON())}&`;
-    searchString += `to=${encodeURIComponent(end.toJSON())}`;
+    searchString += `to=${encodeURIComponent(end.toJSON())}&`;
+    searchString += `ref=${encodeURIComponent(ref.toJSON())}`;
     this.pushAddress(searchString);
   }
 

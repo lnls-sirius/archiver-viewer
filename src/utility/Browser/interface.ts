@@ -7,6 +7,7 @@ export interface SettingsPVs {
 export interface Settings {
   start: Date;
   end: Date;
+  ref: Date;
   pvs: SettingsPVs[];
 }
 
@@ -21,6 +22,7 @@ export interface ConfigParameters {
   pvs: ConfigPV[];
   to?: Date;
   from?: Date;
+  ref?: Date;
 }
 
 
