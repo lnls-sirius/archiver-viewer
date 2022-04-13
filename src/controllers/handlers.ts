@@ -24,16 +24,9 @@ async function onChangeDateHandler(date: Date): Promise<void> {
 
 async function onChangeSelectedTime(date: Date): Promise<void> {
 
-  if(date > control.getEnd()){
-    date = control.getEnd();
-  }
-
-  if(date < control.getStart()){
-    date = control.getStart();
-  }
-
   await control.setRefDiff(date);
 
+  control.referenceOutOfRange();
   control.updateAllPlots(true);
   control.updateTimeAxis();
 }

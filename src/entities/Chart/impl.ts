@@ -313,6 +313,18 @@ class ChartImpl implements ChartInterface {
       }
       await this.updateStartTime(date, now);
     }
+
+    this.referenceOutOfRange();
+
+  }
+
+  async referenceOutOfRange(): Promise<void>{
+    if(this.time.getRefDiff() > this.time.getEnd()){
+      await this.time.setRefDiff(this.time.getEnd());
+    }
+    if(this.time.getRefDiff() < this.time.getStart()){
+      await this.time.setRefDiff(this.time.getStart());
+    }
   }
 
   async updateRef(date: Date): Promise<void> {
