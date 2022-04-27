@@ -67,6 +67,13 @@ export class Browser implements BrowserInterface {
 
     if (input.ref == null || input.ref == undefined){
       input.ref = new Date();
+      if (input.from > input.ref){
+        input.ref = input.from;
+      }
+      if(input.to < input.ref){
+        input.ref = input.to;
+      }
+
     }
 
     return input;

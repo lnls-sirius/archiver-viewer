@@ -16,6 +16,7 @@ export const ControlsGroupWrapper = styled.span`
 `;
 export const DatePickerWrapper = styled(DatePicker)`
   height: 1.75rem;
+  width: 8rem;
 `;
 interface ControlIconProps {
   $isActive?: boolean;

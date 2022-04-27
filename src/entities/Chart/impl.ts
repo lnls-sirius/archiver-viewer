@@ -876,7 +876,7 @@ class ChartImpl implements ChartInterface {
   disableServerDate() {
     this.serverDateEnabled = false;
   }
-  
+
   enableZoom() {
     this.zoomFlags.isZooming = true;
     ChartDispatcher.setZooming(true);

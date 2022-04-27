@@ -130,7 +130,6 @@ class Controls extends Component<ControlsReduxProps, ControlsState> {
   };
 
   handleTimeRefChange = (e: any) => {
-    // eslint-disable-next-line radix
     handlers.updateReferenceTime(parseInt(e.target.value) === 1);
   };
 
@@ -168,7 +167,6 @@ class Controls extends Component<ControlsReduxProps, ControlsState> {
     const { selectedTime } = this.props;
 
     let timeDisplay = (selectedTime != null)? new Date(selectedTime):new Date();
-    //this.handleTimeChange(timeDisplay);
 
     return (
       <S.DatePickerWrapper
