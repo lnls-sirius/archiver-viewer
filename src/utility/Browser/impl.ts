@@ -55,8 +55,8 @@ export class Browser implements BrowserInterface {
           input.to = createDateFromString(v);
           break;
         case "ref":
-            input.ref = createDateFromString(v);
-            break;
+          input.ref = createDateFromString(v);
+          break;
         default:
           console.warn(`Received invalid argument '${k}' value '${v}'`);
           continue;
@@ -64,6 +64,10 @@ export class Browser implements BrowserInterface {
       console.debug(`Parsing url parameter '${k}' value ${v}`);
     }
     console.info(`Parsed url parameters`, input);
+
+    if (input.ref == null || input.ref == undefined){
+      input.ref = new Date();
+    }
 
     return input;
   }
