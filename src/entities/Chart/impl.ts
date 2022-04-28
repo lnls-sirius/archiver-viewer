@@ -329,12 +329,10 @@ class ChartImpl implements ChartInterface {
 
   async updateRef(date: Date): Promise<void> {
     if (date === undefined || date === null) {
-      date = new Date();
+      date = await this.getDateNow();
     }
-
-    const now = await this.getDateNow();
+    
     await this.time.setRefDiff(date);
-
   }
 
   updateOptimizedWarning(): void {

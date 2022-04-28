@@ -45,7 +45,6 @@ class ChartDispatcherImpl implements ChartDispatcher {
   setSelectedTime(date: Date): void {
     store.dispatch(actions.setSelectedTime(date));
   }
-
   setSingleTooltipEnabled(enabled: boolean): void {
     store.dispatch(actions.setSingleTooltip(enabled));
   }

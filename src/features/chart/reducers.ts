@@ -152,7 +152,7 @@ export const setSelectedTime = {
   },
   prepare(data: Date) {
     return {
-      payload: data.toLocaleString(),
+      payload: data.toString()
     };
   }
 };

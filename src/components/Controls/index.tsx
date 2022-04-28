@@ -166,7 +166,7 @@ class Controls extends Component<ControlsReduxProps, ControlsState> {
   renderTimeSelect = () => {
     const { selectedTime } = this.props;
 
-    let timeDisplay = (selectedTime != null)? new Date(selectedTime):new Date();
+    let timeDisplay = (selectedTime != null && selectedTime != undefined) ? new Date(selectedTime):new Date();
 
     return (
       <S.DatePickerWrapper
