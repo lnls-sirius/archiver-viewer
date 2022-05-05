@@ -84,6 +84,15 @@ export function setDatasetOptimized(
   const { index, optimized } = action.payload;
   state.datasets[index].pv.optimized = optimized;
 }
+
+export function setDatasetDiff(
+  state: ChartState,
+  action: PayloadAction<{ index: number; diffted: boolean }>
+): void {
+  const { index, diffted } = action.payload;
+  state.datasets[index].pv.diff = diffted;
+}
+
 export function removeDataset(state: ChartState, action: PayloadAction<{ idx: number; removeAxis: any }>): void {
   const { idx, removeAxis } = action.payload;
   state.datasets.splice(idx, 1);
@@ -107,6 +116,7 @@ export function setWindowTime(state: ChartState, action: PayloadAction<number>):
 export function setAutoScroll(state: ChartState, action: PayloadAction<boolean>): void {
   state.autoScroll = action.payload;
 }
+
 export function setZooming(state: ChartState, action: PayloadAction<boolean>): void {
   state.zooming = action.payload;
 }
@@ -124,7 +134,7 @@ export const setTimeStart = {
     return {
       payload: data.toLocaleString(),
     };
-  },
+  }
 };
 export const setTimeEnd = {
   reducer(state: ChartState, action: PayloadAction<string>): void {
@@ -134,5 +144,15 @@ export const setTimeEnd = {
     return {
       payload: data.toLocaleString(),
     };
+  }
+};
+export const setSelectedTime = {
+  reducer(state: ChartState, action: PayloadAction<string>): void {
+    state.selectedTime = action.payload;
   },
+  prepare(data: Date) {
+    return {
+      payload: data.toString()
+    };
+  }
 };

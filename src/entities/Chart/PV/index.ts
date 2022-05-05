@@ -33,6 +33,7 @@ class PV {
   type: string;
 
   optimized: boolean;
+  diff: boolean;
   binSize: number;
 
   constructor(name: string) {

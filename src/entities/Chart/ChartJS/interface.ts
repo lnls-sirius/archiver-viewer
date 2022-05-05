@@ -6,6 +6,7 @@ export interface DatasetPVInfo {
   //  type: string;
   // samplingPeriod: number;
   optimized: boolean;
+  diff: boolean;
   bins: number;
   desc: string;
   egu: string;
@@ -42,9 +43,11 @@ export interface ChartJSController {
   toggleAxisType(axisId: string): void;
 
   appendDataAxis(nId: string, ticksPrecision: number): void;
-  appendDataset(data: any[], optimized: boolean, bins: number, metadata: ArchiverMetadata): void;
+  appendDataset(data: any[], optimized: boolean, diff: boolean, bins: number, metadata: ArchiverMetadata): void;
 
   setDatasetOptimized(name: string, optimized: boolean): void;
+  setDatasetDiff(name: string, diffted: boolean): void;
+
   getDatasetSettings(name: string): DatasetInfo;
   getDatasetSettingsByIndex(datasetIndex: number): DatasetInfo;
   // getDataset(name: string): Chart.ChartDataSets;

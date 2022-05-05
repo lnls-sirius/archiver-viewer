@@ -19,13 +19,15 @@ export const {
   setAxisYLimitMax,
   setAxisYLimitMin,
   setDatasetOptimized,
+  setDatasetDiff,
   setDatasetVisible,
   setSingleTooltip,
   setTimeEnd,
   setTimeReferenceEnd,
+  setSelectedTime,
   setTimeStart,
   setWindowTime,
-  setZooming,
+  setZooming
 } = chartSlice.actions;
 
 export const actions = chartSlice.actions;

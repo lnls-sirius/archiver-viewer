@@ -4,7 +4,7 @@ import { StackActionEnum } from "../entities/Chart/StackAction/constants";
 import QueryPVs from "../use-cases/QueryPVs";
 import PlotPVs from "../use-cases/PlotPVs";
 import ExportDataset from "../use-cases/ExportDataset";
-import { StatusDispatcher } from "../utility/Dispatchers";
+import { StatusDispatcher} from "../utility/Dispatchers";
 
 async function exportAsXlsx(): Promise<void> {
   await ExportDataset.asXlsx();
@@ -18,6 +18,15 @@ async function onChangeDateHandler(date: Date): Promise<void> {
 
   await control.updateStartAndEnd(newDate);
 
+  control.updateAllPlots(true);
+  control.updateTimeAxis();
+}
+
+async function onChangeSelectedTime(date: Date): Promise<void> {
+
+  await control.setRefDiff(date);
+
+  control.referenceOutOfRange();
   control.updateAllPlots(true);
   control.updateTimeAxis();
 }
@@ -97,7 +106,7 @@ async function queryPVsRetrieval(val: string): Promise<void> {
   QueryPVs(val);
 }
 
-function plotSelectedPVs(pvs: { name: string; optimize: boolean }[]): void {
+function plotSelectedPVs(pvs: { name: string; optimize: boolean, diff: boolean }[]): void {
   PlotPVs.plot(pvs);
 }
 
@@ -245,7 +254,7 @@ async function undoHandler(): Promise<void> {
       case StackActionEnum.REMOVE_PV:
         // 1- Add the PV back
         control.redoStackPush({ action: StackActionEnum.REMOVE_PV, pv: undo.pv });
-        PlotPVs.plotPV({ name: undo.pv, optimize: undo.optimized });
+        PlotPVs.plotPV({ name: undo.pv, optimize: undo.optimized, diff: undo.diff });
         control.undoStackPush({ action: StackActionEnum.APPEND_PV, pv: undo.pv });
         break;
 
@@ -253,10 +262,13 @@ async function undoHandler(): Promise<void> {
         // Remove the PV
         const index = control.getPlotIndex(undo.pv);
         const optimized = (control.getChart().data.datasets[index] as any).pv.optimized;
+        const diff = (control.getChart().data.datasets[index] as any).pv.diff;
+
         control.redoStackPush({
           action: StackActionEnum.APPEND_PV,
           pv: undo.pv,
           optimized,
+          diff
         });
         control.removeDataset(index, true);
         break;
@@ -325,7 +337,7 @@ async function redoHandler(): Promise<void> {
         break;
 
       case StackActionEnum.APPEND_PV:
-        PlotPVs.plotPV({ name: redo.pv, optimize: redo.optimized });
+        PlotPVs.plotPV({ name: redo.pv, optimize: redo.optimized, diff: redo.diff});
         break;
 
       case StackActionEnum.CHANGE_WINDOW_TIME:
@@ -376,6 +388,7 @@ export default {
   bodyCallback,
   tooltipColorHandler,
   onChangeDateHandler,
+  onChangeSelectedTime,
   updateTimeWindow,
   updateEndNow,
   backTimeWindow,

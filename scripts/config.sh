@@ -2,7 +2,7 @@
 set -e
 set -u
 set -x
-branch=$(git branch --no-color --show-current)
+branch=$(git branch --no-color | grep \* | cut -d ' ' -f2)
 build_date=$(date -I)
 commit=$(git rev-parse --short HEAD)
 repository=$(git remote show origin |grep Fetch|awk '{ print $3 }')

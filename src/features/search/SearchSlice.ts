@@ -9,6 +9,10 @@ export interface OptimizeSearchResultAction {
   optimize: boolean;
   pvName: string;
 }
+export interface DiffSearchResultAction {
+  diff: boolean;
+  pvName: string;
+}
 
 export const searchSlice = createSlice({
   name: "search",
@@ -57,6 +61,11 @@ export const searchSlice = createSlice({
       const result = state.results[pvName];
       result.optimize = optimize;
     },
+    doSelectDiffResult(state, action: PayloadAction<DiffSearchResultAction>) {
+      const { diff, pvName } = action.payload;
+      const result = state.results[pvName];
+      result.diff = diff;
+    }
   },
 });
 

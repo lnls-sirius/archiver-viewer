@@ -9,7 +9,7 @@ import {
   faFileExcel,
   faSearchPlus,
   faCarSide,
-  faList,
+  faList
 } from "@fortawesome/free-solid-svg-icons";
 import { IconProp, SizeProp } from "@fortawesome/fontawesome-svg-core";
 
@@ -26,11 +26,12 @@ interface ControlsReduxProps {
   pending: number;
   timeEnd: string;
   timeStart: string;
+  selectedTime: string;
 }
 const mapStateToProps = (state: RootState): ControlsReduxProps => {
   const {
-    chart: { autoScroll, zooming, singleTooltip, timeReferenceEnd, timeEnd, timeStart },
-    requests: { pending },
+    chart: { autoScroll, zooming, singleTooltip, timeReferenceEnd, timeEnd, timeStart, selectedTime},
+    requests: { pending }
   } = state;
 
   return {
@@ -41,6 +42,7 @@ const mapStateToProps = (state: RootState): ControlsReduxProps => {
     pending,
     timeEnd,
     timeStart,
+    selectedTime
   };
 };
 
@@ -59,7 +61,7 @@ class Controls extends Component<ControlsReduxProps, ControlsState> {
   constructor(props: ControlsReduxProps) {
     super(props);
     this.state = {
-      startDate: new Date(),
+      startDate: new Date()
     };
     this.items = [
       {
@@ -98,7 +100,7 @@ class Controls extends Component<ControlsReduxProps, ControlsState> {
         onClick: handlers.autoUpdateHandler,
         isActive: () => this.props.autoScroll,
         size: "lg",
-      },
+        },
       {
         icon: faSearchPlus,
         title: "Zoom",
@@ -128,7 +130,6 @@ class Controls extends Component<ControlsReduxProps, ControlsState> {
   };
 
   handleTimeRefChange = (e: any) => {
-    // eslint-disable-next-line radix
     handlers.updateReferenceTime(parseInt(e.target.value) === 1);
   };
 
@@ -155,6 +156,29 @@ class Controls extends Component<ControlsReduxProps, ControlsState> {
           <option value={0}>Start</option>
         </S.ControlSelect>
       </S.ControlsGroupWrapper>
+    );
+  };
+
+  handleTimeChange = async (date: Date) => {
+    handlers.onChangeSelectedTime(date);
+  };
+
+  renderTimeSelect = () => {
+    const { selectedTime } = this.props;
+
+    let timeDisplay = (selectedTime != null && selectedTime != undefined) ? new Date(selectedTime):new Date();
+
+    return (
+      <S.DatePickerWrapper
+        title="Start/end timestamp"
+        showTimeSelect
+        selected={timeDisplay}
+        onChange={this.handleTimeChange}
+        timeFormat="HH:mm"
+        timeCaption="time"
+        dateFormat="dd/MM/yy hh:mm aa"
+        maxDate={new Date()}
+      />
     );
   };
 
@@ -185,6 +209,7 @@ class Controls extends Component<ControlsReduxProps, ControlsState> {
             <S.TimeDisplayDate>{`${timeEnd}`}</S.TimeDisplayDate>
           </S.TimeDisplay>
         </S.ControlsGroupWrapper>
+        Diff Time: {this.renderTimeSelect()}
       </S.ControlsWrapper>
     );
   }

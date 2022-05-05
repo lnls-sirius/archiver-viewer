@@ -9,11 +9,12 @@ interface SearchResultProps extends SearchResult {
   key: string;
   selected: boolean;
   optimize: boolean;
+  diff: boolean;
   pvName: string;
 }
 
 const SearchResult: React.FC<SearchResultProps> = (props: SearchResultProps) => {
-  const { DBRType, PREC, applianceIdentity, hostName, idx, pvName, samplingPeriod, EGU, selected, optimize } = props;
+  const { DBRType, PREC, applianceIdentity, hostName, idx, pvName, samplingPeriod, EGU, selected, optimize, diff} = props;
   const sampleFrequency = 1 / samplingPeriod;
   return (
     <S.TableRow>
@@ -28,6 +29,12 @@ const SearchResult: React.FC<SearchResultProps> = (props: SearchResultProps) => 
         <Checkbox
           checked={optimize}
           onClick={() => SearchDispatcher.doSelectOptimizeResult({ optimize: !optimize, pvName: pvName })}
+        />
+      </S.TableData>
+      <S.TableData>
+        <Checkbox
+          checked={diff}
+          onClick={() => SearchDispatcher.doSelectDiffResult({ diff: !diff, pvName: pvName })}
         />
       </S.TableData>
       <S.TableData>{pvName}</S.TableData>

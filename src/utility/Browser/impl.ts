@@ -4,7 +4,7 @@ export class Browser implements BrowserInterface {
   getConfigFromUrl(): ConfigParameters {
     const searchPath = window.location.search;
 
-    const input: ConfigParameters = { pvs: [], from: null, to: null };
+    const input: ConfigParameters = { pvs: [], from: null, to: null, ref: null };
 
     const decodeParameter = (str: string) => {
       const [k, v] = str.split("=", 2);
@@ -13,6 +13,7 @@ export class Browser implements BrowserInterface {
 
     const parsePV = (str: string): ConfigPV => {
       let optimize = false;
+      let diff = false;
       let bins = -1;
       let pvname = str;
 
@@ -20,9 +21,16 @@ export class Browser implements BrowserInterface {
         bins = parseFloat(str.substr("optimized_".length, str.indexOf("(") + 1));
         pvname = str.slice(str.indexOf("(") + 1, str.indexOf(")"));
         optimize = true;
+      }else if(str.indexOf("_diff") !== -1){
+        pvname = pvname.slice(0, pvname.indexOf("_diff"));
+        diff = true;
       }
 
-      return { optimize, bins, pvname };
+      if (str.indexOf("_diff") !== -1 && diff !== true) {
+        diff = true;
+      }
+
+      return { optimize, diff, bins, pvname };
     };
 
     const createDateFromString = (str: string): Date => {
@@ -46,6 +54,9 @@ export class Browser implements BrowserInterface {
         case "to":
           input.to = createDateFromString(v);
           break;
+        case "ref":
+          input.ref = createDateFromString(v);
+          break;
         default:
           console.warn(`Received invalid argument '${k}' value '${v}'`);
           continue;
@@ -53,6 +64,17 @@ export class Browser implements BrowserInterface {
       console.debug(`Parsing url parameter '${k}' value ${v}`);
     }
     console.info(`Parsed url parameters`, input);
+
+    if (input.ref == null || input.ref == undefined){
+      input.ref = new Date();
+      if (input.from > input.ref){
+        input.ref = input.from;
+      }
+      if(input.to < input.ref){
+        input.ref = input.to;
+      }
+
+    }
 
     return input;
   }
@@ -64,18 +86,29 @@ export class Browser implements BrowserInterface {
     }
   }
 
-  updateAddress({ end, start, pvs }: Settings): void {
+  updateAddress({ end, start, ref, pvs }: Settings): void {
     let searchString = "?";
-    pvs.forEach(({ bins, label, optimized }) => {
+    pvs.forEach(({ bins, label, optimized, diff }) => {
+
+      let stringPV = ""
+
       if (optimized) {
-        searchString += `pv=optimized_${bins}(${encodeURIComponent(label)})&`;
+        stringPV += `optimized_${bins}(${encodeURIComponent(label)})`;
       } else {
-        searchString += `pv=${encodeURIComponent(label)}&`;
+        stringPV += `${encodeURIComponent(label)}`;
       }
+
+      if (diff) {
+        searchString += `pv=${stringPV}_diff&`;
+      } else {
+        searchString += `pv=${stringPV}&`;
+      }
+
     });
 
     searchString += `from=${encodeURIComponent(start.toJSON())}&`;
-    searchString += `to=${encodeURIComponent(end.toJSON())}`;
+    searchString += `to=${encodeURIComponent(end.toJSON())}&`;
+    searchString += `ref=${encodeURIComponent(ref.toJSON())}`;
     this.pushAddress(searchString);
   }
 

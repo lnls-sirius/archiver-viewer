@@ -1,11 +1,13 @@
 import axios from "axios";
 import { DataAccess, ArchiverData, ArchiverDataPoint, ArchiverMetadata } from "./interface";
 import { DataAccessError, OptimizeDataError, InvalidParameterError } from "../utility/errors";
+import control from "../entities/Chart";
 
 export const ipRegExp = /https?\/((?:(?:2(?:[0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9])\.){3}(?:(?:2([0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9])))\//;
 export const defaultHost = "10.0.38.46";
 
-export class ArchiverDataAccess implements DataAccess {
+export class ArchiverDataAccess implements DataAccess{
+
   host: string;
   private url: string;
   private BYPASS_URL: string;
@@ -130,12 +132,53 @@ export class ArchiverDataAccess implements DataAccess {
     return outData;
   }
 
-  async fetchData(pv: string, from: Date, to: Date, isOptimized?: boolean, bins?: number): Promise<ArchiverData> {
+  private getClosestDate(dataArray: any[]): number{
+
+    let selectedDate = new Date();
+
+    if (control.getRefDiff() !== undefined){
+      selectedDate = new Date(control.getRefDiff());
+    }
+
+    let valueComp = 0;
+    let closestDate = selectedDate.getTime();
+
+    dataArray.map((point) =>{
+      let dateDiff = (selectedDate.getTime() - point.x.getTime());
+      if(dateDiff < 0){
+        dateDiff *= -1;
+      }
+      if(closestDate > dateDiff){
+        closestDate = dateDiff;
+        valueComp = point.y;
+      }
+    });
+    return valueComp;
+  }
+
+  private differentiateData(diffData: any[]): ArchiverDataPoint[]{
+
+    let valueComp = this.getClosestDate(diffData);
+
+    diffData.map((point) =>{
+      point.y = point.y - valueComp;
+    });
+
+    return diffData;
+  }
+
+  async fetchData(pv: string, from: Date, to: Date, ref: Date, isOptimized?: boolean, diff?: boolean, bins?: number): Promise<ArchiverData> {
+
+    let finalData = null;
+
     if (from === undefined || to === undefined) {
       return null;
     }
     if (isOptimized === undefined) {
       isOptimized = false;
+    }
+    if (diff === undefined) {
+      diff = false;
     }
 
     const jsonurl = !isOptimized
@@ -171,13 +214,18 @@ export class ArchiverDataAccess implements DataAccess {
             `Request returned an empty array, probably due to an invalid range for the url ${jsonurl}`
           );
         }
-
         return res.data[0];
       });
 
+    finalData = this.parseData(res.data);
+
+    if(diff == true){
+      finalData = this.differentiateData(finalData);
+    }
+
     return {
       meta: res.meta,
-      data: this.parseData(res.data),
+      data: finalData
     };
   }
 
@@ -193,7 +241,8 @@ export class ArchiverDataAccess implements DataAccess {
       this.host = window.location.host.indexOf(":") !== -1 ? window.location.host.split(":")[0] : window.location.host;
     }
 
-    if (window.location.host === "localhost:8080" || window.location.host === "127.0.0.1:8080") {
+    if (window.location.host === "localhost:8080" || window.location.host === "127.0.0.1:8080" ||
+          window.location.host === "10.20.31.48:8080") {
       this.host = defaultHost;
       console.log(`DEBUG SERVER. Setting host to ${this.host}`);
     }

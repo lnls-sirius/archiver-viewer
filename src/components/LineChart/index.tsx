@@ -1,18 +1,17 @@
-import React, { Component } from "react";
+import React, { Component, KeyboardEventHandler } from "react";
 import { connect } from "react-redux";
 import { Chart } from "chart.js";
 
 import UrlLoader from "../../controllers/UrlLoader";
 import chartUtils from "../../utility/chartUtils";
-import handlers from "../../controllers/handlers";
 import { RootState } from "../../reducers";
 import { StackActionEnum } from "../../entities/Chart/StackAction/constants";
 import { REFERENCE } from "../../entities/Chart";
 import control from "../../entities/Chart";
-
 import * as S from "./styled";
 import { options } from "./config";
 import { initialState, getAverageDateFromEvent, LineChartProps, LineChartStates } from "./contents";
+import handlers from "../../controllers/handlers";
 
 const mapStateToProps = (state: RootState) => {
   const { autoScroll, zooming, singleTooltip } = state.chart;
@@ -26,6 +25,7 @@ const mapStateToProps = (state: RootState) => {
 
 class LineChart extends Component<LineChartProps, LineChartStates> {
   private chart: Chart;
+  private lastKeyCtrl: boolean;
   private chartDOMRef: React.RefObject<HTMLCanvasElement>;
   private updateProps: Chart.ChartUpdateProps;
 
@@ -34,6 +34,7 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
     this.chartDOMRef = React.createRef();
     this.state = initialState;
     this.chart = null;
+    this.lastKeyCtrl = false;
     this.updateProps = { duration: 0, easing: "linear", lazy: false };
   }
 
@@ -56,7 +57,7 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
         zoomBoxVisible: true,
         zoomBoxWidth: 0,
         zoomTime1,
-        zoomTime2: null,
+        zoomTime2: null
       });
     }
   };
@@ -68,7 +69,7 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
         isDragging: true,
         dragOffsetX: evt.offsetX,
         dragStartTime: control.getStart(),
-        dragEndTime: control.getEnd(),
+        dragEndTime: control.getEnd()
       },
       () => this.setZoomBoxInitialState(evt)
     );
@@ -87,7 +88,7 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
       zoomBoxLeft: x,
       zoomBoxTop: top,
       zoomBoxWidth: w,
-      zoomBoxHeight: height,
+      zoomBoxHeight: height
     });
   };
 
@@ -193,6 +194,8 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
         control.setEnd(zoomTime1);
       }
 
+      control.referenceOutOfRange();
+
       this.decreaseTimeWindowWhileTimeWindowIsLargerThanStartEndDelta(chartUtils.timeIDs.SEG_30);
       control.updateOptimizedWarning();
       control.disableZoom();
@@ -223,23 +226,58 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
     });
   };
 
+  saveLastKey = async (e: React.KeyboardEvent) => {
+    this.lastKeyCtrl = e.ctrlKey;
+  }
+
+  dropLastKey = async () => {
+    this.lastKeyCtrl = false;
+  }
+
+  focusChart = async () => {
+    this.chartDOMRef.current.focus();
+  }
+
+
+  getTimePoint = async () => {
+    if(this.lastKeyCtrl == true){
+      const {dragOffsetX} = this.state;
+
+      let windowTime = control.getWindowTime();
+      let ms = chartUtils.timeAxisPreferences[windowTime].milliseconds;
+
+      let newArea = this.chart.width/(this.chart.chartArea.right - this.chart.chartArea.left);
+      let offsetX = (dragOffsetX - this.chart.chartArea.left)*newArea;
+
+      let timePoint = new Date(control.getStart().getTime() + (offsetX*ms/ this.chart.width));
+
+      handlers.onChangeSelectedTime(timePoint);
+    }
+  }
+
   render() {
     const { zoomBoxVisible, zoomBoxHeight, zoomBoxWidth, zoomBoxLeft, zoomBoxTop } = this.state;
     return (
-      <S.LineChartWrapper>
-        <canvas
-          ref={this.chartDOMRef}
-          onMouseDown={this.startDragging}
-          onMouseMove={this.doDragging}
-          onMouseUp={this.stopDragging}
-        />
-        <S.ZoomBox
-          $height={zoomBoxHeight}
-          $width={zoomBoxWidth}
-          $top={zoomBoxTop}
-          $left={zoomBoxLeft}
-          $visible={zoomBoxVisible}
-        />
+      <S.LineChartWrapper
+          onKeyDown={this.saveLastKey}
+          onKeyUp={this.dropLastKey}
+      >
+          <canvas
+            ref={this.chartDOMRef}
+            onMouseDown={this.startDragging}
+            onMouseMove={this.doDragging}
+            onMouseUp={this.stopDragging}
+            onMouseOver={this.focusChart}
+            onClick={this.getTimePoint}
+            tabIndex={0}
+          />
+          <S.ZoomBox
+            $height={zoomBoxHeight}
+            $width={zoomBoxWidth}
+            $top={zoomBoxTop}
+            $left={zoomBoxLeft}
+            $visible={zoomBoxVisible}
+          />
       </S.LineChartWrapper>
     );
   }

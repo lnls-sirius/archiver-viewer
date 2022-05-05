@@ -48,10 +48,10 @@ const SearchResults: React.FC = () => {
   };
 
   const plotPVs = () => {
-    const selectedPVs: { name: string; optimize: boolean }[] = [];
+    const selectedPVs: { name: string; optimize: boolean; diff: boolean }[] = [];
     for (const e in results) {
       if (results[e].selected) {
-        selectedPVs.push({ name: e, optimize: results[e].optimize });
+        selectedPVs.push({ name: e, optimize: results[e].optimize, diff: results[e].diff});
       }
     }
     handlers.plotSelectedPVs(selectedPVs);
@@ -87,6 +87,7 @@ const SearchResults: React.FC = () => {
                   <S.TableHeader>n</S.TableHeader>
                   <S.TableHeader>Select</S.TableHeader>
                   <S.TableHeader>Optimize</S.TableHeader>
+                  <S.TableHeader>Diff</S.TableHeader>
                   <S.TableHeader>Name</S.TableHeader>
                   <S.TableHeader>EGU</S.TableHeader>
                   <S.TableHeader>PREC</S.TableHeader>

@@ -7,6 +7,10 @@ export class ChartControllerImpl implements ChartController {
     await chart.optimizePlot(label, optimize);
   }
 
+  private async diffDataset(label: string, diff: boolean): Promise<void> {
+    await chart.diffPlot(label, diff);
+  }
+
   toggleAxisType(name: string): void {
     chart.toggleAxisType(name);
   }
@@ -21,6 +25,10 @@ export class ChartControllerImpl implements ChartController {
 
   async setDatasetOptimized(name: string, optimized: boolean): Promise<void> {
     this.optimizeDataset(name, optimized);
+  }
+
+  async setDatasetDiff(name: string, diff: boolean): Promise<void> {
+    this.diffDataset(name, diff);
   }
 
   setAxisYMin(axisId: string, value?: number): void {

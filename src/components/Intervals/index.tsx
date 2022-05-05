@@ -11,7 +11,7 @@ const Intervals: React.FC = () => {
   const windowTime = useSelector(({ chart: { windowTime } }: RootState) => windowTime);
 
   const handleUpdateWindowTime = (windowTimeId: number) => handlers.updateTimeWindow(windowTimeId);
-  
+
   return (
     <S.IntervalsWarpper>
       {chartUtils.timeAxisPreferences.map((val, idx) => (

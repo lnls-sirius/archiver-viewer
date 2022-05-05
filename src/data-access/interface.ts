@@ -101,7 +101,7 @@ export interface DataAccess {
   getUrl(): string;
   setUrl(url: string): void;
   fetchMetadata(pv: string): Promise<null | ArchiverMetadata>;
-  fetchData(pv: string, from: Date, to: Date, isOptimized?: boolean, bins?: number): Promise<ArchiverData>;
+  fetchData(pv: string, from: Date, to: Date, ref: Date, isOptimized?: boolean, diff?: boolean, bins?: number): Promise<ArchiverData>;
   getRemoteDate(): Promise<Date>;
 }
 

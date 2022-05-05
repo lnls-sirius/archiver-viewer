@@ -12,12 +12,12 @@ class ChartDispatcherImpl implements ChartDispatcher {
     store.dispatch(actions.setTimeStart(date));
   }
 
-  setAutoScroll(autoScroll: boolean): void {
-    store.dispatch(actions.setAutoScroll(autoScroll));
-  }
-
   setDatasetVisible(index: number, visible: boolean): void {
     store.dispatch(actions.setDatasetVisible({ index, visible }));
+  }
+
+  setAutoScroll(autoScroll: boolean): void {
+    store.dispatch(actions.setAutoScroll(autoScroll));
   }
 
   addDataset(dataset: DatasetInfo): void {
@@ -42,6 +42,9 @@ class ChartDispatcherImpl implements ChartDispatcher {
   setTimeReferenceEnd(timeReferenceEnd: boolean): void {
     store.dispatch(actions.setTimeReferenceEnd(timeReferenceEnd));
   }
+  setSelectedTime(date: Date): void {
+    store.dispatch(actions.setSelectedTime(date));
+  }
   setSingleTooltipEnabled(enabled: boolean): void {
     store.dispatch(actions.setSingleTooltip(enabled));
   }
@@ -50,6 +53,9 @@ class ChartDispatcherImpl implements ChartDispatcher {
   }
   setDatasetOptimized(index: number, optimized: boolean): void {
     store.dispatch(actions.setDatasetOptimized({ index, optimized }));
+  }
+  setDatasetDiff(index: number, diffted: boolean): void {
+    store.dispatch(actions.setDatasetDiff({ index, diffted }));
   }
   doRemoveDataset(index: number, removeAxis: string): void {
     store.dispatch(actions.removeDataset({ idx: index, removeAxis }));

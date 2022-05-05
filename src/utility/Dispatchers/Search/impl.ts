@@ -1,4 +1,4 @@
-import { SelectSearchResultAction, OptimizeSearchResultAction, actions } from "../../../features/search";
+import { SelectSearchResultAction, OptimizeSearchResultAction, actions, DiffSearchResultAction } from "../../../features/search";
 import { SearchDispatcher } from "./interface";
 import store from "../../../store";
 
@@ -20,6 +20,9 @@ class SearchResultsDispatcherImpl implements SearchDispatcher {
   }
   doSelectOptimizeResult(action: OptimizeSearchResultAction): void {
     store.dispatch(actions.doSelectOptimizeResult(action));
+  }
+  doSelectDiffResult(action: DiffSearchResultAction): void {
+    store.dispatch(actions.doSelectDiffResult(action));
   }
 }
 export default SearchResultsDispatcherImpl;

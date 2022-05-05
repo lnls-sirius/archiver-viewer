@@ -14,7 +14,7 @@ import makeAutoUpdate, { AutoUpdate } from "./AutoUpdate";
 import makeChartTime, { ChartTime } from "./Time";
 import { CreateChartJSController, ChartJSController, DatasetInfo } from "./ChartJS";
 import { ArchiverDataPoint, ArchiverMetadata } from "../../data-access/interface";
-import { OptimizeDataError, OutOfSyncDatasetError } from "../../utility/errors";
+import { DiffDataError, OptimizeDataError, OutOfSyncDatasetError } from "../../utility/errors";
 import { Settings, SettingsPVs } from "../../utility/Browser/interface";
 
 export enum REFERENCE {
@@ -70,8 +70,8 @@ class ChartImpl implements ChartInterface {
     this.chartjs.updateTimeAxis(unit, unitStepSize, start, end);
   }
 
-  appendDataset(data: any[], optimized: boolean, bins: number, metadata: ArchiverMetadata): void {
-    this.chartjs.appendDataset(data, optimized, bins, metadata);
+  appendDataset(data: any[], optimized: boolean, diff: boolean, bins: number, metadata: ArchiverMetadata): void {
+    this.chartjs.appendDataset(data, optimized, diff, bins, metadata);
   }
 
   init(c: Chart): void {
@@ -96,6 +96,10 @@ class ChartImpl implements ChartInterface {
 
   setEnd(time: Date): void {
     this.time.setEnd(time);
+  }
+
+  setRefDiff(time: Date): void {
+    this.time.setRefDiff(time);
   }
 
   updateTimeWindowOnly(time: number): void {
@@ -127,9 +131,12 @@ class ChartImpl implements ChartInterface {
     this.chart.data.datasets.forEach(async (dataset, datasetIndex) => {
       const {
         label,
-        pv: { optimized },
+        pv: { optimized, diff },
       } = this.chartjs.getDatasetSettingsByIndex(datasetIndex);
       if (optimized) {
+        dataset.data = [];
+      }
+      if (diff){
         dataset.data = [];
       }
       const promise = this.updatePlot(datasetIndex, { waitResult: true });
@@ -208,6 +215,7 @@ class ChartImpl implements ChartInterface {
     }
 
     this.optimizeAllGraphs();
+    this.diffAllGraphs();
     const { unit, unitStepSize } = chartUtils.timeAxisPreferences[this.windowTime];
     this.chartjs.updateTimeAxis(unit, unitStepSize, this.time.getStart(), this.time.getEnd());
 
@@ -252,6 +260,7 @@ class ChartImpl implements ChartInterface {
     }
     this.time.setStart(newStartDate);
   }
+
 
   async updateStartTime(date: Date, now: Date) {
     let newStart;
@@ -304,6 +313,26 @@ class ChartImpl implements ChartInterface {
       }
       await this.updateStartTime(date, now);
     }
+
+    this.referenceOutOfRange();
+
+  }
+
+  async referenceOutOfRange(): Promise<void>{
+    if(this.time.getRefDiff() > this.time.getEnd()){
+      await this.time.setRefDiff(this.time.getEnd());
+    }
+    if(this.time.getRefDiff() < this.time.getStart()){
+      await this.time.setRefDiff(this.time.getStart());
+    }
+  }
+
+  async updateRef(date: Date): Promise<void> {
+    if (date === undefined || date === null) {
+      date = await this.getDateNow();
+    }
+    
+    await this.time.setRefDiff(date);
   }
 
   updateOptimizedWarning(): void {
@@ -321,10 +350,26 @@ class ChartImpl implements ChartInterface {
     }
   }
 
+  updateDiffWarning(): void {
+    let canDiff = false;
+
+    for (let i = 0; i < this.chart.data.datasets.length; i++) {
+      const label = this.chart.data.datasets[i].label;
+      canDiff = this.chartjs.getDatasetSettings(label).pv.diff || canDiff;
+    }
+
+    if (canDiff) {
+      const msg =
+        "In order to reduce show the difference of the data from a value in a certain time point, a differentiation is used. Each point corresponds to the real value subtracted the comparison value.";
+      StatusDispatcher.Warning("Data is being differenciated", msg);
+    }
+  }
+
   async fetchDatasetData(
     start: Date,
     end: Date,
-    { label, pv: { optimized, bins } }: DatasetInfo | { label: string; pv: { optimized: boolean; bins: number } }
+    ref: Date,
+    { label, pv: { optimized, diff, bins } }: DatasetInfo | { label: string; pv: { optimized: boolean; diff:boolean; bins: number } }
   ): Promise<ArchiverDataPoint[]> {
     RequestsDispatcher.IncrementActiveRequests();
     const thisDatasetRequestTime = new Date().getTime();
@@ -334,7 +379,7 @@ class ChartImpl implements ChartInterface {
     this.datasetLatestFetchRequestTime[label] = thisDatasetRequestTime;
 
     try {
-      const { data } = await archInterface.fetchData(label, start, end, optimized, bins);
+      const { data } = await archInterface.fetchData(label, start, end, ref, optimized, diff, bins);
       const isTheLatestFetchRequest = this.datasetLatestFetchRequestTime[label] === thisDatasetRequestTime;
 
       if (isTheLatestFetchRequest) {
@@ -347,15 +392,30 @@ class ChartImpl implements ChartInterface {
     }
   }
 
-  async fetchDatasetDataOrOptimize(start: Date, end: Date, datasetInfo: DatasetInfo): Promise<ArchiverDataPoint[]> {
+  async fetchDatasetDataOrOptimize(start: Date, end: Date, ref: Date, datasetInfo: DatasetInfo): Promise<ArchiverDataPoint[]> {
     const { label } = datasetInfo;
 
     try {
-      return await this.fetchDatasetData(start, end, datasetInfo);
+      return await this.fetchDatasetData(start, end, ref, datasetInfo);
     } catch (e) {
       if (e instanceof OptimizeDataError) {
         this.chartjs.setDatasetOptimized(label, false);
-        return await this.fetchDatasetData(start, end, datasetInfo);
+        return await this.fetchDatasetData(start, end, ref, datasetInfo);
+      }
+
+      throw e;
+    }
+  }
+
+  async fetchDatasetDataOrDiff(start: Date, end: Date, ref: Date, datasetInfo: DatasetInfo): Promise<ArchiverDataPoint[]> {
+    const { label } = datasetInfo;
+
+    try {
+      return await this.fetchDatasetData(start, end, ref, datasetInfo);
+    } catch (e) {
+      if (e instanceof DiffDataError) {
+        this.chartjs.setDatasetDiff(label, false);
+        return await this.fetchDatasetData(start, end, ref, datasetInfo);
       }
 
       throw e;
@@ -379,7 +439,7 @@ class ChartImpl implements ChartInterface {
     const settings = this.chartjs.getDatasetSettingsByIndex(datasetIndex);
 
     try {
-      await this.fetchDatasetDataOrOptimize(this.time.getStart(), this.time.getEnd(), settings).then((data) => {
+      await this.fetchDatasetDataOrOptimize(this.time.getStart(), this.time.getEnd(), this.time.getRefDiff(), settings).then((data) => {
         this.updateDatasetData(datasetIndex, data);
       });
     } catch (e) {
@@ -495,15 +555,28 @@ class ChartImpl implements ChartInterface {
     });
   }
 
+  diffAllGraphs(): void {
+    this.chart.data.datasets.forEach((dataset) => {
+      const {
+        label,
+        pv: { diff },
+      } = this.chartjs.getDatasetSettings(dataset.label);
+
+      if (diff) {
+        this.chartjs.setDatasetDiff(label, true);
+      }
+    });
+  }
+
   private async fillDataFromLastToEnd(datasetIndex: number, last: Date) {
     const {
       label,
       pv: { bins },
     } = this.chartjs.getDatasetSettingsByIndex(datasetIndex);
 
-    await this.fetchDatasetData(last, this.time.getEnd(), {
+    await this.fetchDatasetData(last, this.time.getEnd(), this.time.getRefDiff(), {
       label,
-      pv: { optimized: false, bins },
+      pv: { optimized: false, diff: false, bins },
     }).then((data) => {
       const dataset = this.chart.data.datasets[datasetIndex];
 
@@ -529,9 +602,9 @@ class ChartImpl implements ChartInterface {
       pv: { bins },
     } = this.chartjs.getDatasetSettingsByIndex(datasetIndex);
 
-    await this.fetchDatasetData(this.time.getStart(), first, {
+    await this.fetchDatasetData(this.time.getStart(), first, this.time.getRefDiff(), {
       label,
-      pv: { optimized: false, bins },
+      pv: { optimized: false, diff: false, bins },
     }).then((data) => {
       const dataset = this.chart.data.datasets[datasetIndex];
       // Appends new data into the dataset
@@ -557,12 +630,13 @@ class ChartImpl implements ChartInterface {
    **/
   async updateAllPlots(reset = false, chartUpdate = true): Promise<any> {
     this.updateOptimizedWarning();
+    this.updateDiffWarning();
 
     const promises: Promise<void>[] = [];
     this.chart.data.datasets.map(async (dataset, i) => {
       const label = dataset.label;
 
-      if (this.chartjs.getDatasetSettings(label).pv.optimized || reset) {
+      if (this.chartjs.getDatasetSettings(label).pv.optimized || this.chartjs.getDatasetSettings(label).pv.diff || reset) {
         dataset.data = [];
       }
 
@@ -609,12 +683,12 @@ class ChartImpl implements ChartInterface {
     this.chart.data.datasets.forEach((e) => {
       const {
         label,
-        pv: { bins, optimized },
+        pv: { bins, optimized, diff },
       } = this.chartjs.getDatasetSettings(e.label);
-      pvs.push({ bins, label, optimized });
+      pvs.push({ bins, label, optimized, diff });
     });
 
-    const settings: Settings = { end: this.time.getEnd(), start: this.time.getStart(), pvs };
+    const settings: Settings = { end: this.time.getEnd(), start: this.time.getStart(), ref: this.time.getRefDiff(), pvs };
     Browser.updateAddress(settings);
   }
 
@@ -691,7 +765,21 @@ class ChartImpl implements ChartInterface {
       .then(() => {
         this.updateURL();
         this.update();
-        console.log("Plot update at index", datasetIndex);
+      })
+      .catch((e) => {
+        console.log(`Failed to update plot at index ${datasetIndex}, ${e}`);
+      });
+  }
+
+  async diffPlot(datasetLabel: string, diff: boolean) {
+    this.chartjs.setDatasetDiff(datasetLabel, diff);
+
+    const datasetIndex = this.chartjs.getDatasetIndex(datasetLabel);
+
+    await this.updatePlot(datasetIndex)
+      .then(() => {
+        this.updateURL();
+        this.update();
       })
       .catch((e) => {
         console.log(`Failed to update plot at index ${datasetIndex}, ${e}`);
@@ -706,7 +794,7 @@ class ChartImpl implements ChartInterface {
   removeDataset(datasetIndex: number, undo?: boolean): void {
     const {
       label,
-      pv: { optimized },
+      pv: { optimized, diff },
     } = this.chartjs.getDatasetSettingsByIndex(datasetIndex);
 
     if (!undo || undo === undefined) {
@@ -714,12 +802,14 @@ class ChartImpl implements ChartInterface {
         action: StackActionEnum.REMOVE_PV,
         pv: label,
         optimized: optimized,
+        diff: diff
       });
     }
 
     this.chartjs.removeDataset(datasetIndex);
     this.updateURL();
     this.updateOptimizedWarning();
+    this.updateDiffWarning();
   }
 
   toggleAxisType(axisId: string): void {
@@ -749,6 +839,9 @@ class ChartImpl implements ChartInterface {
   }
   getEnd(): Date {
     return this.time.getEnd();
+  }
+  getRefDiff(): Date {
+    return this.time.getRefDiff();
   }
   getReference(): REFERENCE {
     return this.reference;
@@ -781,7 +874,7 @@ class ChartImpl implements ChartInterface {
   disableServerDate() {
     this.serverDateEnabled = false;
   }
-  
+
   enableZoom() {
     this.zoomFlags.isZooming = true;
     ChartDispatcher.setZooming(true);

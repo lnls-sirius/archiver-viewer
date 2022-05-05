@@ -32,7 +32,7 @@ export const initialState: LineChartStates = {
   zoomTime2: null,
   dragOffsetX: 0,
   dragEndTime: null,
-  dragStartTime: null,
+  dragStartTime: null
 };
 
 export const getAverageDateFromEvent = (chart: Chart, evt: DragEvent | MouseEvent): Date => {
