@@ -43,7 +43,7 @@ export default {
     extensions: [".js", ".jsx", ".json", ".tsx", ".ts"],
   },
   devServer: {
-    static: path.join(__dirname, "src"),
+    static: path.join(__dirname, "src")
   },
   module: {
     rules: [
