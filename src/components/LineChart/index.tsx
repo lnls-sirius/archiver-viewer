@@ -12,15 +12,17 @@ import * as S from "./styled";
 import { options } from "./config";
 import { initialState, getAverageDateFromEvent, LineChartProps, LineChartStates } from "./contents";
 import handlers from "../../controllers/handlers";
+import { ChartDispatcher } from "../../utility/Dispatchers";
 
 const mapStateToProps = (state: RootState) => {
   const { autoScroll, zooming, singleTooltip } = state.chart;
-  const {stKey} = state.shortcuts;
+  const {stKey, ndKey} = state.shortcuts;
   return {
     autoScroll: autoScroll,
     isZooming: zooming,
     singleTooltip: singleTooltip,
-    stKey: stKey
+    stKey: stKey,
+    ndKey: ndKey
   };
 };
 
@@ -227,9 +229,31 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
 
   removeAxis = async (evt: any) => {
     let activePoints: any = this.chart.getElementAtEvent(evt)[0];
-    console.log(activePoints._datasetIndex);
     if(activePoints){
       control.removeDataset(activePoints._datasetIndex);
+    }
+  }
+
+  setInvisible = async (evt: any) => {
+    let activePoints: any = this.chart.getElementAtEvent(evt)[0];
+    if(activePoints){
+      control.hideDatasetByIndex(activePoints._datasetIndex);
+    }
+  }
+
+  //Set the checkbox but dont update the chart
+  setDiff = async (evt: any) => {
+    let activePoints: any = this.chart.getElementAtEvent(evt)[0];
+    if(activePoints){
+      ChartDispatcher.setDatasetDiff(activePoints._datasetIndex, true);
+    }
+  }
+
+  //Set the checkbox but dont update the chart
+  setOptimized = async (evt: any) => {
+    let activePoints: any = this.chart.getElementAtEvent(evt)[0];
+    if(activePoints){
+      ChartDispatcher.setDatasetOptimized(activePoints._datasetIndex, true);
     }
   }
 
@@ -247,12 +271,18 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
   }
 
   handleCanvasClick = async (evt: any) => {
-    const { stKey } = this.props;
+    const { stKey, ndKey } = this.props;
     console.log(stKey);
-    if(stKey == 'Control'){
+    if(ndKey == 'Control'){
       this.getTimePoint();
-    }else if(stKey == 'Shift'){
+    }else if(ndKey == 'Shift' && stKey == 'r'){
       this.removeAxis(evt);
+    }else if(ndKey == 'Shift' && stKey == 'v'){
+      this.setInvisible(evt);
+    }else if(ndKey == 'Shift' && stKey == 'd'){
+      this.setDiff(evt);
+    }else if(ndKey == 'Shift' && stKey == 'o'){
+      this.setOptimized(evt);
     }
   }
 
