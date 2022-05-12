@@ -1,5 +1,5 @@
 import { TimeAxisID } from "../../utility/TimeAxis/TimeAxisConstants";
-import Chart from "chart.js";
+import {Chart} from "chart.js";
 
 export const options: Chart.ChartOptions = {
   showLines: true,
