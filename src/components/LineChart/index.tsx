@@ -230,8 +230,6 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
     console.log(activePoints._datasetIndex);
     if(activePoints){
       control.removeDataset(activePoints._datasetIndex);
-      // let label = this.chart.data.labels[activePoints._index];
-      let value = this.chart.data.datasets[activePoints._datasetIndex].data[activePoints._index];
     }
   }
 
