@@ -1,7 +1,5 @@
 import React from "react";
 import useEventListener from '@use-it/event-listener'
-import { useSelector } from "react-redux";
-
 import { ShortcutsDispatcher } from "../../utility/Dispatchers";
 import LineChart from "../LineChart";
 import Controls from "../Controls";
@@ -11,6 +9,7 @@ import Loading from "../Loading";
 import Entries from "../Entries";
 import Series from "../Series";
 import SearchResults from "../SearchResults";
+import Info from "../Info";
 import AlertDisplay from "../AlertDisplay";
 import Footer from "../Footer";
 import * as S from "./styled";
@@ -32,6 +31,7 @@ const App: React.FC = () => {
         <Controls />
       </S.HeaderWrapper>
       <SearchResults />
+      <Info />
       <LineChart />
       <AlertDisplay />
       <S.FooterWrapper>

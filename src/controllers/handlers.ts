@@ -4,7 +4,7 @@ import { StackActionEnum } from "../entities/Chart/StackAction/constants";
 import QueryPVs from "../use-cases/QueryPVs";
 import PlotPVs from "../use-cases/PlotPVs";
 import ExportDataset from "../use-cases/ExportDataset";
-import { StatusDispatcher} from "../utility/Dispatchers";
+import { StatusDispatcher, ShortcutsDispatcher} from "../utility/Dispatchers";
 
 async function exportAsXlsx(): Promise<void> {
   await ExportDataset.asXlsx();
@@ -112,6 +112,10 @@ function plotSelectedPVs(pvs: { name: string; optimize: boolean, diff: boolean }
 
 async function singleTipHandler(): Promise<void> {
   control.toggleSingleTip();
+}
+
+async function showInfo(): Promise<void> {
+  ShortcutsDispatcher.setInfoVisible(true);
 }
 
 function closestDateValue(searchDate: any, dates: any[]) {
@@ -397,6 +401,7 @@ export default {
   plotSelectedPVs,
   autoUpdateHandler,
   singleTipHandler,
+  showInfo,
 
   zoomClickHandler,
 

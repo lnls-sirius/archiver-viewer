@@ -9,7 +9,8 @@ import {
   faFileExcel,
   faSearchPlus,
   faCarSide,
-  faList
+  faList,
+  faInfo
 } from "@fortawesome/free-solid-svg-icons";
 import { IconProp, SizeProp } from "@fortawesome/fontawesome-svg-core";
 
@@ -63,6 +64,7 @@ class Controls extends Component<ControlsReduxProps, ControlsState> {
     this.state = {
       startDate: new Date()
     };
+
     this.items = [
       {
         icon: faBackward,
@@ -119,6 +121,12 @@ class Controls extends Component<ControlsReduxProps, ControlsState> {
         title: "Show all in tooltip",
         onClick: handlers.singleTipHandler,
         isActive: () => this.props.singleTooltip,
+        size: "lg",
+      },
+      {
+        icon: faInfo,
+        title: "Shortcuts information",
+        onClick: ()  => handlers.showInfo(),
         size: "lg",
       },
     ];
@@ -200,6 +208,7 @@ class Controls extends Component<ControlsReduxProps, ControlsState> {
     return (
       <S.ControlsWrapper>
         {this.renderLeftGroup()}
+        Diff Time: {this.renderTimeSelect()}
         <S.ControlsGroupWrapper>
           {this.renderControlIcons()}
           <S.TimeDisplay>
@@ -209,7 +218,6 @@ class Controls extends Component<ControlsReduxProps, ControlsState> {
             <S.TimeDisplayDate>{`${timeEnd}`}</S.TimeDisplayDate>
           </S.TimeDisplay>
         </S.ControlsGroupWrapper>
-        Diff Time: {this.renderTimeSelect()}
       </S.ControlsWrapper>
     );
   }
