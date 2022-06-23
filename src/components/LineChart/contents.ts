@@ -17,6 +17,7 @@ export interface LineChartProps {
   autoScroll: boolean;
   isZooming: boolean;
   singleTooltip: boolean;
+  stKey: string;
 }
 
 export const initialState: LineChartStates = {

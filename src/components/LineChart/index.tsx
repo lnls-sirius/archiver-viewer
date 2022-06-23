@@ -1,4 +1,4 @@
-import React, { Component, KeyboardEventHandler } from "react";
+import React, { Component } from "react";
 import { connect } from "react-redux";
 import { Chart } from "chart.js";
 
@@ -15,17 +15,17 @@ import handlers from "../../controllers/handlers";
 
 const mapStateToProps = (state: RootState) => {
   const { autoScroll, zooming, singleTooltip } = state.chart;
-
+  const {stKey} = state.shortcuts;
   return {
     autoScroll: autoScroll,
     isZooming: zooming,
     singleTooltip: singleTooltip,
+    stKey: stKey
   };
 };
 
 class LineChart extends Component<LineChartProps, LineChartStates> {
   private chart: Chart;
-  private lastKeyCtrl: boolean;
   private chartDOMRef: React.RefObject<HTMLCanvasElement>;
   private updateProps: Chart.ChartUpdateProps;
 
@@ -34,7 +34,6 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
     this.chartDOMRef = React.createRef();
     this.state = initialState;
     this.chart = null;
-    this.lastKeyCtrl = false;
     this.updateProps = { duration: 0, easing: "linear", lazy: false };
   }
 
@@ -226,50 +225,49 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
     });
   };
 
-  saveLastKey = async (e: React.KeyboardEvent) => {
-    this.lastKeyCtrl = e.ctrlKey;
+  removeAxis = async (evt: any) => {
+    let activePoints: any = this.chart.getElementAtEvent(evt)[0];
+    console.log(activePoints._datasetIndex);
+    if(activePoints){
+      control.removeDataset(activePoints._datasetIndex);
+      // let label = this.chart.data.labels[activePoints._index];
+      let value = this.chart.data.datasets[activePoints._datasetIndex].data[activePoints._index];
+    }
   }
 
-  dropLastKey = async () => {
-    this.lastKeyCtrl = false;
+  getTimePoint = async () =>{
+    const {dragOffsetX} = this.state;
+    let windowTime = control.getWindowTime();
+    let ms = chartUtils.timeAxisPreferences[windowTime].milliseconds;
+
+    let newArea = this.chart.width/(this.chart.chartArea.right - this.chart.chartArea.left);
+    let offsetX = (dragOffsetX - this.chart.chartArea.left)*newArea;
+
+    let timePoint = new Date(control.getStart().getTime() + (offsetX*ms/ this.chart.width));
+
+    handlers.onChangeSelectedTime(timePoint);
   }
 
-  focusChart = async () => {
-    this.chartDOMRef.current.focus();
-  }
-
-
-  getTimePoint = async () => {
-    if(this.lastKeyCtrl == true){
-      const {dragOffsetX} = this.state;
-
-      let windowTime = control.getWindowTime();
-      let ms = chartUtils.timeAxisPreferences[windowTime].milliseconds;
-
-      let newArea = this.chart.width/(this.chart.chartArea.right - this.chart.chartArea.left);
-      let offsetX = (dragOffsetX - this.chart.chartArea.left)*newArea;
-
-      let timePoint = new Date(control.getStart().getTime() + (offsetX*ms/ this.chart.width));
-
-      handlers.onChangeSelectedTime(timePoint);
+  handleCanvasClick = async (evt: any) => {
+    const { stKey } = this.props;
+    console.log(stKey);
+    if(stKey == 'Control'){
+      this.getTimePoint();
+    }else if(stKey == 'Shift'){
+      this.removeAxis(evt);
     }
   }
 
   render() {
     const { zoomBoxVisible, zoomBoxHeight, zoomBoxWidth, zoomBoxLeft, zoomBoxTop } = this.state;
     return (
-      <S.LineChartWrapper
-          onKeyDown={this.saveLastKey}
-          onKeyUp={this.dropLastKey}
-      >
+      <S.LineChartWrapper>
           <canvas
             ref={this.chartDOMRef}
             onMouseDown={this.startDragging}
             onMouseMove={this.doDragging}
             onMouseUp={this.stopDragging}
-            onMouseOver={this.focusChart}
-            onClick={this.getTimePoint}
-            tabIndex={0}
+            onClick={this.handleCanvasClick}
           />
           <S.ZoomBox
             $height={zoomBoxHeight}
