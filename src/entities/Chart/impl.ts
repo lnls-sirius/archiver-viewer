@@ -331,7 +331,7 @@ class ChartImpl implements ChartInterface {
     if (date === undefined || date === null) {
       date = await this.getDateNow();
     }
-    
+
     await this.time.setRefDiff(date);
   }
 
@@ -810,6 +810,10 @@ class ChartImpl implements ChartInterface {
     this.updateURL();
     this.updateOptimizedWarning();
     this.updateDiffWarning();
+  }
+
+  hideDatasetByIndex(datasetIndex: number){
+    this.chartjs.hideDatasetByIndex(datasetIndex);
   }
 
   toggleAxisType(axisId: string): void {

@@ -3,13 +3,15 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 export interface Keys {
   stKey: string,
   ndKey: string,
-  rdKey: string
+  rdKey: string,
+  info: boolean
 }
 
 const initialState: Keys = {
   stKey: null,
   ndKey: null,
-  rdKey: null
+  rdKey: null,
+  info: false
 };
 
 const shortcutsSlice = createSlice({
@@ -17,9 +19,14 @@ const shortcutsSlice = createSlice({
   name: "shortcuts",
   reducers: {
     setKeys(state, action: PayloadAction<string>) {
-      state.rdKey = state.ndKey;
-      state.ndKey = state.stKey;
-      state.stKey = action.payload;
+      if(action.payload != state.stKey){
+        state.rdKey = state.ndKey;
+        state.ndKey = state.stKey;
+        state.stKey = action.payload;
+      }
+    },
+    setInfoResultsVisible: (state, action: PayloadAction<boolean>) => {
+      state.info = action.payload;
     }
   }
 });

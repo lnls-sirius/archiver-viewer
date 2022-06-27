@@ -52,7 +52,7 @@
     "@babel/preset-react": "7.13.x",
     "@babel/preset-typescript": "7.13.x",
     "@babel/register": "7.13.x",
-    "@types/chart.js": "2.9.4",
+    "@types/chart.js": "^2.9.4",
     "@types/estree": "^0.0.51",
     "@types/file-saver": "2.0.1",
     "@types/node": "^17.0.31",

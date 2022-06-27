@@ -1,3 +1,5 @@
+import { DatasetInfo } from "../../entities/Chart/ChartJS";
+
 export interface LineChartStates {
   zoomBeginX: number;
   zoomBeginY: number;
@@ -18,6 +20,7 @@ export interface LineChartProps {
   isZooming: boolean;
   singleTooltip: boolean;
   stKey: string;
+  ndKey: string;
 }
 
 export const initialState: LineChartStates = {

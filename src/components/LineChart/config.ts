@@ -61,7 +61,7 @@ export const options: Chart.ChartOptions = {
         display: false,
         position: "left",
         id: "y-axis-0",
-      },
+      }
     ]
   },
   legend: {
