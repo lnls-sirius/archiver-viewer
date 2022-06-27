@@ -1,3 +1,5 @@
+import { DatasetInfo } from "../../entities/Chart/ChartJS";
+
 export interface LineChartStates {
   zoomBeginX: number;
   zoomBeginY: number;

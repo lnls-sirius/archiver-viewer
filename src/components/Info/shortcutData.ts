@@ -5,18 +5,18 @@ export const SHORTCUTS = {
     },
     '1':{
         title: 'Remove PV from Chart',
-        keys: 'Shift + R + CLICK (On the desired axis)'
+        keys: 'Shift + R + CLICK (Near the desired axis)'
     },
     '2':{
         title: 'Hide PV from Chart',
-        keys: 'Shift + V + CLICK (On the desired axis)'
+        keys: 'Shift + V + CLICK (Near the desired axis)'
     },
     '3':{
         title: 'Set/Unset Optimization function to the PV',
-        keys: 'Shift + O + CLICK (On the desired axis)'
+        keys: 'Shift + F + CLICK (Near the desired axis)'
     },
     '4':{
         title: 'Set/Unset Difference function to the PV',
-        keys: 'Shift + D + CLICK (On the desired axis)'
+        keys: 'Shift + D + CLICK (Near the desired axis)'
     }
 }

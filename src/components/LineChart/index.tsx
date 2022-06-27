@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { connect } from "react-redux";
+import { connect, useSelector } from "react-redux";
 import { Chart } from "chart.js";
 
 import UrlLoader from "../../controllers/UrlLoader";
@@ -12,7 +12,7 @@ import * as S from "./styled";
 import { options } from "./config";
 import { initialState, getAverageDateFromEvent, LineChartProps, LineChartStates } from "./contents";
 import handlers from "../../controllers/handlers";
-import { ChartDispatcher } from "../../utility/Dispatchers";
+import ChartController from "../../controllers/Chart";
 
 const mapStateToProps = (state: RootState) => {
   const { autoScroll, zooming, singleTooltip } = state.chart;
@@ -227,34 +227,53 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
     });
   };
 
+  distanceAxisClick = (coordAxis: Array<number>, coordClick: Array<number>) => {
+    return Math.sqrt(((coordAxis[0]-coordClick[0])**2) + ((coordAxis[1]-coordClick[1])**2))
+  }
+
+  getNearestXAxis = (evt: any) => {
+    let activePoints: any = this.chart.getElementsAtXAxis(evt);
+    let rect = document.getElementById("canvas").getBoundingClientRect();
+    let coordAxis = [0, 0];
+    let nearestDataset = 0;
+    let nearestDist = rect.width * rect.height;
+    let distDataset = 0;
+    const coordClick = [evt.clientX - rect.left, evt.clientY - rect.top];
+    activePoints.map((axis: any) => {
+      coordAxis = [axis._model.x, axis._model.y];
+      distDataset = this.distanceAxisClick(coordAxis, coordClick);
+      if(nearestDist > distDataset){
+        nearestDist = distDataset;
+        nearestDataset = axis._datasetIndex;
+      }
+    })
+    return nearestDataset;
+  }
+
   removeAxis = async (evt: any) => {
-    let activePoints: any = this.chart.getElementAtEvent(evt)[0];
-    if(activePoints){
-      control.removeDataset(activePoints._datasetIndex);
-    }
+    const datasetIndex = this.getNearestXAxis(evt);
+    control.removeDataset(datasetIndex);
   }
 
   setInvisible = async (evt: any) => {
-    let activePoints: any = this.chart.getElementAtEvent(evt)[0];
-    if(activePoints){
-      control.hideDatasetByIndex(activePoints._datasetIndex);
-    }
+    const datasetIndex = this.getNearestXAxis(evt);
+    control.hideDatasetByIndex(datasetIndex);
   }
 
-  //Set the checkbox but dont update the chart
   setDiff = async (evt: any) => {
-    let activePoints: any = this.chart.getElementAtEvent(evt)[0];
-    if(activePoints){
-      ChartDispatcher.setDatasetDiff(activePoints._datasetIndex, true);
-    }
+    const datasetIndex = this.getNearestXAxis(evt);
+    const dataset = control.getDatasets();
+    const label = dataset[datasetIndex].metadata.label;
+    await ChartController.setDatasetDiff(
+      label, !dataset[datasetIndex].metadata.pv.diff);
   }
 
-  //Set the checkbox but dont update the chart
   setOptimized = async (evt: any) => {
-    let activePoints: any = this.chart.getElementAtEvent(evt)[0];
-    if(activePoints){
-      ChartDispatcher.setDatasetOptimized(activePoints._datasetIndex, true);
-    }
+    const datasetIndex = this.getNearestXAxis(evt);
+    const dataset = control.getDatasets();
+    const label = dataset[datasetIndex].metadata.label;
+    await ChartController.setDatasetOptimized(
+      label, !dataset[datasetIndex].metadata.pv.optimized);
   }
 
   getTimePoint = async () =>{
@@ -272,16 +291,19 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
 
   handleCanvasClick = async (evt: any) => {
     const { stKey, ndKey } = this.props;
-    console.log(stKey);
-    if(ndKey == 'Control'){
+    if(stKey == 'Control'){
       this.getTimePoint();
-    }else if(ndKey == 'Shift' && stKey == 'r'){
+    }else if(ndKey == 'Shift' &&
+              (stKey == 'r' || stKey == 'R')){
       this.removeAxis(evt);
-    }else if(ndKey == 'Shift' && stKey == 'v'){
+    }else if(ndKey == 'Shift' &&
+              (stKey == 'v' || stKey == 'V')){
       this.setInvisible(evt);
-    }else if(ndKey == 'Shift' && stKey == 'd'){
+    }else if(ndKey == 'Shift' &&
+              (stKey == 'd' || stKey == 'D')){
       this.setDiff(evt);
-    }else if(ndKey == 'Shift' && stKey == 'o'){
+    }else if(ndKey == 'Shift' &&
+              (stKey == 'f' || stKey == 'F')){
       this.setOptimized(evt);
     }
   }
@@ -291,6 +313,7 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
     return (
       <S.LineChartWrapper>
           <canvas
+            id="canvas"
             ref={this.chartDOMRef}
             onMouseDown={this.startDragging}
             onMouseMove={this.doDragging}

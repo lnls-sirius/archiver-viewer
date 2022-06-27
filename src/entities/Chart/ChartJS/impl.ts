@@ -365,7 +365,7 @@ class ChartJSControllerImpl implements ChartJSController {
       backgroundColor: color,
       borderColor: color,
       visible: true,
-      pv,
+      pv
     };
 
     this.datasets[pvName] = newDatasetInfo;
