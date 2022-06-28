@@ -28,3 +28,40 @@ export const IntervalsItem = styled.button<IntervalsItemProps>`
     box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.12), 0 1px 5px 0 rgba(0, 0, 0, 0.2);
   }
 `;
+
+
+export const IntervalWrapper = styled.div`
+  display: flex;
+  justify-content: center;
+  background-color: lightgrey;
+  border-radius: 0.2rem;
+  margin: 0.2rem 1rem;
+  &:hover {
+    background-color: darkgrey;
+    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.12), 0 1px 5px 0 rgba(0, 0, 0, 0.2);
+  }
+`;
+
+export const IntervalInput = styled.input`
+  text-align: center;
+  background-color: grey;
+  color: #ffffff;
+  border-radius: 0.5rem;
+  width: 3rem;
+  margin: 0.2rem 0.2rem;
+  -moz-appearance: textfield;
+`
+
+export const UnitInput = styled.select`
+  text-align: center;
+  background-color: grey;
+  color: #ffffff;
+  border-radius: 0.5rem;
+  width: 5rem;
+  margin: 0.2rem 0.2rem;
+  -moz-appearance: textfield;
+  &:option: {
+    background-color: lightgrey;
+    color: #ffffff;
+  }
+`
