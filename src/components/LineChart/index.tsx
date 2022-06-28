@@ -26,8 +26,12 @@ const mapStateToProps = (state: RootState) => {
   };
 };
 
+class ChartMod extends Chart{
+  getElementsAtXAxis: (e: any) => Array<{}>;
+}
+
 class LineChart extends Component<LineChartProps, LineChartStates> {
-  private chart: Chart;
+  private chart: ChartMod;
   private chartDOMRef: React.RefObject<HTMLCanvasElement>;
   private updateProps: Chart.ChartUpdateProps;
 
@@ -40,7 +44,7 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
   }
 
   componentDidMount() {
-    this.chart = new Chart(this.chartDOMRef.current, { type: "line", options });
+    this.chart = new ChartMod(this.chartDOMRef.current, { type: "line", options });
     control.init(this.chart);
     UrlLoader.load();
   }
