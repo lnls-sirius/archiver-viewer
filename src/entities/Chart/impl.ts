@@ -16,6 +16,7 @@ import { CreateChartJSController, ChartJSController, DatasetInfo } from "./Chart
 import { ArchiverDataPoint, ArchiverMetadata } from "../../data-access/interface";
 import { DiffDataError, OptimizeDataError, OutOfSyncDatasetError } from "../../utility/errors";
 import { Settings, SettingsPVs } from "../../utility/Browser/interface";
+import { TimeUnits } from "../../utility/TimeAxis/TimeAxisConstants";
 
 export enum REFERENCE {
   START = 0,
@@ -218,6 +219,41 @@ class ChartImpl implements ChartInterface {
     this.diffAllGraphs();
     const { unit, unitStepSize } = chartUtils.timeAxisPreferences[this.windowTime];
     this.chartjs.updateTimeAxis(unit, unitStepSize, this.time.getStart(), this.time.getEnd());
+
+    await this.updateAllPlots(true);
+  }
+
+  async updateTimeWindowCustom(newValue: number, newUnit: string): Promise<void> {
+
+    if (this.reference === REFERENCE.END) {
+      this.time.setStart(
+        new Date(this.time.getEnd().getTime() - chartUtils.getMilliseconds(newValue, newUnit))
+      );
+    } else if (this.reference === REFERENCE.START) {
+      const now = await this.getDateNow();
+      if (
+        this.time.getStart().getTime() + chartUtils.getMilliseconds(newValue, newUnit) <=
+        now.getTime()
+      ) {
+        this.time.setEnd(
+          new Date(this.time.getStart().getTime() + chartUtils.getMilliseconds(newValue, newUnit))
+        );
+      } else {
+        this.time.setEnd(now);
+      }
+    }
+
+    // if (this.windowTime < chartUtils.timeIDs.MIN_30) {
+    //   if (this.autoUpdate.isEnabled()) {
+    //     this.autoUpdate.setDisabled();
+    //   }
+    // }
+
+    console.log(newValue, newUnit);
+
+    this.optimizeAllGraphs();
+    this.diffAllGraphs();
+    this.chartjs.updateTimeAxis("minute", 2, this.time.getStart(), this.time.getEnd());
 
     await this.updateAllPlots(true);
   }

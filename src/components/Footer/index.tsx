@@ -1,7 +1,7 @@
 import React from "react";
 import * as S from "./styled";
 
-const version = "2022-06-28-a26554a";
+const version = "2022-06-28-db7958f";
 
 const Footer: React.FC = () => {
   return (

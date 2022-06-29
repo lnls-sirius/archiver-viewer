@@ -1,6 +1,6 @@
 /** ***** Chart control functions *******/
 import { TIME_AXIS_PREFERENCES, TIME_IDS } from "../lib/timeAxisPreferences";
-import { TimeAxisID } from "./TimeAxis/TimeAxisConstants";
+import { TimeAxisID, TimeUnits } from "./TimeAxis/TimeAxisConstants";
 import Chart from "chart.js";
 
 export const DefaultBinSize = 800;
@@ -60,6 +60,37 @@ Chart.Tooltip.positioners.cursor = function (chartElements, coordinates) {
   return reboundTooltip(coordinates.x, coordinates.y, this, 0);
 };
 
+
+function getMilliseconds(value: number, unit: string): number{
+  let timeMilliseconds;
+  switch (unit) {
+    case "year":
+      timeMilliseconds = getMilliseconds(value, "day") * 365;
+      break;
+    case "month":
+      timeMilliseconds = getMilliseconds(value, "day") * 30;
+      break;
+    case "week":
+      timeMilliseconds = getMilliseconds(value, "day") * 7;
+      break;
+    case "day":
+      timeMilliseconds = getMilliseconds(value, "hour") * 24;
+      break;
+    case "hour":
+      timeMilliseconds = getMilliseconds(value, "minute") * 60;
+      break;
+    case "minute":
+      timeMilliseconds = getMilliseconds(value, "second") * 60;
+      break;
+    case "second":
+      timeMilliseconds = value * 1000;
+      break;
+    default:
+      throw `Conversion not impplemented for time unit ${unit}`;
+  }
+  return timeMilliseconds;
+}
+
 export default {
   /* const references */
   timeAxisID: TimeAxisID,
@@ -67,4 +98,5 @@ export default {
   timeIDs: TIME_IDS,
 
   reboundTooltip,
+  getMilliseconds
 };

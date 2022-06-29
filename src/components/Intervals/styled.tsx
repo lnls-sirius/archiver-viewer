@@ -57,11 +57,11 @@ export const UnitInput = styled.select`
   background-color: grey;
   color: #ffffff;
   border-radius: 0.5rem;
-  width: 5rem;
+  width: 3rem;
   margin: 0.2rem 0.2rem;
   -moz-appearance: textfield;
-  &:option: {
-    background-color: lightgrey;
-    color: #ffffff;
-  }
+`
+
+export const opt = styled.option`
+  background-color: #ffff00;
 `

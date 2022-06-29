@@ -5,6 +5,7 @@ import QueryPVs from "../use-cases/QueryPVs";
 import PlotPVs from "../use-cases/PlotPVs";
 import ExportDataset from "../use-cases/ExportDataset";
 import { StatusDispatcher, ShortcutsDispatcher} from "../utility/Dispatchers";
+import { TimeUnits } from "../utility/TimeAxis/TimeAxisConstants";
 
 async function exportAsXlsx(): Promise<void> {
   await ExportDataset.asXlsx();
@@ -37,9 +38,17 @@ async function onChangeSelectedTime(date: Date): Promise<void> {
 function updateTimeWindow(timeId: number): void {
   control.undoStackPush({
     action: StackActionEnum.CHANGE_WINDOW_TIME,
-    windowTime: control.getWindowTime(),
+    windowTime: control.getWindowTime()
   });
   control.updateTimeWindow(timeId);
+}
+
+function updateTimeWindowCustom(value: number, unit: string): void {
+  control.undoStackPush({
+    action: StackActionEnum.CHANGE_WINDOW_TIME,
+    windowTime: 19
+  });
+  control.updateTimeWindowCustom(value, unit);
 }
 
 /**
@@ -394,6 +403,7 @@ export default {
   onChangeDateHandler,
   onChangeSelectedTime,
   updateTimeWindow,
+  updateTimeWindowCustom,
   updateEndNow,
   backTimeWindow,
   forwTimeWindow,

@@ -18,13 +18,14 @@ export const TIME_IDS = {
   MIN10: 16,
   MIN_5: 17,
   MIN1: 18,
-  SEG_30: 19,
+  SEG_30: 19
 };
 
 export const TIME_AXIS_PREFERENCES = [
   {
     // 1 year
     text: "1Y",
+    totalUnit: "year",
     unit: "month",
     unitStepSize: 2,
     milliseconds: 365 * 24 * 3600 * 1000,
@@ -36,6 +37,7 @@ export const TIME_AXIS_PREFERENCES = [
   {
     // 9 month
     text: "9M",
+    totalUnit: "month",
     unit: "day",
     unitStepSize: 4,
     milliseconds: 9 * 30 * 24 * 3600 * 1000,
@@ -47,6 +49,7 @@ export const TIME_AXIS_PREFERENCES = [
   {
     // 6 month
     text: "6M",
+    totalUnit: "month",
     unit: "day",
     unitStepSize: 4,
     milliseconds: 6 * 30 * 24 * 3600 * 1000,
@@ -58,6 +61,7 @@ export const TIME_AXIS_PREFERENCES = [
   {
     // 3 month
     text: "3M",
+    totalUnit: "month",
     unit: "day",
     unitStepSize: 4,
     milliseconds: 3 * 30 * 24 * 3600 * 1000,
@@ -69,6 +73,7 @@ export const TIME_AXIS_PREFERENCES = [
   {
     // 1 month
     text: "1M",
+    totalUnit: "month",
     unit: "day",
     unitStepSize: 4,
     milliseconds: 30 * 24 * 3600 * 1000,
@@ -80,6 +85,7 @@ export const TIME_AXIS_PREFERENCES = [
   {
     // 2 weeks
     text: "2w",
+    totalUnit: "week",
     unit: "day",
     unitStepSize: 2,
     milliseconds: 2 * 7 * 24 * 3600 * 1000,
@@ -91,6 +97,7 @@ export const TIME_AXIS_PREFERENCES = [
   {
     // 1 week
     text: "1w",
+    totalUnit: "week",
     unit: "day",
     unitStepSize: 2,
     milliseconds: 7 * 24 * 3600 * 1000,
@@ -102,6 +109,7 @@ export const TIME_AXIS_PREFERENCES = [
   {
     // 2.5 days
     text: "2.5d",
+    totalUnit: "day",
     unit: "hour",
     unitStepSize: 12,
     milliseconds: 2.5 * 24 * 3600 * 1000,
@@ -113,6 +121,7 @@ export const TIME_AXIS_PREFERENCES = [
   {
     // 1 day
     text: "1d",
+    totalUnit: "day",
     unit: "hour",
     unitStepSize: 3,
     milliseconds: 24 * 3600 * 1000,
@@ -124,6 +133,7 @@ export const TIME_AXIS_PREFERENCES = [
   {
     // 18 hours
     text: "18h",
+    totalUnit: "hour",
     unit: "hour",
     unitStepSize: 2,
     milliseconds: 18 * 3600 * 1000,
@@ -135,6 +145,7 @@ export const TIME_AXIS_PREFERENCES = [
   {
     // 12 hours
     text: "12h",
+    totalUnit: "hour",
     unit: "hour",
     unitStepSize: 2,
     milliseconds: 12 * 3600 * 1000,
@@ -146,6 +157,7 @@ export const TIME_AXIS_PREFERENCES = [
   {
     // 8 hours
     text: "8h",
+    totalUnit: "hour",
     unit: "hour",
     unitStepSize: 2,
     milliseconds: 8 * 3600 * 1000,
@@ -157,6 +169,7 @@ export const TIME_AXIS_PREFERENCES = [
   {
     // 4 hours
     text: "4h",
+    totalUnit: "hour",
     unit: "hour",
     unitStepSize: 2,
     milliseconds: 4 * 3600 * 1000,
@@ -168,6 +181,7 @@ export const TIME_AXIS_PREFERENCES = [
   {
     // 2 hours
     text: "2h",
+    totalUnit: "hour",
     unit: "minute",
     unitStepSize: 15,
     milliseconds: 2 * 3600 * 1000,
@@ -179,6 +193,7 @@ export const TIME_AXIS_PREFERENCES = [
   {
     // 1 hour
     text: "1h",
+    totalUnit: "hour",
     unit: "minute",
     unitStepSize: 15,
     milliseconds: 3600 * 1000,
@@ -190,6 +205,7 @@ export const TIME_AXIS_PREFERENCES = [
   {
     // 30 minutes
     text: "30m",
+    totalUnit: "minute",
     unit: "minute",
     unitStepSize: 3,
     milliseconds: 30 * 60 * 1000,
@@ -201,6 +217,7 @@ export const TIME_AXIS_PREFERENCES = [
   {
     // 10 minutes
     text: "10m",
+    totalUnit: "minute",
     unit: "minute",
     unitStepSize: 2,
     milliseconds: 10 * 60 * 1000,
@@ -212,6 +229,7 @@ export const TIME_AXIS_PREFERENCES = [
   {
     // 5 minutes
     text: "5m",
+    totalUnit: "minute",
     unit: "second",
     unitStepSize: 30,
     milliseconds: 5 * 60 * 1000,
@@ -223,6 +241,7 @@ export const TIME_AXIS_PREFERENCES = [
   {
     // 1 minute
     text: "1m",
+    totalUnit: "minute",
     unit: "second",
     unitStepSize: 15,
     milliseconds: 60 * 1000,
@@ -234,6 +253,7 @@ export const TIME_AXIS_PREFERENCES = [
   {
     // 30 seconds
     text: "30s",
+    totalUnit: "second",
     unit: "second",
     unitStepSize: 3,
     milliseconds: 30 * 1000,
