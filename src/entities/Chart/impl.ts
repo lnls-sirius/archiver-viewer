@@ -224,36 +224,38 @@ class ChartImpl implements ChartInterface {
   }
 
   async updateTimeWindowCustom(newValue: number, newUnit: string): Promise<void> {
+    const timeMilliseconds = chartUtils.getMilliseconds(newValue, newUnit);
 
     if (this.reference === REFERENCE.END) {
       this.time.setStart(
-        new Date(this.time.getEnd().getTime() - chartUtils.getMilliseconds(newValue, newUnit))
+        new Date(this.time.getEnd().getTime() - timeMilliseconds)
       );
     } else if (this.reference === REFERENCE.START) {
       const now = await this.getDateNow();
       if (
-        this.time.getStart().getTime() + chartUtils.getMilliseconds(newValue, newUnit) <=
+        this.time.getStart().getTime() + timeMilliseconds <=
         now.getTime()
       ) {
         this.time.setEnd(
-          new Date(this.time.getStart().getTime() + chartUtils.getMilliseconds(newValue, newUnit))
+          new Date(this.time.getStart().getTime() + timeMilliseconds)
         );
       } else {
         this.time.setEnd(now);
       }
     }
 
-    // if (this.windowTime < chartUtils.timeIDs.MIN_30) {
-    //   if (this.autoUpdate.isEnabled()) {
-    //     this.autoUpdate.setDisabled();
-    //   }
-    // }
-
-    console.log(newValue, newUnit);
+    if (timeMilliseconds < chartUtils.getMilliseconds(30, "second")) {
+      if (this.autoUpdate.isEnabled()) {
+        this.autoUpdate.setDisabled();
+      }
+    }
 
     this.optimizeAllGraphs();
     this.diffAllGraphs();
-    this.chartjs.updateTimeAxis("minute", 2, this.time.getStart(), this.time.getEnd());
+    this.chartjs.updateTimeAxis(
+      chartUtils.getUnit(newValue, newUnit),
+      chartUtils.getUnitStepSize(newValue, newUnit),
+      this.time.getStart(), this.time.getEnd());
 
     await this.updateAllPlots(true);
   }

@@ -86,9 +86,89 @@ function getMilliseconds(value: number, unit: string): number{
       timeMilliseconds = value * 1000;
       break;
     default:
-      throw `Conversion not impplemented for time unit ${unit}`;
+      throw `Milliseconds conversion not impplemented`;
   }
   return timeMilliseconds;
+}
+
+function getUnit(value: number, unit: string){
+  let stepUnit = 'hour';
+  switch (unit) {
+    case "year":
+      stepUnit = 'month';
+      break;
+    case "month":
+      stepUnit = 'day';
+      break;
+    case "week":
+      stepUnit = 'day';
+      break;
+    case "day":
+      stepUnit = 'hour';
+      break;
+    case "hour":
+      if(value>=4){
+        stepUnit = 'hour';
+      }else{
+        stepUnit = 'minute';
+      }
+      break;
+    case "minute":
+      if(value>=10){
+        stepUnit = 'minute';
+      }else{
+        stepUnit = 'second';
+      }
+      break;
+    case "second":
+      stepUnit = 'second';
+      break;
+    default:
+      throw `Unit conversion not impplemented`;
+  }
+  return stepUnit;
+}
+
+function getUnitStepSize(value: number, unit: string){
+  let unitStepSize = 1;
+  switch (unit) {
+    case "year":
+      unitStepSize = 2;
+      break;
+    case "month":
+      unitStepSize = 4;
+      break;
+    case "week":
+      unitStepSize = 2;
+      break;
+    case "day":
+      if(value>=2.5){
+        unitStepSize = 12;
+      }else{
+        unitStepSize = 3;
+      }
+      break;
+    case "hour":
+      if(value>=4){
+        unitStepSize = 2;
+      }else{
+        unitStepSize = 15;
+      }
+      break;
+    case "minute":
+      if(value>=10){
+        unitStepSize = 3;
+      }else{
+        unitStepSize = 15;
+      }
+      break;
+    case "second":
+      unitStepSize = 3;
+      break;
+    default:
+      throw `Unit conversion not impplemented`;
+  }
+  return unitStepSize;
 }
 
 export default {
@@ -98,5 +178,7 @@ export default {
   timeIDs: TIME_IDS,
 
   reboundTooltip,
-  getMilliseconds
+  getMilliseconds,
+  getUnit,
+  getUnitStepSize
 };
