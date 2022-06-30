@@ -1,5 +1,5 @@
 import { DatasetInfo } from "../../entities/Chart/ChartJS";
-import { TIME_IDS } from "../../lib/timeAxisPreferences";
+import { TIME_AXIS_PREFERENCES, TIME_IDS } from "../../lib/timeAxisPreferences";
 export interface ChartState {
   autoScroll: boolean;
   dataAxis: any[]; // @todo: Transform into an object
@@ -9,6 +9,7 @@ export interface ChartState {
   timeReferenceEnd: boolean;
   timeStart: string;
   windowTime: number;
+  interval: number;
   zooming: boolean;
   selectedTime: string;
 }
@@ -22,6 +23,7 @@ const initialState: ChartState = {
   timeReferenceEnd: true,
   timeStart: null,
   windowTime: TIME_IDS.MIN_30,
+  interval: TIME_AXIS_PREFERENCES[TIME_IDS.MIN_30].milliseconds,
   zooming: false,
   selectedTime: null
 };

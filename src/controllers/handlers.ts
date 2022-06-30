@@ -79,8 +79,9 @@ async function backTimeWindow(): Promise<any> {
       date = control.getEnd();
     }
 
-    const windowTime = control.getWindowTime();
-    const { milliseconds } = chartUtils.timeAxisPreferences[windowTime];
+    // const windowTime = control.getWindowTime();
+    // const { milliseconds } = chartUtils.timeAxisPreferences[windowTime];
+    const milliseconds = control.getIntervalTime();
 
     await control.updateStartAndEnd(new Date(date.getTime() - milliseconds));
 
@@ -94,8 +95,9 @@ async function backTimeWindow(): Promise<any> {
  **/
 async function forwTimeWindow(): Promise<any> {
   if (!control.isAutoUpdateEnabled()) {
-    const windowTime = control.getWindowTime();
-    const { milliseconds } = chartUtils.timeAxisPreferences[windowTime];
+    // const windowTime = control.getWindowTime();
+    // const { milliseconds } = chartUtils.timeAxisPreferences[windowTime];
+    const milliseconds = control.getIntervalTime();
 
     let date: Date;
     if (control.getReference() === REFERENCE.END) {

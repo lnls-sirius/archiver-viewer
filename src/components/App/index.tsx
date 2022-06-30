@@ -17,11 +17,15 @@ import * as S from "./styled";
 
 const App: React.FC = () => {
 
-  function keyRegister( keyObj: any ) {
+  function keyDownRegister( keyObj: any ) {
     ShortcutsDispatcher.KeyPress(keyObj.key);
   }
+  function keyUpRegister( keyObj: any ) {
+    ShortcutsDispatcher.KeyRelease(keyObj.key);
+  }
 
-  useEventListener('keydown', keyRegister);
+  useEventListener('keydown', keyDownRegister);
+  useEventListener('keyup', keyUpRegister);
 
   return (
     <S.AppLayout>

@@ -19,6 +19,7 @@ export interface ChartDispatcher {
   setSelectedTime(date: Date): void
 
   setWindowTime(windowTime: number): void;
+  setInterval(interval: number): void;
   setTimeReferenceEnd(timeReferenceEnd: boolean): void;
   setSingleTooltipEnabled(enabled: boolean): void;
   setZooming(zooming: boolean): void;

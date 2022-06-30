@@ -5,7 +5,7 @@ import * as reducers from "./reducers";
 const chartSlice = createSlice({
   name: "chart",
   initialState,
-  reducers,
+  reducers
 });
 
 export const {
@@ -27,6 +27,7 @@ export const {
   setSelectedTime,
   setTimeStart,
   setWindowTime,
+  setInterval,
   setZooming
 } = chartSlice.actions;
 

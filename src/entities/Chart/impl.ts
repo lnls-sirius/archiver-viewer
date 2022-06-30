@@ -16,7 +16,7 @@ import { CreateChartJSController, ChartJSController, DatasetInfo } from "./Chart
 import { ArchiverDataPoint, ArchiverMetadata } from "../../data-access/interface";
 import { DiffDataError, OptimizeDataError, OutOfSyncDatasetError } from "../../utility/errors";
 import { Settings, SettingsPVs } from "../../utility/Browser/interface";
-import { TimeUnits } from "../../utility/TimeAxis/TimeAxisConstants";
+import { TIME_AXIS_PREFERENCES } from "../../lib/timeAxisPreferences";
 
 export enum REFERENCE {
   START = 0,
@@ -33,6 +33,7 @@ class ChartImpl implements ChartInterface {
   private chart: Chart = null;
   private reference = REFERENCE.END; // Reference time end
   private windowTime = chartUtils.timeIDs.MIN10;
+  private interval = TIME_AXIS_PREFERENCES[chartUtils.timeIDs.MIN10].milliseconds;
 
   private autoUpdate: AutoUpdate; // Auto update module
 
@@ -67,7 +68,12 @@ class ChartImpl implements ChartInterface {
       end = this.time.getEnd();
     }
     // @todo: This should be a private method... more refactoring needed
-    const { unit, unitStepSize } = chartUtils.timeAxisPreferences[this.windowTime];
+    // const { unit, unitStepSize } = chartUtils.timeAxisPreferences[this.windowTime];
+
+    const valueUnit = chartUtils.millisecondsToValUnit(this.interval);
+    const unit = chartUtils.getUnit(parseInt(valueUnit[0]), valueUnit[1]);
+    const unitStepSize = chartUtils.getUnitStepSize(parseInt(valueUnit[0]), valueUnit[1]);
+
     this.chartjs.updateTimeAxis(unit, unitStepSize, start, end);
   }
 
@@ -105,7 +111,13 @@ class ChartImpl implements ChartInterface {
 
   updateTimeWindowOnly(time: number): void {
     this.windowTime = time;
+    this.interval = chartUtils.timeAxisPreferences[time].milliseconds;
     ChartDispatcher.setWindowTime(this.windowTime);
+  }
+
+  updateIntervalOnly(interval: number): void {
+    this.interval = interval;
+    ChartDispatcher.setInterval(interval);
   }
 
   /* Control flags */
@@ -123,7 +135,12 @@ class ChartImpl implements ChartInterface {
 
     await this.updateStartAndEnd(now, true);
 
-    const { unit, unitStepSize } = chartUtils.timeAxisPreferences[this.windowTime];
+    // const { unit, unitStepSize } = chartUtils.timeAxisPreferences[this.windowTime];
+
+    const valueUnit = chartUtils.millisecondsToValUnit(this.interval);
+    const unit = chartUtils.getUnit(parseInt(valueUnit[0]), valueUnit[1]);
+    const unitStepSize = chartUtils.getUnitStepSize(parseInt(valueUnit[0]), valueUnit[1]);
+
     this.chartjs.updateTimeAxis(unit, unitStepSize, this.time.getStart(), this.time.getEnd());
     this.updateOptimizedWarning();
 
@@ -189,6 +206,7 @@ class ChartImpl implements ChartInterface {
 
   async updateTimeWindow(window: number): Promise<void> {
     this.updateTimeWindowOnly(window);
+    //chartUtils.timeAxisPreferences[this.windowTime].milliseconds
 
     if (this.windowTime < chartUtils.timeIDs.MIN_30) {
       if (this.autoUpdate.isEnabled()) {
@@ -198,17 +216,17 @@ class ChartImpl implements ChartInterface {
 
     if (this.reference === REFERENCE.END) {
       this.time.setStart(
-        new Date(this.time.getEnd().getTime() - chartUtils.timeAxisPreferences[this.windowTime].milliseconds)
+        new Date(this.time.getEnd().getTime() - this.interval)
       );
     } else if (this.reference === REFERENCE.START) {
       const now = await this.getDateNow();
 
       if (
-        this.time.getStart().getTime() + chartUtils.timeAxisPreferences[this.windowTime].milliseconds <=
+        this.time.getStart().getTime() + this.interval <=
         now.getTime()
       ) {
         this.time.setEnd(
-          new Date(this.time.getStart().getTime() + chartUtils.timeAxisPreferences[this.windowTime].milliseconds)
+          new Date(this.time.getStart().getTime() + this.interval)
         );
       } else {
         this.time.setEnd(now);
@@ -217,7 +235,13 @@ class ChartImpl implements ChartInterface {
 
     this.optimizeAllGraphs();
     this.diffAllGraphs();
-    const { unit, unitStepSize } = chartUtils.timeAxisPreferences[this.windowTime];
+
+    // const { unit, unitStepSize } = chartUtils.timeAxisPreferences[this.windowTime];
+
+    const valueUnit = chartUtils.millisecondsToValUnit(this.interval);
+    const unit = chartUtils.getUnit(parseInt(valueUnit[0]), valueUnit[1]);
+    const unitStepSize = chartUtils.getUnitStepSize(parseInt(valueUnit[0]), valueUnit[1]);
+
     this.chartjs.updateTimeAxis(unit, unitStepSize, this.time.getStart(), this.time.getEnd());
 
     await this.updateAllPlots(true);
@@ -225,6 +249,8 @@ class ChartImpl implements ChartInterface {
 
   async updateTimeWindowCustom(newValue: number, newUnit: string): Promise<void> {
     const timeMilliseconds = chartUtils.getMilliseconds(newValue, newUnit);
+
+    this.updateIntervalOnly(timeMilliseconds);
 
     if (this.reference === REFERENCE.END) {
       this.time.setStart(
@@ -291,7 +317,8 @@ class ChartImpl implements ChartInterface {
     } else {
       newEnd = now;
     }
-    const newStartDate = new Date(newEnd.getTime() - chartUtils.timeAxisPreferences[this.windowTime].milliseconds);
+    //chartUtils.timeAxisPreferences[this.windowTime].milliseconds)
+    const newStartDate = new Date(newEnd.getTime() - this.interval);
 
     if (newEnd) {
       this.time.setEnd(newEnd);
@@ -307,19 +334,20 @@ class ChartImpl implements ChartInterface {
     if (!this.time.getStart()) {
       newStart = now;
     }
+    //chartUtils.timeAxisPreferences[this.windowTime].milliseconds
     const isStartDatePlusWindowTimeSmallerThanNow =
-      date.getTime() + chartUtils.timeAxisPreferences[this.windowTime].milliseconds <= now.getTime();
+      date.getTime() + this.interval <= now.getTime();
 
     if (isStartDatePlusWindowTimeSmallerThanNow) {
       const startDatePlusOffset = new Date(
-        date.getTime() + chartUtils.timeAxisPreferences[this.windowTime].milliseconds
+        date.getTime() + this.interval
       );
 
       newStart = date;
       newEnd = startDatePlusOffset;
     } else {
       const startDateMinusOffset = new Date(
-        now.getTime() - chartUtils.timeAxisPreferences[this.windowTime].milliseconds
+        now.getTime() - this.interval
       );
       newStart = startDateMinusOffset;
       newEnd = now;
@@ -911,6 +939,10 @@ class ChartImpl implements ChartInterface {
 
   getWindowTime(): number {
     return this.windowTime;
+  }
+
+  getIntervalTime(): number {
+    return this.interval;
   }
 
   disableServerDate() {

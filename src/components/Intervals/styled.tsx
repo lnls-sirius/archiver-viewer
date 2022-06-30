@@ -33,8 +33,10 @@ export const IntervalsItem = styled.button<IntervalsItemProps>`
 export const IntervalWrapper = styled.div`
   display: flex;
   justify-content: center;
+  align-items: center;
   background-color: lightgrey;
   border-radius: 0.2rem;
+  padding: 0rem 0.5rem;
   margin: 0.2rem 1rem;
   &:hover {
     background-color: darkgrey;
@@ -63,5 +65,5 @@ export const UnitInput = styled.select`
 `
 
 export const opt = styled.option`
-  background-color: #ffff00;
+  background-color: grey;
 `

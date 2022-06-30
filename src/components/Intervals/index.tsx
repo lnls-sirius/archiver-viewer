@@ -45,6 +45,7 @@ const CustomInterval: React.FC<intervalSelected> = ({value, unit, activate}) => 
 
   return (
     <S.IntervalWrapper>
+      Interval:
       <S.IntervalInput
         type="number"
         value={time}

@@ -91,84 +91,107 @@ function getMilliseconds(value: number, unit: string): number{
   return timeMilliseconds;
 }
 
-function getUnit(value: number, unit: string){
+function getUnit(value?: number, unit?: string, windowTime?: number){
   let stepUnit = 'hour';
-  switch (unit) {
-    case "year":
-      stepUnit = 'month';
-      break;
-    case "month":
-      stepUnit = 'day';
-      break;
-    case "week":
-      stepUnit = 'day';
-      break;
-    case "day":
-      stepUnit = 'hour';
-      break;
-    case "hour":
-      if(value>=4){
+  if(!windowTime){
+    switch (unit) {
+      case "year":
+        stepUnit = 'month';
+        break;
+      case "month":
+        stepUnit = 'day';
+        break;
+      case "week":
+        stepUnit = 'day';
+        break;
+      case "day":
         stepUnit = 'hour';
-      }else{
-        stepUnit = 'minute';
-      }
-      break;
-    case "minute":
-      if(value>=10){
-        stepUnit = 'minute';
-      }else{
+        break;
+      case "hour":
+        if(value>=4){
+          stepUnit = 'hour';
+        }else{
+          stepUnit = 'minute';
+        }
+        break;
+      case "minute":
+        if(value>=10){
+          stepUnit = 'minute';
+        }else{
+          stepUnit = 'second';
+        }
+        break;
+      case "second":
         stepUnit = 'second';
-      }
-      break;
-    case "second":
-      stepUnit = 'second';
-      break;
-    default:
-      throw `Unit conversion not impplemented`;
+        break;
+      default:
+        throw `Unit conversion not impplemented`;
+    }
+  }else{
+    stepUnit = TIME_AXIS_PREFERENCES[windowTime].unit;
   }
   return stepUnit;
 }
 
-function getUnitStepSize(value: number, unit: string){
+function getUnitStepSize(value?: number, unit?: string, windowTime?: number){
   let unitStepSize = 1;
-  switch (unit) {
-    case "year":
-      unitStepSize = 2;
-      break;
-    case "month":
-      unitStepSize = 4;
-      break;
-    case "week":
-      unitStepSize = 2;
-      break;
-    case "day":
-      if(value>=2.5){
-        unitStepSize = 12;
-      }else{
-        unitStepSize = 3;
-      }
-      break;
-    case "hour":
-      if(value>=4){
+  if(!windowTime){
+    switch (unit) {
+      case "year":
         unitStepSize = 2;
-      }else{
-        unitStepSize = 15;
-      }
-      break;
-    case "minute":
-      if(value>=10){
+        break;
+      case "month":
+        unitStepSize = 4;
+        break;
+      case "week":
+        unitStepSize = 2;
+        break;
+      case "day":
+        if(value>=2.5){
+          unitStepSize = 12;
+        }else{
+          unitStepSize = 3;
+        }
+        break;
+      case "hour":
+        if(value>=4){
+          unitStepSize = 2;
+        }else{
+          unitStepSize = 15;
+        }
+        break;
+      case "minute":
+        if(value>=10){
+          unitStepSize = 3;
+        }else{
+          unitStepSize = 15;
+        }
+        break;
+      case "second":
         unitStepSize = 3;
-      }else{
-        unitStepSize = 15;
-      }
-      break;
-    case "second":
-      unitStepSize = 3;
-      break;
-    default:
-      throw `Unit conversion not impplemented`;
+        break;
+      default:
+        throw `Unit conversion not impplemented`;
+    }
+  }else{
+    unitStepSize = TIME_AXIS_PREFERENCES[windowTime].unitStepSize;
   }
   return unitStepSize;
+}
+
+function millisecondsToValUnit(milliseconds: number):Array<string>{
+  let unit = " ";
+  let val = 1;
+  let flag = 0;
+  Object.entries(TimeUnits).map(([key, value]) => {
+    let tempVal = (milliseconds/getMilliseconds(1, value));
+    if(tempVal >= 1 && flag != 1){
+      unit = value;
+      val = tempVal;
+      flag = 1;
+    }
+  });
+  return [val.toString(), unit];
 }
 
 export default {
@@ -180,5 +203,6 @@ export default {
   reboundTooltip,
   getMilliseconds,
   getUnit,
+  millisecondsToValUnit,
   getUnitStepSize
 };
