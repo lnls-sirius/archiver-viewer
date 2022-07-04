@@ -25,7 +25,6 @@ const shortcutsSlice = createSlice({
         state.rdKey = state.ndKey;
         state.ndKey = state.stKey;
         state.stKey = action.payload;
-        console.log(state.stKey + "-" + state.ndKey + "-" + state.rdKey)
       }
     },
     unsetKey(state, action: PayloadAction<string>) {
@@ -39,7 +38,6 @@ const shortcutsSlice = createSlice({
         state.ndKey = state.rdKey;
         state.rdKey = "";
       }
-      console.log(state.stKey + "-" + state.ndKey + "-" + state.rdKey)
     },
     setInfoResultsVisible: (state, action: PayloadAction<boolean>) => {
       state.info = action.payload;

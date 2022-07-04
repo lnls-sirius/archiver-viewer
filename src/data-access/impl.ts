@@ -125,21 +125,26 @@ export class ArchiverDataAccess implements DataAccess{
           x,
           y,
           severity,
-          status,
+          status
         });
       }
     });
     return outData;
   }
 
-  private getClosestDate(dataArray: any[]): number{
+  private async getDataInArchiver(selectedDate: Date, pv: string){
+    const interval = 100;
+    const startInt = new Date(control.getRefDiff().getTime() - interval);
+    const endInt = new Date(control.getRefDiff().getTime() + interval);
 
-    let selectedDate = new Date();
+    let archiverInterval = await this.fetchData(pv, startInt, endInt);
 
-    if (control.getRefDiff() !== undefined){
-      selectedDate = new Date(control.getRefDiff());
-    }
+    let valueComp = this.getDataInArray(selectedDate, archiverInterval.data);
 
+    return valueComp;
+  }
+
+  private getDataInArray(selectedDate: Date, dataArray: ArchiverDataPoint[]): number{
     let valueComp = 0;
     let closestDate = selectedDate.getTime();
 
@@ -156,9 +161,28 @@ export class ArchiverDataAccess implements DataAccess{
     return valueComp;
   }
 
-  private differentiateData(diffData: any[]): ArchiverDataPoint[]{
+  private async getClosestDate(pv: string, dataArray: ArchiverDataPoint[]): Promise<number>{
 
-    let valueComp = this.getClosestDate(diffData);
+    let selectedDate = new Date();
+    let valueComp = 0;
+
+    if (control.getRefDiff() !== undefined){
+      selectedDate = new Date(control.getRefDiff());
+    }
+
+    if (selectedDate >= control.getStart() &&
+      selectedDate <= control.getEnd()){
+        valueComp = this.getDataInArray(selectedDate, dataArray);
+    }else{
+      valueComp = await this.getDataInArchiver(selectedDate, pv);
+    }
+
+    return valueComp;
+  }
+
+  private async differentiateData(pv: string, diffData: ArchiverDataPoint[]): Promise<ArchiverDataPoint[]>{
+
+    let valueComp = await this.getClosestDate(pv, diffData);
 
     diffData.map((point) =>{
       point.y = point.y - valueComp;
@@ -167,7 +191,7 @@ export class ArchiverDataAccess implements DataAccess{
     return diffData;
   }
 
-  async fetchData(pv: string, from: Date, to: Date, ref: Date, isOptimized?: boolean, diff?: boolean, bins?: number): Promise<ArchiverData> {
+  async fetchData(pv: string, from: Date, to: Date, ref?: Date, isOptimized?: boolean, diff?: boolean, bins?: number): Promise<ArchiverData> {
 
     let finalData = null;
 
@@ -220,7 +244,7 @@ export class ArchiverDataAccess implements DataAccess{
     finalData = this.parseData(res.data);
 
     if(diff == true){
-      finalData = this.differentiateData(finalData);
+      finalData = await this.differentiateData(pv, finalData);
     }
 
     return {

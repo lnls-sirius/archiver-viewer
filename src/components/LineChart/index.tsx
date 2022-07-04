@@ -201,8 +201,6 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
         control.setEnd(zoomTime1);
       }
 
-      control.referenceOutOfRange();
-
       this.decreaseTimeWindowWhileTimeWindowIsLargerThanStartEndDelta(chartUtils.timeIDs.SEG_30);
       control.updateOptimizedWarning();
       control.disableZoom();
