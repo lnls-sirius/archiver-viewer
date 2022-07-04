@@ -5,6 +5,9 @@ class ShortcutsDispatcherImpl implements StatusDispatcherInterface {
   KeyPress(key: string): void {
     store.dispatch(actionsShortcuts.setKeys(key));
   }
+  KeyRelease(key: string): void {
+    store.dispatch(actionsShortcuts.unsetKey(key));
+  }
   setInfoVisible(visible: boolean): void {
     store.dispatch(actionsShortcuts.setInfoResultsVisible(visible));
   }

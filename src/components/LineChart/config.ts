@@ -21,7 +21,7 @@ export const options: Chart.ChartOptions = {
   hover: {
     mode: "nearest",
     intersect: false,
-    animationDuration: 0,
+    animationDuration: 0
   },
   title: { display: false },
   scales: {

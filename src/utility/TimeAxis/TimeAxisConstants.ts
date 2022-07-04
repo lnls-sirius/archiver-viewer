@@ -5,11 +5,11 @@ export const TimeAxisIndex = 0;
 export enum TimeUnits {
   Year = "year",
   Month = "month",
+  Week = "week",
   Day = "day",
   Hour = "hour",
   Minute = "minute",
-  Second = "second",
-  Week = "week",
+  Second = "second"
 }
 
 export enum TimeID {

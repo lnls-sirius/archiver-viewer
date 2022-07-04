@@ -13,6 +13,7 @@ import { options } from "./config";
 import { initialState, getAverageDateFromEvent, LineChartProps, LineChartStates } from "./contents";
 import handlers from "../../controllers/handlers";
 import ChartController from "../../controllers/Chart";
+import { TIME_AXIS_PREFERENCES } from "../../lib/timeAxisPreferences";
 
 const mapStateToProps = (state: RootState) => {
   const { autoScroll, zooming, singleTooltip } = state.chart;
@@ -26,8 +27,12 @@ const mapStateToProps = (state: RootState) => {
   };
 };
 
+class ChartMod extends Chart{
+  getElementsAtXAxis: (e: any) => Array<{}>;
+}
+
 class LineChart extends Component<LineChartProps, LineChartStates> {
-  private chart: Chart;
+  private chart: ChartMod;
   private chartDOMRef: React.RefObject<HTMLCanvasElement>;
   private updateProps: Chart.ChartUpdateProps;
 
@@ -40,7 +45,7 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
   }
 
   componentDidMount() {
-    this.chart = new Chart(this.chartDOMRef.current, { type: "line", options });
+    this.chart = new ChartMod(this.chartDOMRef.current, { type: "line", options });
     control.init(this.chart);
     UrlLoader.load();
   }
@@ -97,9 +102,10 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
     const evt = e.nativeEvent;
     const { dragOffsetX, dragEndTime, dragStartTime } = this.state;
     const offsetX = dragOffsetX - evt.offsetX;
-    const windowTime = control.getWindowTime();
+    // const windowTime = control.getWindowTime();
+    const ms = control.getIntervalTime();
 
-    const ms = chartUtils.timeAxisPreferences[windowTime].milliseconds;
+    // const ms = chartUtils.timeAxisPreferences[windowTime].milliseconds;
 
     const endTimeMs = dragEndTime.getTime();
     const startTimeMs = dragStartTime.getTime();
@@ -183,7 +189,7 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
         action: StackActionEnum.ZOOM,
         startTime: control.getStart(),
         endTime: control.getEnd(),
-        windowTime: control.getWindowTime(),
+        windowTime: control.getWindowTime()
       });
 
       // Checks which zoom times should be used as start time or end time
@@ -278,8 +284,9 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
 
   getTimePoint = async () =>{
     const {dragOffsetX} = this.state;
-    let windowTime = control.getWindowTime();
-    let ms = chartUtils.timeAxisPreferences[windowTime].milliseconds;
+    // let windowTime = control.getWindowTime();
+    // let ms = chartUtils.timeAxisPreferences[windowTime].milliseconds;
+    let ms = control.getIntervalTime();
 
     let newArea = this.chart.width/(this.chart.chartArea.right - this.chart.chartArea.left);
     let offsetX = (dragOffsetX - this.chart.chartArea.left)*newArea;

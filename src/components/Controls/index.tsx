@@ -156,7 +156,7 @@ class Controls extends Component<ControlsReduxProps, ControlsState> {
           onChange={this.handleDateChange}
           timeFormat="HH:mm"
           timeCaption="time"
-          dateFormat="dd/MM/yy h:mm aa"
+          dateFormat="dd/MM/yy h:mm:ss aa"
           maxDate={new Date()}
         />
         <S.ControlSelect onChange={this.handleTimeRefChange}>
@@ -184,7 +184,7 @@ class Controls extends Component<ControlsReduxProps, ControlsState> {
         onChange={this.handleTimeChange}
         timeFormat="HH:mm"
         timeCaption="time"
-        dateFormat="dd/MM/yy hh:mm aa"
+        dateFormat="dd/MM/yy hh:mm:ss aa"
         maxDate={new Date()}
       />
     );

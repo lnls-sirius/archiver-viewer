@@ -113,10 +113,12 @@ export function removeDataset(state: ChartState, action: PayloadAction<{ idx: nu
 export function setWindowTime(state: ChartState, action: PayloadAction<number>): void {
   state.windowTime = action.payload;
 }
+export function setInterval(state: ChartState, action: PayloadAction<number>): void {
+  state.interval = action.payload;
+}
 export function setAutoScroll(state: ChartState, action: PayloadAction<boolean>): void {
   state.autoScroll = action.payload;
 }
-
 export function setZooming(state: ChartState, action: PayloadAction<boolean>): void {
   state.zooming = action.payload;
 }

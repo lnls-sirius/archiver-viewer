@@ -39,6 +39,9 @@ class ChartDispatcherImpl implements ChartDispatcher {
   setWindowTime(windowTime: number): void {
     store.dispatch(actions.setWindowTime(windowTime));
   }
+  setInterval(interval: number): void {
+    store.dispatch(actions.setInterval(interval));
+  }
   setTimeReferenceEnd(timeReferenceEnd: boolean): void {
     store.dispatch(actions.setTimeReferenceEnd(timeReferenceEnd));
   }
