@@ -27,7 +27,6 @@ async function onChangeSelectedTime(date: Date): Promise<void> {
 
   await control.setRefDiff(date);
 
-  control.referenceOutOfRange();
   control.updateAllPlots(true);
   control.updateTimeAxis();
 }
