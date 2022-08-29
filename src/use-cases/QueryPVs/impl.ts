@@ -21,7 +21,6 @@ function isValidPVMetadata(pvMetadata: ArchiverMetadata): boolean {
 
 function isPromisseFulfilled(result: any): boolean {
   if (!result) {
-    console.log(result);
     return false;
   }
   if (result.status !== "fulfilled" || result.value === null || result.value === undefined) {

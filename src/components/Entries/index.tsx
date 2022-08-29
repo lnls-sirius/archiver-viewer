@@ -41,13 +41,20 @@ const Entries: React.FC = () => {
       pv: { optimized, diff, bins },
     } = datasetInfo;
 
+    function showUnit(): string {
+      if(yAxisID  != label){
+        return yAxisID;
+      }
+      return '';
+    }
+
     return (
       <S.EntryGroup key={label}>
         <S.Color title="Dataset visibility" $bgcolor={backgroundColor} onClick={() => hideDataset(label)}>
           {visible ? <S.VisibleIndicator /> : <S.HiddenIndicator />}
         </S.Color>
         <S.Text title="PV name">{label}</S.Text>
-        <S.EguText title="y axis label">{yAxisID}</S.EguText>
+        <S.EguText title="y axis label">{showUnit()}</S.EguText>
         <Checkbox
           onClick={() => diffHandler(label, !diff)}
           checked={diff}
