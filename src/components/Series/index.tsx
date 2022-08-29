@@ -26,7 +26,7 @@ const Series: React.FC = () => {
     }
 
     const val = parseFloat(yMinState);
-    if (val) {
+    if (!isNaN(val)) {
       ChartController.setAxisYMin(id, val);
     }
   };
@@ -41,7 +41,7 @@ const Series: React.FC = () => {
     }
 
     const val = parseFloat(yMaxState);
-    if (val) {
+    if(!isNaN(val)){
       ChartController.setAxisYMax(id, val);
     }
   };
