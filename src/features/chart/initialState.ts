@@ -18,7 +18,7 @@ const initialState: ChartState = {
   autoScroll: false,
   dataAxis: [], // @todo: Transform into an object
   datasets: [], // @todo: Transform into an object
-  singleTooltip: false,
+  singleTooltip: true,
   timeEnd: null,
   timeReferenceEnd: true,
   timeStart: null,

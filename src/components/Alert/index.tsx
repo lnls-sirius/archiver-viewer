@@ -27,7 +27,8 @@ const Alert: React.FC<AlertProps> = ({ level, message, title, extra }) => {
   return visible ? (
     <S.Wrapper level={level} opacity={opacity}>
       <S.Title>
-        {title} &bull; <S.Extra>{extra}</S.Extra>
+        {title}<br/>
+        <S.Extra>{extra}</S.Extra>
       </S.Title>
       <S.Message>{message}</S.Message>
     </S.Wrapper>

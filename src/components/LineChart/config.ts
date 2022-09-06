@@ -50,7 +50,7 @@ export const options: Chart.ChartOptions = {
           autoSkipPadding: 5,
           maxRotation: 0,
           minRotation: 0,
-          stepSize: 1,
+          stepSize: 1
         }
       }
     ],

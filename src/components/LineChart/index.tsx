@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { connect, useSelector } from "react-redux";
+import { connect } from "react-redux";
 import { Chart } from "chart.js";
 
 import UrlLoader from "../../controllers/UrlLoader";

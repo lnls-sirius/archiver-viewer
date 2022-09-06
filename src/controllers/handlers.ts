@@ -419,5 +419,5 @@ export default {
   exportAsXlsx,
   undoHandler,
   redoHandler,
-  updateReferenceTime,
+  updateReferenceTime
 };
