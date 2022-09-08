@@ -8,22 +8,21 @@ import { RootState } from "../../reducers";
 import { StackActionEnum } from "../../entities/Chart/StackAction/constants";
 import { REFERENCE } from "../../entities/Chart";
 import control from "../../entities/Chart";
-import * as S from "./styled";
 import { options } from "./config";
 import { initialState, getAverageDateFromEvent, LineChartProps, LineChartStates } from "./contents";
 import handlers from "../../controllers/handlers";
-import ChartController from "../../controllers/Chart";
-import { TIME_AXIS_PREFERENCES } from "../../lib/timeAxisPreferences";
+import * as S from "./styled";
 
 const mapStateToProps = (state: RootState) => {
   const { autoScroll, zooming, singleTooltip } = state.chart;
-  const {stKey, ndKey} = state.shortcuts;
+  const {stKey, ndKey, rdKey} = state.shortcuts;
   return {
     autoScroll: autoScroll,
     isZooming: zooming,
     singleTooltip: singleTooltip,
     stKey: stKey,
-    ndKey: ndKey
+    ndKey: ndKey,
+    rdKey: rdKey
   };
 };
 
@@ -246,6 +245,7 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
     activePoints.map((axis: any) => {
       coordAxis = [axis._model.x, axis._model.y];
       distDataset = this.distanceAxisClick(coordAxis, coordClick);
+      console.log(axis._datasetIndex, distDataset)
       if(nearestDist > distDataset){
         nearestDist = distDataset;
         nearestDataset = axis._datasetIndex;
@@ -254,36 +254,45 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
     return nearestDataset;
   }
 
-  removeAxis = async (evt: any) => {
+  removeAxis = (evt: any) => {
     const datasetIndex = this.getNearestXAxis(evt);
     control.removeDataset(datasetIndex);
   }
 
-  setInvisible = async (evt: any) => {
+  setInvisible = (evt: any) => {
     const datasetIndex = this.getNearestXAxis(evt);
     control.hideDatasetByIndex(datasetIndex);
   }
 
-  setDiff = async (evt: any) => {
-    const datasetIndex = this.getNearestXAxis(evt);
+  diffDataset = (datasetIndex: number) => {
     const dataset = control.getDatasets();
     const label = dataset[datasetIndex].metadata.label;
-    await ChartController.setDatasetDiff(
+    control.diffPlot(
       label, !dataset[datasetIndex].metadata.pv.diff);
   }
 
-  setOptimized = async (evt: any) => {
+  setSingleDiff = (evt: any) => {
+    const datasetIndex = this.getNearestXAxis(evt);
+    this.diffDataset(datasetIndex);
+  }
+
+  setAllDiff = (evt: any) => {
+    const datasets = this.chart.getElementsAtXAxis(evt);
+    datasets.map((dataset: any) => {
+      this.diffDataset(dataset._datasetIndex);
+    })
+  }
+
+  setOptimized = (evt: any) => {
     const datasetIndex = this.getNearestXAxis(evt);
     const dataset = control.getDatasets();
     const label = dataset[datasetIndex].metadata.label;
-    await ChartController.setDatasetOptimized(
+    control.optimizePlot(
       label, !dataset[datasetIndex].metadata.pv.optimized);
   }
 
   getTimePoint = async () =>{
     const {dragOffsetX} = this.state;
-    // let windowTime = control.getWindowTime();
-    // let ms = chartUtils.timeAxisPreferences[windowTime].milliseconds;
     let ms = control.getIntervalTime();
 
     let newArea = this.chart.width/(this.chart.chartArea.right - this.chart.chartArea.left);
@@ -295,7 +304,7 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
   }
 
   handleCanvasClick = async (evt: any) => {
-    const { stKey, ndKey } = this.props;
+    const { stKey, ndKey, rdKey } = this.props;
     if(stKey == 'Control'){
       this.getTimePoint();
     }else if(ndKey == 'Shift' &&
@@ -304,9 +313,13 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
     }else if(ndKey == 'Shift' &&
               (stKey == 'v' || stKey == 'V')){
       this.setInvisible(evt);
+    }else if(rdKey == 'Shift' &&
+              (ndKey == 'd' || ndKey == 'D') &&
+              (stKey == 'a' || stKey == 'A')){
+      this.setAllDiff(evt);
     }else if(ndKey == 'Shift' &&
               (stKey == 'd' || stKey == 'D')){
-      this.setDiff(evt);
+      this.setSingleDiff(evt);
     }else if(ndKey == 'Shift' &&
               (stKey == 'f' || stKey == 'F')){
       this.setOptimized(evt);

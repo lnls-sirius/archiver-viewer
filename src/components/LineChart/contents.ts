@@ -21,6 +21,7 @@ export interface LineChartProps {
   singleTooltip: boolean;
   stKey: string;
   ndKey: string;
+  rdKey: string;
 }
 
 export const initialState: LineChartStates = {
