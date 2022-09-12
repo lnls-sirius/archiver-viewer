@@ -245,7 +245,6 @@ class LineChart extends Component<LineChartProps, LineChartStates> {
     activePoints.map((axis: any) => {
       coordAxis = [axis._model.x, axis._model.y];
       distDataset = this.distanceAxisClick(coordAxis, coordClick);
-      console.log(axis._datasetIndex, distDataset)
       if(nearestDist > distDataset){
         nearestDist = distDataset;
         nearestDataset = axis._datasetIndex;

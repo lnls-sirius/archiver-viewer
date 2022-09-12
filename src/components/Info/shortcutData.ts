@@ -19,8 +19,8 @@ export const SHORTCUTS = {
         title: 'Set/Unset the Difference function to the selected PV',
         keys: 'Shift + D + CLICK (Near the desired axis)'
     },
-    '5':{
-        title: 'Set/Unset the Difference function to all of the PVs',
-        keys: 'Shift + D + A + CLICK'
-    }
+    // '5':{
+    //     title: 'Set/Unset the Difference function to all of the PVs',
+    //     keys: 'Shift + D + A + CLICK'
+    // }
 }
