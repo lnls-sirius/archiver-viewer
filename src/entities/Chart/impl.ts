@@ -768,8 +768,7 @@ class ChartImpl implements ChartInterface {
 
   loadTooltipSettings() {
     const singleTipCookie = Browser.getCookie("singleTip");
-    this.setSingleTipEnabled(singleTipCookie === "true" ||
-                              singleTipCookie == '');
+    this.setSingleTipEnabled(singleTipCookie === "true" || singleTipCookie == null);
     this.chartjs.toggleTooltipBehavior(this.singleTipEnabled);
   }
 

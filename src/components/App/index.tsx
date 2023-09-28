@@ -36,8 +36,8 @@ const App: React.FC = () => {
       </S.HeaderWrapper>
       <SearchResults />
       <Info />
-      <AlertDisplay />
       <LineChart />
+      <AlertDisplay />
       <S.FooterWrapper>
         <Loading />
         <Entries />

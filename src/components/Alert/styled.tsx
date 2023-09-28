@@ -9,13 +9,13 @@ interface AlertWrapperProps {
 const getBGColorFromLevel = (level: MessageLevel) => {
   switch (level) {
     case MessageLevel.info:
-      return "#46c4ffAA";
+      return "lightblue";
     case MessageLevel.error:
-      return "#ff9e9eAA";
+      return "#ff9e9e";
     case MessageLevel.warn:
-      return "#feffaaAA";
+      return "#feffaa";
     default:
-      return "#a8a8a8AA";
+      return "lightgrey";
   }
 };
 
@@ -25,19 +25,17 @@ export const Wrapper = styled.div<AlertWrapperProps>`
   background-color: ${({ level }) => getBGColorFromLevel(level)};
   transition: opacity 0.5s;
   opacity: ${({ opacity }) => opacity};
-  border-radius: 0.5em;
 `;
 export const Title = styled.h1`
-  font-size: 0.85rem;
+  font-size: 1.05rem;
   font-weight: 500;
   margin-bottom: 0.5rem;
 `;
 export const Message = styled.p`
-  font-size: 0.75rem;
-  width: 40em;
+  font-size: 0.95rem;
 `;
 export const Extra = styled.span`
   padding: 5px;
-  font-size: 0.80rem;
+  font-size: 0.85rem;
   font-weight: 400;
 `;

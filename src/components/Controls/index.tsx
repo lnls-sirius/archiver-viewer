@@ -138,9 +138,7 @@ class Controls extends Component<ControlsReduxProps, ControlsState> {
   };
 
   handleTimeRefChange = (e: any) => {
-    const isEndSelected = parseInt(e.target.value) === 1;
-    handlers.updateReferenceTime(isEndSelected);
-    this.handleDateChange(this.state.startDate);
+    handlers.updateReferenceTime(parseInt(e.target.value) === 1);
   };
 
   renderLeftGroup = () => {

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import Checkbox from "../Checkbox";
 
 import * as S from "./styled";
@@ -26,7 +26,7 @@ const Series: React.FC = () => {
     }
 
     const val = parseFloat(yMinState);
-    if (!isNaN(val)) {
+    if (val) {
       ChartController.setAxisYMin(id, val);
     }
   };
@@ -41,7 +41,7 @@ const Series: React.FC = () => {
     }
 
     const val = parseFloat(yMaxState);
-    if(!isNaN(val)){
+    if (val) {
       ChartController.setAxisYMax(id, val);
     }
   };
