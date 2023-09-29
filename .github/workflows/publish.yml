@@ -1,0 +1,31 @@
+name: Archiver Viewer CD
+
+on:
+  pull_request:
+    branches: main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@master
+
+      - name: Login to GitHub Container Registry 🔓
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Write deploy tag
+        run:  echo "VERSION=${GITHUB_REF_NAME#v}" > .env
+
+      - name: Build Docker Compose 🏗️
+        run: docker-compose build
+
+      - name: Push Docker Compose 🪖
+        run: docker-compose push
