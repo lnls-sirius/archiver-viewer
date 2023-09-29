@@ -9,8 +9,8 @@ services:
       - 8080:80
 
   archiver-viewer-latest:
-    container_name: 'rad-det'
-    image: 'ghcr.io/lnls-sirius/rad-det-frontend'
+    container_name: 'archiver-viewer'
+    image: 'ghcr.io/lnls-sirius/archiver-viewer'
     build:
       context: .
     ports:
