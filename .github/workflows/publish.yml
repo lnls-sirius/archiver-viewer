@@ -2,7 +2,7 @@ name: Archiver Viewer CD
 
 on:
   pull_request:
-    branches: main
+    branches: master
 
 jobs:
   deploy:
