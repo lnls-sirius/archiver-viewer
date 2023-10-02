@@ -1,8 +1,8 @@
 name: Archiver Viewer CD
 
 on:
-  pull_request:
-    branches: master
+  release:
+    types: [created]
 
 jobs:
   deploy:

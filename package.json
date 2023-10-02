@@ -1,7 +1,7 @@
 {
   "name": "archiver-viewer",
   "homepage": "https://github.com/lnls-sirius/archiver-viewer",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "description": "Epics Archiver Viewer",
   "main": "init",
   "author": "SwC",
