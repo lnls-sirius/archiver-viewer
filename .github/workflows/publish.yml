@@ -1,8 +1,9 @@
 name: Archiver Viewer CD
 
 on:
-  release:
-    types: [created]
+  pull_request:
+    branches:
+      - master
 
 jobs:
   deploy:
@@ -21,8 +22,8 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Write deploy tag
-        run:  echo "VERSION=${GITHUB_REF_NAME#v}" > .env
+      # - name: Write deploy tag
+      #   run:  echo "VERSION=${GITHUB_REF_NAME#v}" > .env
 
       - name: Build Docker Compose 🏗️
         run: docker-compose build
