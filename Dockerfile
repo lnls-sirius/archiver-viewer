@@ -9,7 +9,7 @@ COPY package*.json ./
 
 RUN npm install --loglevel verbose
 
-COPY --chown=node:node .git                        .git                    
+COPY --chown=node:node .git                        .git
 COPY --chown=node:node tsconfig.json               tsconfig.json
 COPY --chown=node:node .babelrc                    .babelrc
 COPY --chown=node:node .eslintrc.js                .eslintrc.js
@@ -29,6 +29,5 @@ RUN rm --recursive --verbose .git
 
 FROM nginx:1.18-alpine
 
-COPY --chown=nginx:nginx --from=builder /home/node/app/build /usr/share/nginx/html/archiver-viewer
-COPY ./scripts/nginx/default.conf /etc/nginx/conf.d/default.conf
-
+COPY --chown=nginx:nginx --from=builder /home/node/app/build /usr/share/nginx/html/
+COPY ./nginx/default.conf /etc/nginx/conf.d/default.conf

@@ -1,0 +1,17 @@
+version: "3.8"
+services:
+  archiver-viewer:
+    container_name: 'archiver-viewer'
+    image: 'ghcr.io/lnls-sirius/archiver-viewer:${VERSION}'
+    build:
+      context: .
+    ports:
+      - 8080:80
+
+  archiver-viewer-latest:
+    container_name: 'archiver-viewer'
+    image: 'ghcr.io/lnls-sirius/archiver-viewer'
+    build:
+      context: .
+    ports:
+      - 8080:80

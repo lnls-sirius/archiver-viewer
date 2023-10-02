@@ -12,5 +12,8 @@
     "moduleResolution": "node",
     "lib": ["ES2020", "es6", "dom"],
     "typeRoots": ["node_modules/@types", "src/types"]
-  }
+  },
+  "include": [
+    "**/*.d.ts"
+  ]
 }
