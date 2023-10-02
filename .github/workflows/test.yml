@@ -1,0 +1,27 @@
+name: Archiver Viewer CI
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@master
+
+      - name: Install 🔧
+        run: npm install
+
+      - name: Test 🚨
+        run: npm test
+
+      - name: Build 🏗️
+        run: npm run build
+        env:
+         CI: ""
