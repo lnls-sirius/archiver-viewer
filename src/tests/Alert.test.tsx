@@ -90,7 +90,7 @@ describe('Alert Component', () => {
                         extra={extra}
                     />
                 );
-                console.log(color, level)
+
                 element_bg_color("wrapper", color)
                 cleanup()
             })
