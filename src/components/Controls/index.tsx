@@ -158,7 +158,7 @@ class Controls extends Component<ControlsReduxProps, ControlsState> {
           onChange={this.handleDateChange}
           timeFormat="HH:mm"
           timeCaption="time"
-          dateFormat="dd/MM/yy h:mm:ss aa"
+          dateFormat="dd/MM/yy HH:mm:ss"
           maxDate={new Date()}
         />
         <S.ControlSelect onChange={this.handleTimeRefChange}>
@@ -180,13 +180,13 @@ class Controls extends Component<ControlsReduxProps, ControlsState> {
 
     return (
       <S.DatePickerWrapper
-        title="Start/end timestamp"
+        title="Diff timestamp"
         showTimeSelect
         selected={timeDisplay}
         onChange={this.handleTimeChange}
         timeFormat="HH:mm"
         timeCaption="time"
-        dateFormat="dd/MM/yy hh:mm:ss aa"
+        dateFormat="dd/MM/yy HH:mm:ss"
         maxDate={new Date()}
       />
     );
@@ -215,9 +215,9 @@ class Controls extends Component<ControlsReduxProps, ControlsState> {
           {this.renderControlIcons()}
           <S.TimeDisplay>
             <S.TimeDisplayText>{"from"}</S.TimeDisplayText>
-            <S.TimeDisplayDate>{`${timeStart}`}</S.TimeDisplayDate>
+            <S.TimeDisplayDate>{`${(new Date(timeStart)).toLocaleString('pt-BR')}`}</S.TimeDisplayDate>
             <S.TimeDisplayText>{"to"}</S.TimeDisplayText>
-            <S.TimeDisplayDate>{`${timeEnd}`}</S.TimeDisplayDate>
+            <S.TimeDisplayDate>{`${(new Date(timeEnd)).toLocaleString('pt-BR')}`}</S.TimeDisplayDate>
           </S.TimeDisplay>
         </S.ControlsGroupWrapper>
       </S.ControlsWrapper>
