@@ -160,7 +160,7 @@ class Controls extends Component<ControlsReduxProps, ControlsState> {
           dateFormat="dd/MM/yy HH:mm:ss"
           maxDate={new Date()}
         />
-        <S.ControlSelect onChange={this.handleTimeRefChange}>
+        <S.ControlSelect onChange={this.handleTimeRefChange} data-testid='select'>
           <option value={1}>End</option>
           <option value={0}>Start</option>
         </S.ControlSelect>
