@@ -139,8 +139,6 @@ class ChartImpl implements ChartInterface {
 
     await this.updateStartAndEnd(now, true);
 
-    // const { unit, unitStepSize } = chartUtils.timeAxisPreferences[this.windowTime];
-
     const valueUnit = chartUtils.millisecondsToValUnit(this.interval);
     const unit = chartUtils.getUnit(parseInt(valueUnit[0]), valueUnit[1]);
     const unitStepSize = chartUtils.getUnitStepSize(parseInt(valueUnit[0]), valueUnit[1]);

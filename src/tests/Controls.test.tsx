@@ -160,7 +160,7 @@ describe('Controls Component', () => {
 
     it("Auto Update button", async () => {
         await act( async () => {
-            const now = (new Date()).toLocaleString('pt-BR');
+            let now = (new Date()).toLocaleString('pt-BR');
             render(
                 <Provider store={store}>
                     <Controls/>
@@ -168,13 +168,17 @@ describe('Controls Component', () => {
             );
 
             await handlers.autoUpdateHandler();
-            if(control.isAutoUpdateEnabled()){
-                await handlers.autoUpdateHandler();
-                expect(control.isAutoUpdateEnabled()).toBeFalsy()
-            }else{
-                await handlers.autoUpdateHandler();
-                expect(control.isAutoUpdateEnabled()).toBeTruthy()
-            }
+            console.log(now)
+            let now_rb = screen.getByText(now)
+            expect(now_rb).toBeInTheDocument()
+            jest.useFakeTimers();
+            setTimeout(() => {
+                now = (new Date()).toLocaleString('pt-BR');
+            }, 5000);
+            await jest.advanceTimersByTimeAsync(5000);
+            await Promise.resolve();
+            now_rb = screen.getByText(now)
+            expect(now_rb).toBeInTheDocument()
         })
     })
 })
