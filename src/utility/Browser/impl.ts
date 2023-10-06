@@ -108,7 +108,9 @@ export class Browser implements BrowserInterface {
 
     searchString += `from=${encodeURIComponent(start.toJSON())}&`;
     searchString += `to=${encodeURIComponent(end.toJSON())}&`;
-    searchString += `ref=${encodeURIComponent(ref.toJSON())}`;
+    if(ref!=null){
+      searchString += `ref=${encodeURIComponent(ref.toJSON())}`;
+    }
     this.pushAddress(searchString);
   }
 

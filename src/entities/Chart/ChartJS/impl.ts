@@ -26,10 +26,12 @@ class ChartJSControllerImpl implements ChartJSController {
   getDatasets(): { metadata: DatasetInfo; data: ArchiverDataPoint[] }[] {
     const content: { metadata: DatasetInfo; data: ArchiverDataPoint[] }[] = [];
 
-    for (let i = 0; i < this.chart.data.datasets.length; i++) {
-      const { label, data } = this.chart.data.datasets[i];
-      const metadata = this.getDatasetSettings(label);
-      content.push({ metadata, data: data as ArchiverDataPoint[] });
+    if(this.chart.data.datasets!=null){
+      for (let i = 0; i < this.chart.data.datasets.length; i++) {
+        const { label, data } = this.chart.data.datasets[i];
+        const metadata = this.getDatasetSettings(label);
+        content.push({ metadata, data: data as ArchiverDataPoint[] });
+      }
     }
 
     return content;
@@ -84,10 +86,12 @@ class ChartJSControllerImpl implements ChartJSController {
   }
 
   private getDatasetIndexFromName(name: string): number {
-    for (let i = 0; i < this.chart.data.datasets.length; i++) {
-      const dSet = this.chart.data.datasets[i];
-      if (dSet && dSet.label === name) {
-        return i;
+    if(this.chart.data.datasets!=null){
+      for (let i = 0; i < this.chart.data.datasets.length; i++) {
+        const dSet = this.chart.data.datasets[i];
+        if (dSet && dSet.label === name) {
+          return i;
+        }
       }
     }
   }

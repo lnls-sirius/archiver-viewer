@@ -19,16 +19,24 @@ async function onChangeDateHandler(date: Date): Promise<void> {
 
   await control.updateStartAndEnd(newDate);
 
-  control.updateAllPlots(true);
-  control.updateTimeAxis();
+  try{
+    control.updateAllPlots(true);
+    control.updateTimeAxis();
+  }catch(e){
+    console.log("Error")
+  }
 }
 
 async function onChangeSelectedTime(date: Date): Promise<void> {
 
   await control.setRefDiff(date);
 
-  control.updateAllPlots(true);
-  control.updateTimeAxis();
+  try{
+    control.updateAllPlots(true);
+    control.updateTimeAxis();
+  }catch(e){
+    console.log("Error")
+  }
 }
 
 /**
@@ -78,14 +86,16 @@ async function backTimeWindow(): Promise<any> {
       date = control.getEnd();
     }
 
-    // const windowTime = control.getWindowTime();
-    // const { milliseconds } = chartUtils.timeAxisPreferences[windowTime];
     const milliseconds = control.getIntervalTime();
 
     await control.updateStartAndEnd(new Date(date.getTime() - milliseconds));
 
-    control.updateTimeAxis();
-    control.updateAllPlots(true);
+    try{
+      control.updateTimeAxis();
+      control.updateAllPlots(true);
+    }catch(e){
+      console.log("Chart Error")
+    }
   }
 }
 
@@ -94,8 +104,6 @@ async function backTimeWindow(): Promise<any> {
  **/
 async function forwTimeWindow(): Promise<any> {
   if (!control.isAutoUpdateEnabled()) {
-    // const windowTime = control.getWindowTime();
-    // const { milliseconds } = chartUtils.timeAxisPreferences[windowTime];
     const milliseconds = control.getIntervalTime();
 
     let date: Date;

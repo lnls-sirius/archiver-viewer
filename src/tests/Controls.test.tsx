@@ -66,7 +66,7 @@ describe('Controls Component', () => {
     it("Set Start time", async () => {
         await act( async () => {
             handlers.updateReferenceTime(false);
-            await control.updateStartAndEnd(
+            await handlers.onChangeDateHandler(
                 new Date("10/2/2023, 10:09:23 AM"));
             render(
                 <Provider store={store}>
@@ -88,7 +88,7 @@ describe('Controls Component', () => {
     it("Set End time", async () => {
         await act( async () => {
             handlers.updateReferenceTime(true);
-            await control.updateStartAndEnd(
+            await handlers.onChangeDateHandler(
                 new Date("10/2/2023, 11:09:23 AM"));
             render(
                 <Provider store={store}>
@@ -104,24 +104,77 @@ describe('Controls Component', () => {
         })
     })
 
+    it("Backward button", async () => {
+        await act( async () => {
+            handlers.updateReferenceTime(false);
+            await handlers.onChangeDateHandler(
+                new Date("10/2/2023, 11:09:23 AM"));
+            await handlers.backTimeWindow()
+            render(
+                <Provider store={store}>
+                    <Controls/>
+                </Provider>
+            );
 
-    // it("Auto Scroll", () => {
-    //     act(() => {
-    //         ChartDispatcher.setAutoScroll(true)
-    //         render(
-    //             <Provider store={store}>
-    //                 <Controls/>
-    //             </Provider>
-    //         );
-    //         cleanup();
+            const start_rb = screen.getByText("02/10/2023, 10:59:23")
+            expect(start_rb).toBeInTheDocument()
 
-    //         ChartDispatcher.setAutoScroll(false)
-    //         render(
-    //             <Provider store={store}>
-    //                 <Controls/>
-    //             </Provider>
-    //         );
-    //     })
-    // })
-    // autoScroll, zooming, singleTooltip, timeReferenceEnd, timeEnd, timeStart, selectedTime
+            const end_rb = screen.getByText("02/10/2023, 11:09:23")
+            expect(end_rb).toBeInTheDocument()
+        })
+    })
+
+    it("Forward button", async () => {
+        await act( async () => {
+            handlers.updateReferenceTime(false);
+            await handlers.onChangeDateHandler(
+                new Date("10/2/2023, 11:09:23 AM"));
+            await handlers.forwTimeWindow();
+            render(
+                <Provider store={store}>
+                    <Controls/>
+                </Provider>
+            );
+
+            const start_rb = screen.getByText("02/10/2023, 11:19:23")
+            expect(start_rb).toBeInTheDocument()
+
+            const end_rb = screen.getByText("02/10/2023, 11:29:23")
+            expect(end_rb).toBeInTheDocument()
+        })
+    })
+
+    it("Now button", async () => {
+        await act( async () => {
+            const now = (new Date()).toLocaleString('pt-BR');
+            await handlers.updateEndNow();
+            render(
+                <Provider store={store}>
+                    <Controls/>
+                </Provider>
+            );
+            const start_rb = screen.getByText(now)
+            expect(start_rb).toBeInTheDocument()
+        })
+    })
+
+    it("Auto Update button", async () => {
+        await act( async () => {
+            const now = (new Date()).toLocaleString('pt-BR');
+            render(
+                <Provider store={store}>
+                    <Controls/>
+                </Provider>
+            );
+
+            await handlers.autoUpdateHandler();
+            if(control.isAutoUpdateEnabled()){
+                await handlers.autoUpdateHandler();
+                expect(control.isAutoUpdateEnabled()).toBeFalsy()
+            }else{
+                await handlers.autoUpdateHandler();
+                expect(control.isAutoUpdateEnabled()).toBeTruthy()
+            }
+        })
+    })
 })
