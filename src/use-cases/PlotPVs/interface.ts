@@ -2,6 +2,7 @@ export interface PlotPVParams {
   name: string;
   optimize: boolean;
   diff: boolean;
+  color?: string;
   bins?: number;
   updateChart?: boolean;
 }

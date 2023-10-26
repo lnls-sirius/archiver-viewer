@@ -43,7 +43,7 @@ export interface ChartJSController {
   toggleAxisType(axisId: string): void;
 
   appendDataAxis(nId: string, ticksPrecision: number): void;
-  appendDataset(data: any[], optimized: boolean, diff: boolean, bins: number, metadata: ArchiverMetadata): void;
+  appendDataset(data: any[], optimized: boolean, diff: boolean, bins: number, color: string, metadata: ArchiverMetadata): void;
 
   setDatasetOptimized(name: string, optimized: boolean): void;
   setDatasetDiff(name: string, diffted: boolean): void;

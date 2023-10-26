@@ -79,8 +79,8 @@ class ChartImpl implements ChartInterface {
     }
   }
 
-  appendDataset(data: any[], optimized: boolean, diff: boolean, bins: number, metadata: ArchiverMetadata): void {
-    this.chartjs.appendDataset(data, optimized, diff, bins, metadata);
+  appendDataset(data: any[], optimized: boolean, diff: boolean, bins: number, color: string, metadata: ArchiverMetadata): void {
+    this.chartjs.appendDataset(data, optimized, diff, bins, color, metadata);
   }
 
   init(c: Chart): void {
@@ -757,8 +757,9 @@ class ChartImpl implements ChartInterface {
         const {
           label,
           pv: { bins, optimized, diff },
+          backgroundColor
         } = this.chartjs.getDatasetSettings(e.label);
-        pvs.push({ bins, label, optimized, diff });
+        pvs.push({ bins, label, optimized, diff, color:backgroundColor });
       });
     }
     const settings: Settings = { end: this.time.getEnd(), start: this.time.getStart(), ref: this.time.getRefDiff(), pvs };
