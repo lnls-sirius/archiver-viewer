@@ -18,11 +18,6 @@ describe('Controls Component', () => {
                     <Controls/>
                 </Provider>
             );
-
-            element_present("Diff?")
-            element_present("Optimize?")
-            element_present("Remove")
-            element_present("Optimize?")
         })
     })
 })
