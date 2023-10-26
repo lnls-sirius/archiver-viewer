@@ -3,6 +3,7 @@ export interface SettingsPVs {
   bins: number;
   optimized: boolean;
   diff: boolean;
+  color: string;
 }
 export interface Settings {
   start: Date;
@@ -16,6 +17,7 @@ export interface ConfigPV {
   optimize: boolean;
   diff: boolean;
   bins: number;
+  color?: string;
 }
 
 export interface ConfigParameters {

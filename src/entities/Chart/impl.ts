@@ -74,11 +74,13 @@ class ChartImpl implements ChartInterface {
     const unit = chartUtils.getUnit(parseInt(valueUnit[0]), valueUnit[1]);
     const unitStepSize = chartUtils.getUnitStepSize(parseInt(valueUnit[0]), valueUnit[1]);
 
-    this.chartjs.updateTimeAxis(unit, unitStepSize, start, end);
+    if(this.chartjs!=null){
+      this.chartjs.updateTimeAxis(unit, unitStepSize, start, end);
+    }
   }
 
-  appendDataset(data: any[], optimized: boolean, diff: boolean, bins: number, metadata: ArchiverMetadata): void {
-    this.chartjs.appendDataset(data, optimized, diff, bins, metadata);
+  appendDataset(data: any[], optimized: boolean, diff: boolean, bins: number, color: string, metadata: ArchiverMetadata): void {
+    this.chartjs.appendDataset(data, optimized, diff, bins, color, metadata);
   }
 
   init(c: Chart): void {
@@ -88,7 +90,9 @@ class ChartImpl implements ChartInterface {
   }
 
   update(settings: Chart.ChartUpdateProps = { lazy: false, duration: 0, easing: "linear" }) {
-    this.chartjs.update(settings);
+    if(this.chartjs!=null){
+      this.chartjs.update(settings);
+    }
   }
 
   /** Get dataset index by it's label */
@@ -135,32 +139,33 @@ class ChartImpl implements ChartInterface {
 
     await this.updateStartAndEnd(now, true);
 
-    // const { unit, unitStepSize } = chartUtils.timeAxisPreferences[this.windowTime];
-
     const valueUnit = chartUtils.millisecondsToValUnit(this.interval);
     const unit = chartUtils.getUnit(parseInt(valueUnit[0]), valueUnit[1]);
     const unitStepSize = chartUtils.getUnitStepSize(parseInt(valueUnit[0]), valueUnit[1]);
-
-    this.chartjs.updateTimeAxis(unit, unitStepSize, this.time.getStart(), this.time.getEnd());
+    if(this.chartjs!=null){
+      this.chartjs.updateTimeAxis(unit, unitStepSize, this.time.getStart(), this.time.getEnd());
+    }
     this.updateOptimizedWarning();
 
     this.updateURL();
     const promises: Promise<void>[] = [];
-    this.chart.data.datasets.forEach(async (dataset, datasetIndex) => {
-      const {
-        label,
-        pv: { optimized, diff },
-      } = this.chartjs.getDatasetSettingsByIndex(datasetIndex);
-      if (optimized) {
-        dataset.data = [];
-      }
-      if (diff){
-        dataset.data = [];
-      }
-      const promise = this.updatePlot(datasetIndex, { waitResult: true });
-      console.log(`Auto update ${datasetIndex}: ${label}`);
-      promises.push(promise);
-    });
+    if(this.chart!=null){
+      this.chart.data.datasets.forEach(async (dataset, datasetIndex) => {
+        const {
+          label,
+          pv: { optimized, diff },
+        } = this.chartjs.getDatasetSettingsByIndex(datasetIndex);
+        if (optimized) {
+          dataset.data = [];
+        }
+        if (diff){
+          dataset.data = [];
+        }
+        const promise = this.updatePlot(datasetIndex, { waitResult: true });
+        console.log(`Auto update ${datasetIndex}: ${label}`);
+        promises.push(promise);
+      });
+    }
 
     await Promise.all(promises)
       .then(() => {
@@ -242,8 +247,9 @@ class ChartImpl implements ChartInterface {
     const unit = chartUtils.getUnit(parseInt(valueUnit[0]), valueUnit[1]);
     const unitStepSize = chartUtils.getUnitStepSize(parseInt(valueUnit[0]), valueUnit[1]);
 
-    this.chartjs.updateTimeAxis(unit, unitStepSize, this.time.getStart(), this.time.getEnd());
-
+    if(this.chartjs!=null){
+      this.chartjs.updateTimeAxis(unit, unitStepSize, this.time.getStart(), this.time.getEnd());
+    }
     await this.updateAllPlots(true);
   }
 
@@ -392,12 +398,14 @@ class ChartImpl implements ChartInterface {
 
   updateOptimizedWarning(): void {
     let canOptimize = false;
-
-    for (let i = 0; i < this.chart.data.datasets.length; i++) {
-      const label = this.chart.data.datasets[i].label;
-      canOptimize = this.chartjs.getDatasetSettings(label).pv.optimized || canOptimize;
+    if(this.chart!=null){
+      if(this.chart.data!=null){
+        for (let i = 0; i < this.chart.data.datasets.length; i++) {
+          const label = this.chart.data.datasets[i].label;
+          canOptimize = this.chartjs.getDatasetSettings(label).pv.optimized || canOptimize;
+        }
+      }
     }
-
     if (canOptimize) {
       const msg =
         "In order to reduce the data amount retrieved from server, an optimization is used. Each point corresponds to an average calculated over its neighborhood.";
@@ -407,10 +415,13 @@ class ChartImpl implements ChartInterface {
 
   updateDiffWarning(): void {
     let canDiff = false;
-
-    for (let i = 0; i < this.chart.data.datasets.length; i++) {
-      const label = this.chart.data.datasets[i].label;
-      canDiff = this.chartjs.getDatasetSettings(label).pv.diff || canDiff;
+    if(this.chart!=null){
+      if(this.chart.data!=null){
+        for (let i = 0; i < this.chart.data.datasets.length; i++) {
+          const label = this.chart.data.datasets[i].label;
+          canDiff = this.chartjs.getDatasetSettings(label).pv.diff || canDiff;
+        }
+      }
     }
 
     if (canDiff) {
@@ -688,21 +699,23 @@ class ChartImpl implements ChartInterface {
     this.updateDiffWarning();
 
     const promises: Promise<void>[] = [];
-    this.chart.data.datasets.map(async (dataset, i) => {
-      const label = dataset.label;
+    if(this.chart!=null){
+      this.chart.data.datasets.map(async (dataset, i) => {
+        const label = dataset.label;
 
-      if (this.chartjs.getDatasetSettings(label).pv.optimized || this.chartjs.getDatasetSettings(label).pv.diff || reset) {
-        dataset.data = [];
-      }
+        if (this.chartjs.getDatasetSettings(label).pv.optimized || this.chartjs.getDatasetSettings(label).pv.diff || reset) {
+          dataset.data = [];
+        }
 
-      promises.push(
-        this.updatePlot(i, { waitResult: true }).then(() => {
-          if (chartUpdate) {
-            this.update();
-          }
-        })
-      );
-    });
+        promises.push(
+          this.updatePlot(i, { waitResult: true }).then(() => {
+            if (chartUpdate) {
+              this.update();
+            }
+          })
+        );
+      });
+    }
 
     await Promise.all(promises)
       .catch((error) => {
@@ -721,12 +734,16 @@ class ChartImpl implements ChartInterface {
    **/
   getPlotIndex(pvName: string): number {
     // Iterates over the dataset to check if a pv named pvName exists
-    for (let i = 0; i < this.chart.data.datasets.length; i++) {
-      if (
-        this.chart.data.datasets[i].label === pvName ||
-        this.chart.data.datasets[i].label === decodeURIComponent(pvName)
-      ) {
-        return i;
+    if(this.chart!=null){
+      if(this.chart.data!=null){
+        for (let i = 0; i < this.chart.data.datasets.length; i++) {
+          if (
+            this.chart.data.datasets[i].label === pvName ||
+            this.chart.data.datasets[i].label === decodeURIComponent(pvName)
+          ) {
+            return i;
+          }
+        }
       }
     }
 
@@ -735,14 +752,16 @@ class ChartImpl implements ChartInterface {
 
   updateURL(): void {
     const pvs: SettingsPVs[] = [];
-    this.chart.data.datasets.forEach((e) => {
-      const {
-        label,
-        pv: { bins, optimized, diff },
-      } = this.chartjs.getDatasetSettings(e.label);
-      pvs.push({ bins, label, optimized, diff });
-    });
-
+    if(this.chart != null){
+      this.chart.data.datasets.forEach((e) => {
+        const {
+          label,
+          pv: { bins, optimized, diff },
+          backgroundColor
+        } = this.chartjs.getDatasetSettings(e.label);
+        pvs.push({ bins, label, optimized, diff, color:backgroundColor });
+      });
+    }
     const settings: Settings = { end: this.time.getEnd(), start: this.time.getStart(), ref: this.time.getRefDiff(), pvs };
     Browser.updateAddress(settings);
   }

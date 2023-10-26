@@ -83,7 +83,7 @@ class UrlLoaderImpl implements UrlLoader {
     control.updateTimeAxis();
     for (const data of pvs) {
       console.info(`Plotting `, data);
-      PlotPVs.plotPV({ name: data.pvname, optimize: data.optimize, diff: data.diff, bins: data.bins, updateChart: true });
+      PlotPVs.plotPV({ name: data.pvname, optimize: data.optimize, diff: data.diff, bins: data.bins, color: data.color, updateChart: true });
     }
   }
 }

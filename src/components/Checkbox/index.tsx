@@ -15,12 +15,12 @@ const Checkbox: React.FC<CheckboxProps> = ({ checked, text, tooltip, onClick }) 
   };
   return (
     <S.CheckboxWrapper>
-      <S.CheckboxBox checked={checked} onClick={handleClick}>
+      <S.CheckboxBox checked={checked} onClick={handleClick} data-testid="checkbox">
         <S.Icon viewBox="0 0 24 24">
           <polyline points="20 6 9 17 4 12" />
         </S.Icon>
       </S.CheckboxBox>
-      <S.CheckboxSpan>
+      <S.CheckboxSpan data-testid="cb-test">
         {text}
         <S.CheckboxTooltip>{tooltip ? tooltip : ""}</S.CheckboxTooltip>
       </S.CheckboxSpan>

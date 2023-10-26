@@ -26,10 +26,12 @@ class ChartJSControllerImpl implements ChartJSController {
   getDatasets(): { metadata: DatasetInfo; data: ArchiverDataPoint[] }[] {
     const content: { metadata: DatasetInfo; data: ArchiverDataPoint[] }[] = [];
 
-    for (let i = 0; i < this.chart.data.datasets.length; i++) {
-      const { label, data } = this.chart.data.datasets[i];
-      const metadata = this.getDatasetSettings(label);
-      content.push({ metadata, data: data as ArchiverDataPoint[] });
+    if(this.chart.data.datasets!=null){
+      for (let i = 0; i < this.chart.data.datasets.length; i++) {
+        const { label, data } = this.chart.data.datasets[i];
+        const metadata = this.getDatasetSettings(label);
+        content.push({ metadata, data: data as ArchiverDataPoint[] });
+      }
     }
 
     return content;
@@ -84,10 +86,12 @@ class ChartJSControllerImpl implements ChartJSController {
   }
 
   private getDatasetIndexFromName(name: string): number {
-    for (let i = 0; i < this.chart.data.datasets.length; i++) {
-      const dSet = this.chart.data.datasets[i];
-      if (dSet && dSet.label === name) {
-        return i;
+    if(this.chart.data.datasets!=null){
+      for (let i = 0; i < this.chart.data.datasets.length; i++) {
+        const dSet = this.chart.data.datasets[i];
+        if (dSet && dSet.label === name) {
+          return i;
+        }
       }
     }
   }
@@ -336,14 +340,20 @@ class ChartJSControllerImpl implements ChartJSController {
     ChartDispatcher.addAxisY(dataAxisSettings);
   }
 
-  appendDataset(data: any[], optimized: boolean, diffted: boolean, bins: number, metadata: ArchiverMetadata): void {
+  appendDataset(data: any[], optimized: boolean, diffted: boolean, bins: number, color: string|undefined, metadata: ArchiverMetadata): void {
     const { pvName, EGU, PREC } = metadata;
     const unit = eguNormalize(EGU, pvName);
 
     const precision = PREC === 0 || PREC === undefined || PREC === null ? 4 : PREC;
 
     // Parses the data fetched from the archiver the way that the chart's internal classes can plot
-    const color = colorStack.length > 0 ? colorStack.pop() : randomColorGenerator();
+    if(!color){
+      color = colorStack.length > 0 ? colorStack.pop() : randomColorGenerator();
+    }else{
+      const idx_color = colorStack.indexOf(color);
+      delete colorStack[idx_color];
+    }
+
 
     // Adds a new vertical axis if no other with the same unit exists
     this.appendDataAxis(unit, precision);

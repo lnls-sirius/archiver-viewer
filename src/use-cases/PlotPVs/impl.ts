@@ -31,6 +31,7 @@ class PlotPVsImpl implements PlotPVs {
     optimized: boolean,
     diff: boolean,
     bins: number,
+    color: string,
     metadata: ArchiverMetadata
   ): Promise<void> {
     const start: Date = control.getStart();
@@ -44,19 +45,19 @@ class PlotPVsImpl implements PlotPVs {
       const { data } = res;
 
       const _data = fixOutOfRangeData(data, control.getStart(), control.getEnd());
-      control.appendDataset(_data, optimized, diff, bins, metadata);
+      control.appendDataset(_data, optimized, diff, bins, color, metadata);
     } catch (e) {
       let msg: string;
 
       if (e instanceof OptimizeDataError) {
         msg = `Failed to retrieve optimized data for ${pv} using optimize_${bins} [${start}, ${end}]`;
-        await this.fetchAndInsertPV(pv, false, false, -1, metadata);
+        await this.fetchAndInsertPV(pv, false, false, -1, color, metadata);
 
         console.warn(msg);
         StatusDispatcher.Warning("Append PV: Fetch data", msg);
       }else if (e instanceof DiffDataError) {
         msg = `Failed to retrieve diff data for ${pv} using diff [${start}, ${end}]`;
-        await this.fetchAndInsertPV(pv, false, false, -1, metadata);
+        await this.fetchAndInsertPV(pv, false, false, -1, color, metadata);
 
         console.warn(msg);
         StatusDispatcher.Warning("Append PV: Fetch data", msg);
@@ -70,23 +71,23 @@ class PlotPVsImpl implements PlotPVs {
     }
   }
 
-  private async appendPV(pv: string, optimize?: boolean, diff?: boolean, bins = DefaultBinSize): Promise<void> {
+  private async appendPV(pv: string, optimize?: boolean, diff?: boolean, bins = DefaultBinSize, color?: string): Promise<void> {
     const metadata = await this.getPVMetadata(pv);
 
-    await this.fetchAndInsertPV(pv, optimize, diff, bins, metadata);
+    await this.fetchAndInsertPV(pv, optimize, diff, bins, color, metadata);
 
     control.updateOptimizedWarning();
     control.updateDiffWarning();
     control.updateURL();
   }
 
-  plotPV({ name, optimize, diff, bins, updateChart }: PlotPVParams): void {
+  plotPV({ name, optimize, diff, bins, color, updateChart }: PlotPVParams): void {
     const pvIndex = control.getPlotIndex(name);
     const shouldUpdateExistingPV = pvIndex !== null;
     if (shouldUpdateExistingPV) {
       control.updatePlot(pvIndex);
     } else {
-      this.appendPV(name, optimize, diff, bins);
+      this.appendPV(name, optimize, diff, bins, color);
     }
     if (updateChart === true) {
       this.update();
