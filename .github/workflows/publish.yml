@@ -25,7 +25,7 @@ jobs:
         run:  echo "VERSION=${GITHUB_REF_NAME#v}" > .env
 
       - name: Build Docker Compose 🏗️
-        run: docker-compose build
+        run: docker compose build
 
       - name: Push Docker Compose 🪖
-        run: docker-compose push
+        run: docker compose push
