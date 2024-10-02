@@ -4,7 +4,7 @@ import { DataAccessError, OptimizeDataError, InvalidParameterError } from "../ut
 import control from "../entities/Chart";
 
 export const ipRegExp = /https?\/((?:(?:2(?:[0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9])\.){3}(?:(?:2([0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9])))\//;
-export const defaultHost = "http://ais-eng-srv-ta.cnpem.br";
+export const defaultHost = "http://ais-eng-srv-ca.cnpem.br";
 
 export class ArchiverDataAccess implements DataAccess{
 
@@ -254,7 +254,7 @@ export class ArchiverDataAccess implements DataAccess{
   }
 
   getUrl(): string {
-    this.host = "ais-eng-srv-ta.cnpem.br";
+    this.host = "ais-eng-srv-ca.cnpem.br";
     return this.host;
   }
 }
