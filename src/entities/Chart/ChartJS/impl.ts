@@ -339,16 +339,18 @@ class ChartJSControllerImpl implements ChartJSController {
 
     ChartDispatcher.addAxisY(dataAxisSettings);
   }
-
+  
   appendDataset(data: any[], optimized: boolean, diffted: boolean, bins: number, color: string|undefined, metadata: ArchiverMetadata): void {
     const { pvName, EGU, PREC } = metadata;
     const unit = eguNormalize(EGU, pvName);
-
     const precision = PREC === 0 || PREC === undefined || PREC === null ? 4 : PREC;
-
+    
     // Parses the data fetched from the archiver the way that the chart's internal classes can plot
-    if(!color){
+    if(!color || color==="undefined"){
       color = colorStack.length > 0 ? colorStack.pop() : randomColorGenerator();
+      if(color === undefined){
+        color = randomColorGenerator()
+      }
     }else{
       const idx_color = colorStack.indexOf(color);
       delete colorStack[idx_color];
