@@ -4,6 +4,12 @@ export interface ArchiverDataPoint {
   severity: number;
   status: number;
 }
+
+export interface ArchiverMetadataPoint { 
+  name: string; 
+  PREC: string;
+}
+
 export type DBRType =
   | "DBR_SCALAR_BYTE"
   | "DBR_SCALAR_DOUBLE"
@@ -93,13 +99,11 @@ export interface ArchiverMetadata {
   DBRType: DBRType;
 }
 export interface ArchiverData {
-  meta: { name: string; PREC: string };
+  meta: ArchiverMetadataPoint[];
   data: ArchiverDataPoint[];
 }
 export interface DataAccess {
   query(search: string): Promise<string[]>;
-  getUrl(): string;
-  setUrl(url: string): void;
   fetchMetadata(pv: string): Promise<null | ArchiverMetadata>;
   fetchData(pv: string, from: Date, to: Date, ref: Date, isOptimized?: boolean, diff?: boolean, bins?: number): Promise<ArchiverData>;
   getRemoteDate(): Promise<Date>;
