@@ -272,15 +272,11 @@ export class ArchiverDataAccess implements DataAccess{
         };
       })
     ).then((result: ArchiverData[]): Promise<ArchiverData> => {
-      console.log(result)
       const errorApi0 = result[0] instanceof DataAccessError;
       const errorApi1 = result[1] instanceof DataAccessError;
-      const emptyResult: ArchiverData = {
-        meta: [],
-        data: []
-      };
+      const emptyResult: ArchiverData = {meta: [], data: []};
       if(errorApi0 === true && errorApi1 === true){
-        throw result[0]
+        throw result[0];
       }else if(errorApi0 === true){
         result[0] = emptyResult;
       }else if(errorApi1 === true){
@@ -289,11 +285,11 @@ export class ArchiverDataAccess implements DataAccess{
 
       let finalData: ArchiverDataPoint[] = result[0].data;
       let finalMeta: ArchiverMetadataPoint[] = result[0].meta;
-      if(result[0].data.length == 1 && result[1].data.length > 1){
+      console.log(result)
+      if(result[0].data.length <= 1 && result[1].data.length > 1){
         finalData = result[1].data;
         finalMeta = result[1].meta;
-      }
-      else if(result[1].data.length > 1){
+      }else if(result[1].data.length > 1){
         const filterDate = finalData[0].x.getTime()
         const ibiraData = result[1].data.reduce((pastValue, currentValue) => {
           if(currentValue.x.getTime() < filterDate){
