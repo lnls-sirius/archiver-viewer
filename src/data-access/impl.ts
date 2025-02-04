@@ -1,43 +1,57 @@
 import axios from "axios";
-import { DataAccess, ArchiverData, ArchiverDataPoint, ArchiverMetadata } from "./interface";
+import { DataAccess, ArchiverData, ArchiverMetadataPoint, ArchiverDataPoint, ArchiverMetadata } from "./interface";
 import { DataAccessError, OptimizeDataError, InvalidParameterError } from "../utility/errors";
 import control from "../entities/Chart";
+import { promises } from "dns";
 
 export const ipRegExp = /https?\/((?:(?:2(?:[0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9])\.){3}(?:(?:2([0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9])))\//;
-export const defaultHost = "http://ais-eng-srv-ca.cnpem.br";
+export const defaultHost = [
+  "ais-eng-srv-ca.cnpem.br", "archiver-temp.cnpem.br"
+];
 
 export class ArchiverDataAccess implements DataAccess{
 
-  host: string;
-  private url: string;
-  private BYPASS_URL: string;
-  private GET_DATA_URL: string;
-  private APPLIANCES: string[];
+  private url: string[];
+  private BYPASS_URL: string[];
+  private GET_DATA_URL: string[];
+  private APPLIANCES: string[][];
 
   constructor() {
-    this.host = defaultHost;
-    this.url = this.getUrl();
-    this.BYPASS_URL = `${window.location.protocol}//${this.url}/archiver-generic-backend`;
-    this.GET_DATA_URL = `${window.location.protocol}//${this.url}/retrieval/data/getData.json`;
+    this.url = defaultHost;
+    this.BYPASS_URL = [];
+    this.GET_DATA_URL = [];
+    this.APPLIANCES = [];
 
-    this.APPLIANCES = [
-      `${window.location.protocol}//${this.url}`,
-      `${window.location.protocol}//${this.url}/archiver-beamlines`,
-    ];
+    this.url.map((url: string) => {
+      this.BYPASS_URL.push(`${window.location.protocol}//${url}/archiver-generic-backend`);
+      this.GET_DATA_URL.push(`${window.location.protocol}//${url}/retrieval/data/getData.json`);
+      this.APPLIANCES.push([
+        `${window.location.protocol}//${url}`,
+        `${window.location.protocol}//${url}/archiver-beamlines`,
+      ]);
+    })
   }
 
   async getRemoteDate(): Promise<Date> {
-    const dateString: string | null = await axios.get(`${this.BYPASS_URL}/date`, { timeout: 2000 }).then((res) => {
-      if (res.status === 200) {
-        return res.data;
+    let remoteDate: Date;
+    this.BYPASS_URL.map(async (bypass_url: string) => {
+      try{
+        const dateString: string | null = await axios.get(`${bypass_url}/date`, { timeout: 2000 }).then((res) => {
+          if (res.status === 200) {
+            return res.data;
+          }
+          throw new DataAccessError(`Invalid response from date backend ${res.status}, ${res.data}`);
+        });
+  
+        if (dateString) {
+          remoteDate = new Date(dateString);
+        }
+        throw new DataAccessError("Unable to transform date response into Date object");
+      }catch(Exception){
+        console.log("An exception was caught while getting the remote date from the Archiver!")
       }
-      throw new DataAccessError(`Invalid response from date backend ${res.status}, ${res.data}`);
-    });
-    if (dateString) {
-      return new Date(dateString);
-    }
-
-    throw new DataAccessError("Unable to transform date response into Date object");
+    })
+    return remoteDate;
   }
 
   private async fetchMetadataFromAppliance(jsonurl: string): Promise<null | ArchiverMetadata> {
@@ -78,33 +92,37 @@ export class ArchiverDataAccess implements DataAccess{
       throw new InvalidParameterError("PV name is undefined");
     }
 
-    for (const appliance of this.APPLIANCES) {
-      const jsonurl = `${appliance}/retrieval/bpl/getMetadata?pv=${pv}`;
-      const data = await this.fetchMetadataFromAppliance(jsonurl);
-      /* const data = */
-      if (data !== null) {
-        return data;
+    for (const appliance_urls of this.APPLIANCES) {
+      for (const appliance of appliance_urls) {
+        const jsonurl = `${appliance}/retrieval/bpl/getMetadata?pv=${pv}`;
+        const data = await this.fetchMetadataFromAppliance(jsonurl);
+        /* const data = */
+        if (data !== null) {
+          return data;
+        }
       }
     }
     return null;
   }
 
-  setUrl(url: string): void {
-    this.url = url;
-  }
-
   async query(search: string): Promise<string[]> {
     const timeout = 10000;
-    const _url = `${window.location.protocol}//${this.url}/retrieval/bpl/getMatchingPVs?${new URLSearchParams({
-      pv: search,
-      limit: "500",
-    }).toString()}`;
-
-    return await axios.get(_url, { method: "GET", timeout: timeout, responseType: "json" }).then((res) => {
-      if (res.status !== 200) {
-        throw `Failed to complete request ${_url}, response ${res}`;
-      }
-      return res.data;
+    return await Promise.all(
+      this.url.map(async (url: string) => {
+        const _url = `${window.location.protocol}//${url}/retrieval/bpl/getMatchingPVs?${new URLSearchParams({
+          pv: search,
+          limit: "500",
+        }).toString()}`;
+    
+        return await axios.get(_url, { method: "GET", timeout: timeout, responseType: "json" }).then((res) => {
+          if (res.status !== 200) {
+            throw `Failed to complete request ${_url}, response ${res}`;
+          }
+          return res.data;
+        });
+      })
+    ).then((result: string[][]): Promise<string[]> => {
+      return Promise.resolve(result[0].concat(result[1]));
     });
   }
 
@@ -192,9 +210,6 @@ export class ArchiverDataAccess implements DataAccess{
   }
 
   async fetchData(pv: string, from: Date, to: Date, ref?: Date, isOptimized?: boolean, diff?: boolean, bins?: number): Promise<ArchiverData> {
-
-    let finalData = null;
-
     if (from === undefined || to === undefined) {
       return null;
     }
@@ -205,56 +220,90 @@ export class ArchiverDataAccess implements DataAccess{
       diff = false;
     }
 
-    const jsonurl = !isOptimized
-      ? `${this.GET_DATA_URL}?pv=${pv}&from=${from.toJSON()}&to=${to.toJSON()}`
-      : `${this.GET_DATA_URL}?pv=optimized_${bins}(${pv})&from=${from.toJSON()}&to=${to.toJSON()}`;
+    return await Promise.all(
+      this.GET_DATA_URL.map(async (get_data_url: string) => {
+        const jsonurl = !isOptimized
+          ? `${get_data_url}?pv=${pv}&from=${from.toJSON()}&to=${to.toJSON()}`
+          : `${get_data_url}?pv=optimized_${bins}(${pv})&from=${from.toJSON()}&to=${to.toJSON()}`;
 
-    const res = await axios
-      .get(jsonurl, {
-        timeout: 0,
-        method: "GET",
-        responseType: "text",
-        transformResponse: (res) => {
-          if (res.includes("Bad Request")) {
-            throw `Invalid response from ${jsonurl}`;
-          }
-          let data = res.replace(/(-?Infinity)/g, '"$1"');
-          data = data.replace(/(NaN)/g, '"$1"');
-          data = JSON.parse(data);
-          return data;
-        },
+        const res = await axios
+          .get(jsonurl, {
+            timeout: 0,
+            method: "GET",
+            responseType: "text",
+            transformResponse: (res) => {
+              if (res.includes("Bad Request")) {
+                throw `Invalid response from ${jsonurl}`;
+              }
+              let data = res.replace(/(-?Infinity)/g, '"$1"');
+              data = data.replace(/(NaN)/g, '"$1"');
+              data = JSON.parse(data);
+              return data;
+            },
+          })
+          .then((res) => {
+            if (res.status !== 200) {
+              return new DataAccessError(`Request ${jsonurl} return invalid status code ${res}`);
+            }
+
+            if (isOptimized && (res.data.length === 0 || (res.data[0].data.length === 0 && res.data.length > 1))) {
+              return new OptimizeDataError(pv, bins, jsonurl);
+            }
+
+            if (res.data.length === 0) {
+              return new DataAccessError(
+                `Request returned an empty array, probably due to an invalid range for the url ${jsonurl}`
+              );
+            }
+            return res.data[0];
+          });
+        if(res instanceof DataAccessError){
+          return res;
+        }
+
+        let finalData: ArchiverDataPoint[] = this.parseData(res.data);
+
+        if(diff == true){
+          finalData = await this.differentiateData(pv, finalData);
+        }
+        return {
+          meta: res.meta,
+          data: finalData
+        };
       })
-      .then((res) => {
-        if (res.status !== 200) {
-          throw new DataAccessError(`Request ${jsonurl} return invalid status code ${res}`);
-        }
+    ).then((result: ArchiverData[]): Promise<ArchiverData> => {
+      const errorApi0 = result[0] instanceof DataAccessError;
+      const errorApi1 = result[1] instanceof DataAccessError;
+      const emptyResult: ArchiverData = {meta: [], data: []};
+      if(errorApi0 === true && errorApi1 === true){
+        throw result[0];
+      }else if(errorApi0 === true){
+        result[0] = emptyResult;
+      }else if(errorApi1 === true){
+        result[1] = emptyResult;
+      }
 
-        if (isOptimized && (res.data.length === 0 || res.data[0].data.length === 0)) {
-          throw new OptimizeDataError(pv, bins, jsonurl);
-        }
-
-        if (res.data.length === 0) {
-          throw new DataAccessError(
-            `Request returned an empty array, probably due to an invalid range for the url ${jsonurl}`
-          );
-        }
-        return res.data[0];
+      let finalData: ArchiverDataPoint[] = result[0].data;
+      let finalMeta: ArchiverMetadataPoint[] = result[0].meta;
+      console.log(result)
+      if(result[0].data.length <= 1 && result[1].data.length > 1){
+        finalData = result[1].data;
+        finalMeta = result[1].meta;
+      }else if(result[1].data.length > 1){
+        const filterDate = finalData[0].x.getTime()
+        const ibiraData = result[1].data.reduce((pastValue, currentValue) => {
+          if(currentValue.x.getTime() < filterDate){
+            pastValue.push(currentValue);
+          }
+          return pastValue;
+        }, []);
+        finalData = ibiraData.concat(finalData);
+      }
+      return Promise.resolve({
+        meta: finalMeta,
+        data: finalData
       });
-
-    finalData = this.parseData(res.data);
-
-    if(diff == true){
-      finalData = await this.differentiateData(pv, finalData);
-    }
-
-    return {
-      meta: res.meta,
-      data: finalData
-    };
+    });
   }
 
-  getUrl(): string {
-    this.host = "ais-eng-srv-ca.cnpem.br";
-    return this.host;
-  }
 }
