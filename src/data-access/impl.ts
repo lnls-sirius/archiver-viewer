@@ -220,7 +220,7 @@ export class ArchiverDataAccess implements DataAccess{
       diff = false;
     }
 
-    return await Promise.all(
+    return await Promise.allSettled(
       this.GET_DATA_URL.map(async (get_data_url: string) => {
         const jsonurl = !isOptimized
           ? `${get_data_url}?pv=${pv}&from=${from.toJSON()}&to=${to.toJSON()}`
@@ -257,9 +257,6 @@ export class ArchiverDataAccess implements DataAccess{
             }
             return res.data[0];
           });
-        if(res instanceof DataAccessError){
-          return res;
-        }
 
         let finalData: ArchiverDataPoint[] = this.parseData(res.data);
 
@@ -271,10 +268,16 @@ export class ArchiverDataAccess implements DataAccess{
           data: finalData
         };
       })
-    ).then((result: ArchiverData[]): Promise<ArchiverData> => {
+    ).then((responseList: any[]): Promise<ArchiverData> => {
+      const emptyResult: ArchiverData = {meta: [], data: []};
+      const result: ArchiverData[] = responseList.map((response: any) => {
+        if(response.status == "fulfilled"){
+          return response.value
+        }
+        return emptyResult
+      })
       const errorApi0 = result[0] instanceof DataAccessError;
       const errorApi1 = result[1] instanceof DataAccessError;
-      const emptyResult: ArchiverData = {meta: [], data: []};
       if(errorApi0 === true && errorApi1 === true){
         throw result[0];
       }else if(errorApi0 === true){
@@ -285,7 +288,6 @@ export class ArchiverDataAccess implements DataAccess{
 
       let finalData: ArchiverDataPoint[] = result[0].data;
       let finalMeta: ArchiverMetadataPoint[] = result[0].meta;
-      console.log(result)
       if(result[0].data.length <= 1 && result[1].data.length > 1){
         finalData = result[1].data;
         finalMeta = result[1].meta;
