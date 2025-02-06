@@ -134,7 +134,7 @@ export const setTimeStart = {
   },
   prepare(data: Date) {
     return {
-      payload: data.toLocaleString(),
+      payload: data.toString(),
     };
   }
 };
@@ -144,7 +144,7 @@ export const setTimeEnd = {
   },
   prepare(data: Date) {
     return {
-      payload: data.toLocaleString(),
+      payload: data.toString(),
     };
   }
 };
