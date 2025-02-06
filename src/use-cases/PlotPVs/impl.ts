@@ -42,13 +42,14 @@ class PlotPVsImpl implements PlotPVs {
 
     try {
       const res = await archInterface.fetchData(pv, start, end, ref, optimized, diff, bins);
+      
       const { data } = res;
 
       const _data = fixOutOfRangeData(data, control.getStart(), control.getEnd());
       control.appendDataset(_data, optimized, diff, bins, color, metadata);
     } catch (e) {
       let msg: string;
-
+  
       if (e instanceof OptimizeDataError) {
         msg = `Failed to retrieve optimized data for ${pv} using optimize_${bins} [${start}, ${end}]`;
         await this.fetchAndInsertPV(pv, false, false, -1, color, metadata);
