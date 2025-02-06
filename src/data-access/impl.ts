@@ -239,25 +239,35 @@ export class ArchiverDataAccess implements DataAccess{
               data = data.replace(/(NaN)/g, '"$1"');
               data = JSON.parse(data);
               return data;
-            },
+            }
           })
           .then((res) => {
             if (res.status !== 200) {
-              return new DataAccessError(`Request ${jsonurl} return invalid status code ${res}`);
+              return {"error": 0}
             }
 
-            if (isOptimized && (res.data.length === 0 || (res.data[0].data.length === 0 && res.data.length > 1))) {
-              return new OptimizeDataError(pv, bins, jsonurl);
+            if (isOptimized && (res.data.length === 0 || (res.data[0].data.length === 0))) {
+              return {"error": 1}
             }
 
             if (res.data.length === 0) {
-              return new DataAccessError(
-                `Request returned an empty array, probably due to an invalid range for the url ${jsonurl}`
-              );
+              return {"error": 2};
             }
             return res.data[0];
           });
-
+        if("error" in res){
+          const error_list = [
+              new DataAccessError(`Request ${jsonurl} return invalid status code ${res}`),
+              new OptimizeDataError(pv, bins, jsonurl),
+              new DataAccessError(
+                `Request returned an empty array, probably due to an invalid range for the url ${jsonurl}`
+              )
+          ]
+          return {
+            meta: [],
+            data: [error_list[res["error"]]]
+          };
+        }
         let finalData: ArchiverDataPoint[] = this.parseData(res.data);
 
         if(diff == true){
@@ -271,24 +281,28 @@ export class ArchiverDataAccess implements DataAccess{
     ).then((responseList: any[]): Promise<ArchiverData> => {
       const emptyResult: ArchiverData = {meta: [], data: []};
       const result: ArchiverData[] = responseList.map((response: any) => {
-        if(response.status == "fulfilled"){
+        if(response.status == "fulfilled"){ 
           return response.value
         }
         return emptyResult
       })
-      const errorApi0 = result[0] instanceof DataAccessError;
-      const errorApi1 = result[1] instanceof DataAccessError;
-      if(errorApi0 === true && errorApi1 === true){
-        throw result[0];
-      }else if(errorApi0 === true){
+      const result0Lenght = result[0].data.length;
+      const result1Lenght = result[1].data.length;
+      if (result1Lenght <= 1 && result[0].data[0] instanceof OptimizeDataError){
+        throw new OptimizeDataError(pv, 800)
+      }
+      if (result0Lenght <= 1 && result[1].data[0] instanceof OptimizeDataError){
+        throw new OptimizeDataError(pv, 800)
+      }
+      if(result0Lenght == 0){
         result[0] = emptyResult;
-      }else if(errorApi1 === true){
+      }else if(result1Lenght == 0){
         result[1] = emptyResult;
       }
 
       let finalData: ArchiverDataPoint[] = result[0].data;
       let finalMeta: ArchiverMetadataPoint[] = result[0].meta;
-      if(result[0].data.length <= 1 && result[1].data.length > 1){
+      if((result[0].data.length < 1 || (result[0].data.length == 1 && result[0].data[0] instanceof Error) && result[1].data.length >= 1)){
         finalData = result[1].data;
         finalMeta = result[1].meta;
       }else if(result[1].data.length > 1){
@@ -301,6 +315,7 @@ export class ArchiverDataAccess implements DataAccess{
         }, []);
         finalData = ibiraData.concat(finalData);
       }
+
       return Promise.resolve({
         meta: finalMeta,
         data: finalData
