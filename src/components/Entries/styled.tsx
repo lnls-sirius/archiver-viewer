@@ -1,6 +1,5 @@
 import styled, { css } from "styled-components";
-import { EyeSlashFill } from "@styled-icons/bootstrap/EyeSlashFill";
-import { EyeFill } from "@styled-icons/bootstrap/EyeFill";
+import { EyeFill, EyeSlashFill } from "react-bootstrap-icons";
 
 const BaseIndicator = css`
   width: 15px;
