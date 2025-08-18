@@ -1,4 +1,5 @@
 import { BrowserInterface, ConfigParameters, ConfigPV, Settings } from "./interface";
+import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from "lz-string";
 
 export class Browser implements BrowserInterface {
   getConfigFromUrl(): ConfigParameters {
@@ -8,7 +9,7 @@ export class Browser implements BrowserInterface {
 
     const decodeParameter = (str: string) => {
       const [k, v] = str.split("=", 2);
-      return [k.replace("?", ""), v];
+      return [k, v];
     };
 
     const parsePV = (str: string): ConfigPV => {
@@ -36,7 +37,7 @@ export class Browser implements BrowserInterface {
       if (str.indexOf("_diff") !== -1 && diff !== true) {
         diff = true;
       }
-
+      
       return { optimize, diff, bins, pvname, color };
     };
 
@@ -48,8 +49,12 @@ export class Browser implements BrowserInterface {
       }
       return date;
     };
-
-    for (const str of decodeURIComponent(searchPath).split("&")) {
+    let url_path: string = searchPath.replace("?", "");
+    if(!url_path.includes("pv=")){
+      url_path = decompressFromEncodedURIComponent(
+        decodeURIComponent(searchPath).replace("?", ""));
+    }
+    for (const str of decodeURIComponent(url_path).split("&")) {
       const [k, v] = decodeParameter(str);
       switch (k) {
         case "pv":
@@ -94,7 +99,7 @@ export class Browser implements BrowserInterface {
   }
 
   updateAddress({ end, start, ref, pvs }: Settings): void {
-    let searchString = "?";
+    let searchString = "";
     pvs.forEach(({ bins, label, optimized, diff, color }) => {
       let stringPV = ""
 
@@ -117,7 +122,7 @@ export class Browser implements BrowserInterface {
     if(ref!=null){
       searchString += `ref=${encodeURIComponent(ref.toJSON())}`;
     }
-    this.pushAddress(searchString);
+    this.pushAddress("?"+compressToEncodedURIComponent(searchString));
   }
 
   setCookie(cname: string, cvalue: string, exdays: number): void {
