@@ -49,10 +49,12 @@ export class Browser implements BrowserInterface {
       }
       return date;
     };
+    const params = new URLSearchParams(window.location.search);
+    const compressedValues = params.get("pvConfig")
+    console.info(compressedValues)
     let url_path: string = searchPath.replace("?", "");
-    if(!url_path.includes("pv=")){
-      url_path = decompressFromEncodedURIComponent(
-        decodeURIComponent(searchPath).replace("?", ""));
+    if(compressedValues){
+      url_path = decompressFromEncodedURIComponent(compressedValues);
     }
     for (const str of decodeURIComponent(url_path).split("&")) {
       const [k, v] = decodeParameter(str);
@@ -122,7 +124,7 @@ export class Browser implements BrowserInterface {
     if(ref!=null){
       searchString += `ref=${encodeURIComponent(ref.toJSON())}`;
     }
-    this.pushAddress("?"+compressToEncodedURIComponent(searchString));
+    this.pushAddress("?pvConfig="+compressToEncodedURIComponent(searchString));
   }
 
   setCookie(cname: string, cvalue: string, exdays: number): void {
