@@ -20,7 +20,7 @@ class PlotPVsImpl implements PlotPVs {
 
   private async getPVMetadata(pv: string): Promise<ArchiverMetadata | null> {
     // Ask for the PV's metadata
-    return await archInterface.fetchMetadata(pv).catch((err) => {
+    return await archInterface.fetchMetadata(pv).catch((err): null => {
       console.log("Fetch metadata Exception", err);
       return null;
     });

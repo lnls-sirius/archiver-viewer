@@ -63,7 +63,7 @@ export class ArchiverDataAccess implements DataAccess{
         }
         return res.data;
       })
-      .catch((e) => {
+      .catch((e): null => {
         return null;
       });
 
@@ -264,7 +264,7 @@ export class ArchiverDataAccess implements DataAccess{
               )
           ]
           return {
-            meta: [],
+            meta: "",
             data: [error_list[res["error"]]]
           };
         }
