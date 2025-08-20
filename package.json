@@ -19,7 +19,6 @@
     "@use-it/event-listener": "^0.1.7",
     "axios": "^0.21.4",
     "babel-loader": "8.2.3",
-    "bootstrap-icons": "^1.13.1",
     "chart.js": "2.9.4",
     "core-js": "3.19.1",
     "css-loader": "6.5.1",
