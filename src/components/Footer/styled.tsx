@@ -17,4 +17,3 @@ export const FooterText = styled.p`
   font-weight: 300;
   margin: 2px 2px;
 `;
-export const FooterLink = styled.a``;
