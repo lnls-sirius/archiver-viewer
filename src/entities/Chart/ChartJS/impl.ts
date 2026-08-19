@@ -64,14 +64,10 @@ class ChartJSControllerImpl implements ChartJSController {
 
     let displayValue = "";
 
-    if (precision > 4) {
-      displayValue = value.toExponential(3);
-    } else if (precision > 0 && precision < 4) {
-      displayValue = value.toFixed(precision);
-    } else if (value !== 0 && Math.abs(value) < Math.pow(10, -precision)) {
-      displayValue = value.toExponential(Math.min(3, precision));
-    } else {
+    if (Math.abs(value * Math.pow(10, 3)) <= 1 || Math.abs(value) > Math.pow(10, 3)) {
       displayValue = value.toExponential(precision);
+    }else{
+      displayValue = value.toFixed(precision);
     }
 
     return `${label}: ${displayValue}`;
